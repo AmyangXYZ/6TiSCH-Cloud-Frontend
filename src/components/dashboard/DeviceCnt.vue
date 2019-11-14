@@ -9,14 +9,19 @@
         </span>
         <div class="dc-num">
           <h5>Gateways</h5>
-          <h3>2</h3>
+          <h3>{{gateways.length}}</h3>
         </div>
-      </div>
-      <!-- <div v-for="(gw,index) in gateways" :key="index" class="r">
+        <!-- <vs-collapse>
+    <vs-collapse-item>
+      <div v-for="(gw,index) in gateways" :key="index" class="r">
         <vs-radio @change="selectCurGW(gw)" v-model="curGW" :vs-value="gw">
             {{gw}}
         </vs-radio>
-      </div> -->
+      </div>
+      </vs-collapse-item>
+    </vs-collapse> -->
+      </div>
+     
     </vs-card>
   </vs-col>
   <vs-col style="z-index:99" vs-offset="0.6" vs-w="5.7">

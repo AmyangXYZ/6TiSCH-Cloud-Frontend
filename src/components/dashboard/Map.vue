@@ -1,8 +1,8 @@
 <template>
-  <vs-card > 
-    <GmapMap id="gmap" :center="center" :zoom="zoom">
+  <vs-card> 
+    <GmapMap id="gmap" :center="center" v-model="zoom" :zoom="zoom">
       <GmapMarker :key="index" v-for="(m,index) in markers" :position="m.position" :icon="icon"
-        :clickable="true" @click="center=m.position"/>
+        :clickable="true" @click="center=m.position;zoom=30"/>
       <GmapPolyline :options="lineOpt" 
         v-for="(m,index) in markers" :key="'x'+index"
         :path="[m.position,markers[0].position]">
@@ -22,7 +22,7 @@ export default {
       lineOpt: {
         strokeColor: 'grey',
       },
-      zoom: 20,
+      zoom: 20.2,
       center: {lat:41.806581, lng:-72.252763}, // ITEB
       markers: [],
     }
@@ -44,5 +44,5 @@ export default {
 <style lang="stylus" scoped>
 #gmap
     width 100%
-    height 550px
+    height 620px
 </style>

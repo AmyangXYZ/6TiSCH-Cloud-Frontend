@@ -1,16 +1,14 @@
 <template lang="html">
   <div>
-    <vs-table max-items="8" pagination v-model="selected" @selected="handleSelected" :data="sensors">
+    <vs-table max-items="10" pagination v-model="selected" @selected="handleSelected" :data="sensors">
       <template slot="header">
-        <h3 id="title">
-          Network Statistics
-        </h3>
+        <h4 id="title">Network Statistics</h4>
         <vs-select v-model="timeRange" width="80px" autocomplete @change="getNWStat()" id="time-selector">
           <vs-select-item :value="item.value" :text="item.text" v-for="(item,index) in timeRanges" :key="index"/>
         </vs-select>
       </template>
 
-      <template slot="thead">
+      <template slot="thead" >
         <vs-th sort-key="sensor_id">
           ID
         </vs-th>
@@ -31,14 +29,14 @@
             {{data[index].sensor_id}}
           </vs-td>
           <vs-td :data="data[index].avg_rtt">
-            {{data[index].avg_rtt}}
+            {{data[index].avg_rtt.toFixed(2)}}
           </vs-td>
-          <!-- <vs-td :data="data[index].id">
-            {{data[index].id}}
+          <vs-td :data="data[index].mac_per">
+            {{data[index].mac_per.toFixed(2)}}
           </vs-td>
-          <vs-td :data="data[index].id">
-            {{data[index].id}}
-          </vs-td>  -->
+          <vs-td :data="data[index].app_per">
+            {{data[index].app_per.toFixed(2)}}
+          </vs-td> 
         </vs-tr>
       </template>
     </vs-table>
@@ -66,7 +64,9 @@ export default {
       this.$api.gateway.getNWStat("UCONN_GW")
       .then(res=> {
         for(var i=0;i<res.data.data.length;i++){
-          res.data.data[i].avg_rtt = res.data.data[i].avg_rtt.toFixed(3)
+          // res.data.data[i].avg_rtt = res.data.data[i].avg_rtt
+          res.data.data[i].mac_per = res.data.data[i].avg_mac_tx_noack_diff/(res.data.data[i].avg_mac_tx_total_diff+0.000001)*100.0
+          res.data.data[i].app_per = res.data.data[i].avg_app_per_lost_diff/(res.data.data[i].avg_app_per_sent_diff+0.000001)*100.0
         }
         this.sensors = res.data.data
       })
