@@ -1,10 +1,10 @@
 <template>
   <vs-card > 
     <GmapMap id="gmap" :center="center" :zoom="zoom">
-      <GmapMarker :key="m.sensor_id" v-for="m in markers" :position="m.position" :icon="icon"
+      <GmapMarker :key="index" v-for="(m,index) in markers" :position="m.position" :icon="icon"
         :clickable="true" @click="center=m.position"/>
       <GmapPolyline :options="lineOpt" 
-        v-for="m in markers" :key="m.sensor_id"
+        v-for="(m,index) in markers" :key="'x'+index"
         :path="[m.position,markers[0].position]">
       </GmapPolyline>
     </GmapMap>
@@ -44,5 +44,5 @@ export default {
 <style lang="stylus" scoped>
 #gmap
     width 100%
-    height 500px
+    height 550px
 </style>

@@ -29,19 +29,19 @@ export default {
 #ntitle
   text-align right
   font-weight 500
-  font-size 1.6rem
+  font-size 1.8rem
   margin-left 90px
-  margin-bottom 35px
+  margin-bottom 20px
   #subtitle  
-    font-size 1.2rem
+    font-size 1.4rem
 #nbar
-  height 130px
+  height 135px
   z-index 1
   position absolute
-  margin-top -90px
+  margin-top -105px
   color white
   a
-    font-size 0.9rem
-    margin-right 20px
-    margin-bottom 35px
+    font-size 1rem
+    margin-right 30px
+    margin-bottom 20px
 </style>

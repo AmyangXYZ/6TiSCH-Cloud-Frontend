@@ -1,10 +1,13 @@
 <template lang="html">
   <div>
-    <vs-table stripe max-items="6" pagination :data="sensors">
+    <vs-table max-items="8" pagination v-model="selected" @selected="handleSelected" :data="sensors">
       <template slot="header">
         <h3 id="title">
-          Sensors
+          Network Statistics
         </h3>
+        <vs-select v-model="timeRange" width="80px" autocomplete @change="getNWStat()" id="time-selector">
+          <vs-select-item :value="item.value" :text="item.text" v-for="(item,index) in timeRanges" :key="index"/>
+        </vs-select>
       </template>
 
       <template slot="thead">
@@ -23,18 +26,18 @@
       </template>
 
       <template slot-scope="{data}">
-        <vs-tr :key="indextr" v-for="(tr, indextr) in data" >
-          <vs-td :data="data[indextr].sensor_id">
-            {{data[indextr].sensor_id}}
+        <vs-tr :data="tr" :key="index" v-for="(tr, index) in data" >
+          <vs-td :data="data[index].sensor_id">
+            {{data[index].sensor_id}}
           </vs-td>
-          <vs-td :data="data[indextr].avg_rtt">
-            {{data[indextr].avg_rtt}}
+          <vs-td :data="data[index].avg_rtt">
+            {{data[index].avg_rtt}}
           </vs-td>
-          <!-- <vs-td :data="data[indextr].id">
-            {{data[indextr].id}}
+          <!-- <vs-td :data="data[index].id">
+            {{data[index].id}}
           </vs-td>
-          <vs-td :data="data[indextr].id">
-            {{data[indextr].id}}
+          <vs-td :data="data[index].id">
+            {{data[index].id}}
           </vs-td>  -->
         </vs-tr>
       </template>
@@ -47,10 +50,19 @@ export default {
   data() {
     return {
       sensors: [],
+      selected: [],
+      timeRange: 1,
+      timeRanges: [
+        {text: 'hour', value:1},
+        {text: 'day', value:2},
+        {text: 'week', value:3},
+        {text: 'month', value:4},
+      ],
     }
   },
   methods: {
     getNWStat() {
+      window.console.log(this.timeRange)
       this.$api.gateway.getNWStat("UCONN_GW")
       .then(res=> {
         for(var i=0;i<res.data.data.length;i++){
@@ -64,6 +76,14 @@ export default {
       .then(res=> {
         window.console.log(res)
       })
+    },
+    handleSelected(tr) {
+      window.console.log(tr.sensor_id)
+      this.$vs.notify({
+        title: `Sensor ${tr.sensor_id} Selected`,
+        text: '',
+        color: "primary",
+      })
     }
   },
   mounted: function () {
@@ -75,4 +95,6 @@ export default {
 <style lang="stylus" scoped>
 #title
   margin 10px
+#time-selector
+  margin-right 20px
 </style>

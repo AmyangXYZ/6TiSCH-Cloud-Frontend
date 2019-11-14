@@ -5,13 +5,13 @@ const gateway = {
         return axios.get("/api/gateway")
     },
     getTopology(gw) {
-        return axios.get("/api/"+gw+"/topology")
+        return axios.get(`/api/${gw}/topology`)
     },
     getNWStat(gw) {
-        return axios.get("/api/"+gw+"/nwstat")
+        return axios.get(`/api/${gw}/nwstat`)
     },
     getNWStatByID(gw,id) {
-        return axios.get("/api/"+gw+"/nwstat/"+id)
+        return axios.get(`/api/${gw}/nwstat/${id}`)
     }
 }
 

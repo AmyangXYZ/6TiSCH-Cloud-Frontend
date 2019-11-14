@@ -20,7 +20,6 @@
         User
       </vs-divider>
 
-
       <vs-sidebar-item index="3" icon="account_box" >
         Profile
       </vs-sidebar-item>
