@@ -22,10 +22,10 @@ export default {
   },
   methods: {
     // id=0, draw all sensors' avg
-    drawRSSiChart(id) {
+    drawRSSiChart(gw,id) {
       var cTitle = "RSSi";
       if (id!=0) {
-        cTitle = "RSSi of Sensor " + id;
+        cTitle = `RSSi of Sensor ${id}, ${gw}`;
       }
       var base = +new Date(1968, 9, 3);
       var oneDay = 24 * 3600 * 1000;
@@ -51,7 +51,7 @@ export default {
           left: "left",
           text: cTitle,
           textStyle: {
-            fontSize: "20"
+            // fontSize: "20"
           }
         },
         xAxis: {
@@ -101,21 +101,19 @@ export default {
     }
   },
   mounted() {
-    this.drawRSSiChart(0);
-    this.$EventBus.$on("selectedSensor", (id) => {
-      this.drawRSSiChart(id);
+    this.drawRSSiChart("",0);
+    this.$EventBus.$on("selectedSensor", (sensor) => {
+      this.drawRSSiChart(sensor.gateway, sensor.sensor_id);
     });
   }
 };
 </script>
 
 <style lang="stylus" scoped>
-#c-card {
-  margin-top: 22px;
-}
+#c-card 
+  margin-top 22px
 
-.echarts {
-  width: 100%;
-  height: 237px;
-}
+.echarts 
+  width 100%
+  height 237px
 </style>

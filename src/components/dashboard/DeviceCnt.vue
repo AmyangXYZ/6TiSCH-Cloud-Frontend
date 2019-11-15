@@ -8,7 +8,7 @@
             </vs-col>
             <vs-col class="cnt" vs-offset="4" vs-w="3">
               <h5>Gateways</h5>
-              <h3>{{gateways.length}}</h3>
+              <h3>{{gateways.length-1}}</h3>
             </vs-col>
           </vs-row>
       </vs-card>
@@ -22,12 +22,11 @@
             </vs-col>
             <vs-col class="cnt" vs-offset="4.5" vs-w="3">
               <h5>Sensors</h5>
-              <h3>{{sensorCnts}}</h3>
+              <h3>{{sensorCnt}}</h3>
             </vs-col>
           </vs-row>
       </vs-card>
     </vs-col>
-          
   </vs-row> 
 </template>
 
@@ -36,9 +35,8 @@
 export default {
     data() {
         return {
-            curGW: "",
             gateways: [],
-            sensorCnts: 0,
+            sensorCnt: 0,
         }
     },
     methods: {    
@@ -46,7 +44,7 @@ export default {
             this.$api.gateway.getGateway()
             .then(res=> {
                 this.gateways = res.data.data
-                this.curGW = res.data.data[0]
+                this.$EventBus.$emit('gateways',res.data.data)
             })
         },
         selectCurGW(gw) {
@@ -61,7 +59,7 @@ export default {
     mounted() {
         this.getGateway();
         this.$EventBus.$on("sensorCnt", (n) => {
-          this.sensorCnts=n;
+          this.sensorCnt = n;
         });
     }
 }

@@ -15,6 +15,8 @@
 export default {
   data() {
     return {
+      range: "month",
+      gateway: "any",
       icon: {
         url: "https://amyang.xyz/uploadsfolder/marker.png",
         scaledSize: {width: 18, height: 25, f: 'px', b: 'px'},
@@ -22,15 +24,19 @@ export default {
       lineOpt: {
         strokeColor: 'grey',
       },
-      zoom: 20.6,
+      zoom: 20,
       center: {lat:41.806581, lng:-72.252763}, // ITEB
       markers: [],
     }
   },
   methods: {
-    drawTopology() {
-      this.$api.gateway.getTopology("UCONN_GW")
+    drawTopology(gw, range) {
+      this.$api.gateway.getTopology(gw, range)
       .then(res=> {
+        if (res.data.flag==0||res.data.data.length==0){
+          this.markers = []
+          return
+        }
         for(var i=0;i<res.data.data.length;i++) {
           // because there is no sensor 2...
           if(res.data.data[i].parent==1) {
@@ -42,23 +48,33 @@ export default {
           }
         }
         this.markers = res.data.data
-        // set global current gateway, default is gw[0]
-        this.$EventBus.$emit('selectedGW', res.data.data[0])
-        // todo...
         this.$EventBus.$emit('sensorCnt', res.data.data.length-1)
       })
     }
   },
   mounted() {
-    this.drawTopology();
-    this.$EventBus.$on('selectedSensor', (id) => {
+    this.drawTopology(this.gateway, this.range);
+    this.$EventBus.$on('selectedSensor', (sensor) => {
       for(var i=0;i<this.markers.length;i++) {
-        if(this.markers[i].sensor_id==id) {
+        if(this.markers[i].sensor_id==sensor.sensor_id) {
           this.center = this.markers[i].position
         }
       }
-      this.zoom = 30
+      this.zoom = 23
     });
+    // reset view
+    this.$EventBus.$on('selectedGW', (gw) => {
+      this.drawTopology(gw, this.range)
+      this.gateway = gw
+      this.center = {lat:41.806581, lng:-72.252763}
+      this.zoom = 20
+    });
+    this.$EventBus.$on("selectedRange", (r)=>{
+      this.drawTopology(this.gateway, r)
+      this.range = r
+      this.center = {lat:41.806581, lng:-72.252763}
+      this.zoom = 20
+    })
   }
 }
 </script>

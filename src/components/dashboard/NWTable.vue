@@ -1,16 +1,28 @@
 <template lang="html" >
   <div>
-    <vs-table id="nw-table" max-items="8" pagination v-model="selected" @selected="handleSelected" :data="sensors">
-      <template slot="header">
-        <h4 id="title">Network Statistics</h4>
-        <vs-select v-model="timeRange" width="80px" autocomplete @change="getNWStat()" id="time-selector">
-          <vs-select-item :value="item.value" :text="item.text" v-for="(item,index) in timeRanges" :key="index"/>
-        </vs-select>
-      </template>
+    <vs-table max-items="8" pagination v-model="selectedSensor" @selected="selectSensor" :data="sensors">
+      <vs-row slot="header" vs-align="center"  style="margin:6px">
+        <vs-col  vs-w="6">
+          <h4>Network Statistics</h4>
+        </vs-col>
+        <vs-col vs-offset="1.6" vs-w="1.8">
+          <vs-select v-model="selectedGW" width="120px" autocomplete @change="selectGW">
+            <vs-select-item :text="item" :value="item" v-for="(item,index) in gateways" :key="index"/>
+          </vs-select>
+        </vs-col>
+        <vs-col vs-offset="1" vs-w="1">
+          <vs-select v-model="selectedRange" width="80px" autocomplete @change="selectRange">
+            <vs-select-item :value="item" :text="item" v-for="(item,index) in ranges" :key="index"/>
+          </vs-select>
+        </vs-col>
+      </vs-row>
 
       <template slot="thead">
         <vs-th sort-key="sensor_id">
           ID
+        </vs-th>
+        <vs-th sort-key="gateway">
+          Gateway
         </vs-th>
         <vs-th sort-key="avg_rtt">
           LATENCY
@@ -24,9 +36,12 @@
       </template>
 
       <template slot-scope="{data}">
-        <vs-tr :data="tr" :key="index" v-for="(tr, index) in data" >
+        <vs-tr :data="tr" :key="index" v-for="(tr, index) in data">
           <vs-td :data="data[index].sensor_id">
             {{data[index].sensor_id}}
+          </vs-td>
+          <vs-td :data="data[index].gateway">
+            {{data[index].gateway}}
           </vs-td>
           <vs-td :data="data[index].avg_rtt">
             {{data[index].avg_rtt.toFixed(3)}}
@@ -47,22 +62,22 @@
 export default {
   data() {
     return {
+      gateways: [],
       sensors: [],
-      selected: [],
-      timeRange: 0,
-      timeRanges: [
-        {text: 'hour', value:0},
-        {text: 'day', value:1},
-        {text: 'week', value:2},
-        {text: 'month', value:3},
-      ],
+      selectedGW: 'any',
+      selectedSensor:[],
+      selectedRange: 'month',
+      ranges: ['hour','day','week','month']
     }
   },
   methods: {
-    getNWStat() {
-      window.console.log(this.timeRange)
-      this.$api.gateway.getNWStat("UCONN_GW")
+    getNWStat(gw, range) {
+      this.$api.gateway.getNWStat(gw, range)
       .then(res=> {
+        if (res.data.flag==0||res.data.data.length==0){
+          this.sensors = []
+          return
+        }
         for(var i=0;i<res.data.data.length;i++){
           res.data.data[i].mac_per = res.data.data[i].avg_mac_tx_noack_diff/(res.data.data[i].avg_mac_tx_total_diff+0.000001)*100.0
           res.data.data[i].app_per = res.data.data[i].avg_app_per_lost_diff/(res.data.data[i].avg_app_per_sent_diff+0.000001)*100.0
@@ -76,21 +91,32 @@ export default {
         window.console.log(res)
       })
     },
-    handleSelected(tr) {
-      this.$EventBus.$emit('selectedSensor', tr.sensor_id)
+    selectGW() {
+      this.$EventBus.$emit('selectedGW', this.selectedGW)
+    },
+    selectSensor(tr) {
+      this.$EventBus.$emit('selectedSensor', tr)
+    },
+    selectRange() {
+      this.$EventBus.$emit('selectedRange', this.selectedRange)
     }
   },
   mounted() {
-    this.getNWStat()
+    this.getNWStat(this.selectedGW, this.selectedRange)
+    this.$EventBus.$on("gateways", (gws)=>{
+      this.gateways=gws
+      this.gateways.unshift("any")
+    }) 
+    this.$EventBus.$on("selectedGW", (gw)=>{
+      this.getNWStat(gw, this.selectedRange)
+    })
+    this.$EventBus.$on("selectedRange", (r)=>{
+      this.getNWStat(this.selectedGW, r)
+    })
   }
 }
 </script>
 
 <style lang="stylus" scoped>
-#nw-table
-  height 428px
-#title
-  margin 10px
-#time-selector
-  margin-right 20px
+
 </style>
