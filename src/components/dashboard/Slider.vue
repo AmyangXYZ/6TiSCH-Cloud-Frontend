@@ -3,8 +3,7 @@
     <div class="sliders">
       <vs-row vs-align="flex-start" vs-w="12">
         <vs-col v-for="(f,i) in fs" :key="i" vs-offset="0.5" vs-w="5.2">
-          <span class="title">{{f.name}}:</span>
-        <span class="value">[{{f.value[0]}}, {{f.value[1]}}]</span>
+          <span class="title">{{f.name}}: [{{f.value[0]}}, {{f.value[1]}}]</span>
         <vs-slider :color="f.color" step=1 v-model="f.value"/>
         </vs-col>
       </vs-row>

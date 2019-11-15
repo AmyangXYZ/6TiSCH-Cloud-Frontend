@@ -29,13 +29,13 @@
             {{data[index].sensor_id}}
           </vs-td>
           <vs-td :data="data[index].avg_rtt">
-            {{data[index].avg_rtt.toFixed(2)}}
+            {{data[index].avg_rtt.toFixed(3)}}
           </vs-td>
           <vs-td :data="data[index].mac_per">
-            {{data[index].mac_per.toFixed(2)}}
+            {{data[index].mac_per.toFixed(3)}}
           </vs-td>
           <vs-td :data="data[index].app_per">
-            {{data[index].app_per.toFixed(2)}}
+            {{data[index].app_per.toFixed(3)}}
           </vs-td> 
         </vs-tr>
       </template>
@@ -49,12 +49,12 @@ export default {
     return {
       sensors: [],
       selected: [],
-      timeRange: 1,
+      timeRange: 0,
       timeRanges: [
-        {text: 'hour', value:1},
-        {text: 'day', value:2},
-        {text: 'week', value:3},
-        {text: 'month', value:4},
+        {text: 'hour', value:0},
+        {text: 'day', value:1},
+        {text: 'week', value:2},
+        {text: 'month', value:3},
       ],
     }
   },
@@ -64,7 +64,6 @@ export default {
       this.$api.gateway.getNWStat("UCONN_GW")
       .then(res=> {
         for(var i=0;i<res.data.data.length;i++){
-          // res.data.data[i].avg_rtt = res.data.data[i].avg_rtt
           res.data.data[i].mac_per = res.data.data[i].avg_mac_tx_noack_diff/(res.data.data[i].avg_mac_tx_total_diff+0.000001)*100.0
           res.data.data[i].app_per = res.data.data[i].avg_app_per_lost_diff/(res.data.data[i].avg_app_per_sent_diff+0.000001)*100.0
         }
@@ -78,15 +77,10 @@ export default {
       })
     },
     handleSelected(tr) {
-      this.$vs.notify({
-        title: `Sensor ${tr.sensor_id} Selected`,
-        text: '',
-        color: "primary",
-      })
       this.$EventBus.$emit('selectedSensor', tr.sensor_id)
     }
   },
-  mounted: function () {
+  mounted() {
     this.getNWStat()
   }
 }
