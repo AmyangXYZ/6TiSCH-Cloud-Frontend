@@ -14,13 +14,16 @@
         <vs-sidebar-item to="/analysis" index="2" icon="bar_chart" >
           Analysis
         </vs-sidebar-item>
+        <vs-sidebar-item to="/todo" index="3" icon="mood" >
+          Todo
+        </vs-sidebar-item>
       </vs-sidebar-group>
 
       <vs-divider icon="person" position="left" >
         User
       </vs-divider>
 
-      <vs-sidebar-item index="3" icon="account_box" >
+      <vs-sidebar-item index="4" icon="account_box" >
         Profile
       </vs-sidebar-item>
 
@@ -31,7 +34,6 @@
 
 <script>
 export default {
-  name:"Sidebar",
   data() {
     return {
       active: true,
