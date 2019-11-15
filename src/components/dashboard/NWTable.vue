@@ -1,6 +1,6 @@
-<template lang="html">
+<template lang="html" >
   <div>
-    <vs-table max-items="10" pagination v-model="selected" @selected="handleSelected" :data="sensors">
+    <vs-table id="nw-table" max-items="8" pagination v-model="selected" @selected="handleSelected" :data="sensors">
       <template slot="header">
         <h4 id="title">Network Statistics</h4>
         <vs-select v-model="timeRange" width="80px" autocomplete @change="getNWStat()" id="time-selector">
@@ -8,7 +8,7 @@
         </vs-select>
       </template>
 
-      <template slot="thead" >
+      <template slot="thead">
         <vs-th sort-key="sensor_id">
           ID
         </vs-th>
@@ -78,12 +78,12 @@ export default {
       })
     },
     handleSelected(tr) {
-      window.console.log(tr.sensor_id)
       this.$vs.notify({
         title: `Sensor ${tr.sensor_id} Selected`,
         text: '',
         color: "primary",
       })
+      this.$EventBus.$emit('selectedSensor', tr.sensor_id)
     }
   },
   mounted: function () {
@@ -93,6 +93,8 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+#nw-table
+  height 428px
 #title
   margin 10px
 #time-selector

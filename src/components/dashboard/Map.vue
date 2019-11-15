@@ -32,11 +32,21 @@ export default {
       this.$api.gateway.getTopology("UCONN_GW")
       .then(res=> {
         this.markers = res.data.data
+        // set global current gateway
+        this.$EventBus.$emit('selectedGW', res.data.data[0])
       })
     }
   },
   mounted: function () {
     this.drawTopology();
+    this.$EventBus.$on('selectedSensor', (id) => {
+      for(var i=0;i<this.markers.length;i++) {
+        if(this.markers[i].sensor_id==id) {
+          this.center = this.markers[i].position
+        }
+      }
+      this.zoom = 30
+    });
   }
 }
 </script>
@@ -44,5 +54,5 @@ export default {
 <style lang="stylus" scoped>
 #gmap
     width 100%
-    height 620px
+    height 638px
 </style>

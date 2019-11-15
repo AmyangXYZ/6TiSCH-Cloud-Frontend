@@ -4,16 +4,10 @@
       <vs-col style="z-index:99" vs-offset="1" vs-w="4">
         <DeviceCnt/>
         <NWTable/>
-      </vs-col>
-      <vs-col style="z-index:99" vs-offset="0.3" vs-w="6">
         <RSSChart/>
       </vs-col>
-    </vs-row>
-    <vs-row class="row-2" vs-align="flex-start" vs-w="12">
-      <vs-col vs-offset="1" vs-w="7">
+      <vs-col style="z-index:99" vs-offset="0.2" vs-w="6.1">
         <Map/>
-      </vs-col>
-      <vs-col vs-offset="0.3" vs-w="3">
         <Slider/>
       </vs-col>
     </vs-row> 
