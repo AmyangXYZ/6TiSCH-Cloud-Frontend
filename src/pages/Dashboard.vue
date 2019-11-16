@@ -4,7 +4,7 @@
       <vs-col style="z-index:99" vs-offset="1" vs-w="4">
         <DeviceCnt/>
         <NWTable/>
-        <RSSChart/>
+        <RSSiChart/>
       </vs-col>
       <vs-col style="z-index:99" vs-offset="0.2" vs-w="6.1">
         <Map/>
@@ -17,7 +17,7 @@
 <script>
 import DeviceCnt from '../components/dashboard/DeviceCnt'
 import NWTable from '../components/dashboard/NWTable'
-import RSSChart from '../components/dashboard/RSSChart'
+import RSSiChart from '../components/dashboard/RSSiChart'
 import Map from '../components/dashboard/Map'
 import Slider from '../components/dashboard/Slider'
 
@@ -25,7 +25,7 @@ export default {
     components: {
       DeviceCnt,
       NWTable,
-      RSSChart,
+      RSSiChart,
       Map,
       Slider,
     },

@@ -1,8 +1,8 @@
 import axios from './base'
 
 const gateway = {
-    getGateway(r) {
-        return axios.get(`/api/gateway?range=${r}`)
+    getGateway(range) {
+        return axios.get(`/api/gateway?range=${range}`)
     },
     getTopology(gw, range) {
         return axios.get(`/api/${gw}/topology?range=${range}`)
@@ -10,8 +10,8 @@ const gateway = {
     getNWStat(gw, range) {
         return axios.get(`/api/${gw}/nwstat?range=${range}`)
     },
-    getNWStatByID(gw, id, range) {
-        return axios.get(`/api/${gw}/nwstat/${id}?range=${range}`)
+    getNWStatByID(gw, id, range, adv) {
+        return axios.get(`/api/${gw}/nwstat/${id}?range=${range}&advanced=${adv}`)
     }
 }
 
