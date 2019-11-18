@@ -1,8 +1,8 @@
 <template>
   <vs-card> 
     <GmapMap ref="mymap" id="gmap" :center="center" v-model="zoom" :zoom="zoom">
-      <GmapMarker :key="index" v-for="(m,index) in markers" :position="m.position" :label="{text:m.sensor_id.toString(),color:'red'}" :icon="icon"
-        :clickable="true" @click="center=m.position;zoom=30"/>
+      <GmapMarker :key="index" v-for="(m,index) in markers" :position="m.position" :label="{text:m.sensor_id.toString(),color:'#2c3e50'}" :icon="icon"
+        :clickable="true" @click="panTo(m.position)"/>
       <GmapPolyline :options="lineOpt" 
         v-for="(m,index) in markers" :key="'x'+index"
         :path="[m.position, markers[m.parent-2].position]">
@@ -19,14 +19,8 @@ export default {
     return {
       range: "month",
       gateway: "any",
-      icon: {
-        url: "https://amyang.xyz/uploadsfolder/marker.png",
-        scaledSize: {width: 25, height: 25, f: 'px', b: 'px'},
-      },
-      label: {
-        text:"biu",
-        color: "red",
-      },
+      icon: {},
+      label: {},
       lineOpt: {
         strokeColor: 'grey',
       },
@@ -66,33 +60,50 @@ export default {
       })
     },
     drawTopology(gw, range) {
-      this.$api.gateway.getTopology(gw, range)
-      .then(res=> {
-        if (res.data.flag==0||res.data.data.length==0){
-          return
-        }
-        for(var i=0;i<res.data.data.length;i++) {
-          // because there is no sensor 2.
-          if(res.data.data[i].parent==1) {
-            res.data.data[i].parent++
+      this.$gmapApiPromiseLazy().then(() => {
+        this.$api.gateway.getTopology(gw, range)
+        .then(res=> {
+          if (res.data.flag==0||res.data.data.length==0){
+            this.markers = []
+            return
           }
-          // gateway itself
-          if(!res.data.data[i].parent) {
-            res.data.data[i].parent=2
+          for(var i=0;i<res.data.data.length;i++) {
+            // because there is no sensor 2.
+            if(res.data.data[i].parent==1) {
+              res.data.data[i].parent++
+            }
+            // gateway itself
+            if(!res.data.data[i].parent) {
+              res.data.data[i].parent=2
+            }
           }
-        }
-        this.markers = res.data.data
-        this.$EventBus.$emit('sensorCnt', res.data.data.length-1)
+          this.markers = res.data.data
+          this.icon = {
+            path: window.google.maps.SymbolPath.CIRCLE,
+            scale: 8,
+            fillColor: "#58B2EC",
+            fillOpacity: 1,
+            strokeColor: "#58B2EC",
+          }
+          this.$EventBus.$emit('sensorCnt', res.data.data.length-1)
+        })
+      })
+    },
+    panTo(position) {
+      this.$refs.mymap.$mapPromise.then((map) => {
+        map.panTo(position)
+        this.zoom = 23
       })
     }
   },
   mounted() {
     // this.drawHeatMap() 
+    
     this.drawTopology(this.gateway, this.range);
     this.$EventBus.$on('selectedSensor', (sensor) => {
       for(var i=0;i<this.markers.length;i++) {
         if(this.markers[i].sensor_id==sensor.sensor_id) {
-          this.center = this.markers[i].position
+          this.panTo(this.markers[i].position)
         }
       }
       this.zoom = 23

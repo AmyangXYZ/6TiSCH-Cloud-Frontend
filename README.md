@@ -1,7 +1,14 @@
 # 6TiSCH Cloud Frontend
 
-## Todo
+Frontend for 6TiSCH Testbed @ UConn
 
-- Communication between components
-- API redesign 
-- More components
+## Progress
+
+- [x] Device count
+- [x] Topology map
+- [x] Network statistic table
+- [x] RSSi chart for specific sensor
+- [x] Slider filter options
+- [ ] Battery map
+- [ ] Noise map
+- [ ] ...
