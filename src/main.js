@@ -7,14 +7,13 @@ import * as VueGoogleMaps from 'vue2-google-maps'
 import 'vuesax/dist/vuesax.css'
 import 'material-icons/iconfont/material-icons.css';
 
-
 Vue.prototype.$EventBus = new Vue()
 Vue.prototype.$api = api
 Vue.use(Vuesax)
 Vue.use(VueGoogleMaps, {
   load: {
     key: 'AIzaSyCsrBs8pBphKLsiDQHTrSVLgnIp3oTE-S0',
-    libraries: 'places, drawing', 
+    libraries: 'places,drawing,visualization', 
   },
   installComponents: true
 })
