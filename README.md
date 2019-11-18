@@ -2,6 +2,8 @@
 
 Frontend for 6TiSCH Testbed @ UConn
 
+![](./screenshot.png)
+
 ## Progress
 
 - [x] Device count
