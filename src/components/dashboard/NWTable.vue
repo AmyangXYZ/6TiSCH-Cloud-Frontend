@@ -66,7 +66,7 @@ export default {
       sensors: [],
       selectedGW: 'any',
       selectedSensor:[],
-      selectedRange: 'month',
+      selectedRange: 'hour',
       ranges: ['hour','day','week','month']
     }
   },
@@ -105,15 +105,18 @@ export default {
   },
   mounted() {
     this.getNWStat(this.selectedGW, this.selectedRange)
+    
     this.$EventBus.$on("gateways", (gws)=>{
       this.gateways=gws
       this.gateways.unshift("any")
     }) 
     this.$EventBus.$on("selectedGW", (gw)=>{
-      this.getNWStat(gw, this.selectedRange)
+      this.selectedGW = gw
+      this.getNWStat(this.selectedGW, this.selectedRange)
     })
     this.$EventBus.$on("selectedRange", (r)=>{
-      this.getNWStat(this.selectedGW, r)
+      this.selectedRange = r
+      this.getNWStat(this.selectedGW, this.selectedRange)
     })
   }
 }

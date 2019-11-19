@@ -17,6 +17,9 @@ export default {
   },
   data() {
     return {
+      selectedSensor: 3,
+      selectedGW: "UCONN_GW",
+      selectedRange: "hour",
       data: [],
       date: [],
       title: "RSSi",
@@ -106,9 +109,16 @@ export default {
     }
   },
   mounted() {
-    this.drawRSSiChart("UCONN_GW", 3, "month");
+    this.drawRSSiChart(this.selectedGW, this.selectedSensor, this.selectedRange);
+
     this.$EventBus.$on("selectedSensor", (sensor) => {
-      this.drawRSSiChart(sensor.gateway, sensor.sensor_id,"month",0);
+      this.selectedSensor = sensor.sensor_id
+      this.selectedGW = sensor.gateway
+      this.drawRSSiChart(this.selectedGW, this.selectedSensor, this.selectedRange);
+    });
+    this.$EventBus.$on("selectedRange", (range) => {
+      this.selectedRange = range
+      this.drawRSSiChart(this.selectedGW, this.selectedSensor, this.selectedRange);
     });
   }
 };
