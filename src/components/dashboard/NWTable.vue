@@ -5,13 +5,13 @@
         <vs-col  vs-w="6">
           <h4>Network Statistics</h4>
         </vs-col>
-        <vs-col vs-offset="1.6" vs-w="1.8">
-          <vs-select v-model="selectedGW" width="120px" autocomplete @change="selectGW">
+        <vs-col vs-offset="1.6" vs-w="2.3">
+          <vs-select v-model="selectedGW" width="100%" autocomplete @change="selectGW">
             <vs-select-item :text="item" :value="item" v-for="(item,index) in gateways" :key="index"/>
           </vs-select>
         </vs-col>
-        <vs-col vs-offset="1" vs-w="1">
-          <vs-select v-model="selectedRange" width="80px" autocomplete @change="selectRange">
+        <vs-col vs-offset="0.3" vs-w="1.6">
+          <vs-select v-model="selectedRange" width="100%" autocomplete @change="selectRange">
             <vs-select-item :value="item" :text="item" v-for="(item,index) in ranges" :key="index"/>
           </vs-select>
         </vs-col>

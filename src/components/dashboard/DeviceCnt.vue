@@ -68,7 +68,7 @@ export default {
 <style lang="stylus" scoped>
 
 .cnt
-  font-size 1.4rem
+  font-size 1.32rem
   >h3
     font-size 2rem
   >h5
