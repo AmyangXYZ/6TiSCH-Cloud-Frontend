@@ -38,7 +38,9 @@ export default {
           data.push(res.data.data[i].avg_rssi)
 
           var d = new Date(res.data.data[i].timestamp)
-          date.push(d.toJSON().substr(5, 14).replace('T', ' '))
+          // time zone diff
+          var curD = new Date(d.getTime() - (d.getTimezoneOffset() * 60000))
+          date.push(curD.toJSON().substr(5, 14).replace('T', ' '))
         }
       })
 
