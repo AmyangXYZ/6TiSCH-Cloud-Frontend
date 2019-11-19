@@ -2,7 +2,7 @@
   <vs-card> 
     <GmapMap ref="mymap" id="gmap" :center="center" v-model="zoom" :zoom="zoom">
       <GmapMarker :key="index" v-for="(m,index) in markers" :position="m.position" :label="{text:m.sensor_id.toString(),color:'#2c3e50'}" :icon="icon"
-        :clickable="true" @click="panTo(m.position)"/>
+        :clickable="true" @click="handleSelect(m)"/>
       <GmapPolyline :options="lineOpt" 
         v-for="(m,index) in markers" :key="'x'+index"
         :path="[m.position, markers[m.parent-2].position]">
@@ -89,10 +89,14 @@ export default {
         })
       })
     },
+    handleSelect(m) {
+      this.panTo(m.position);
+      this.zoom = 23
+      this.$EventBus.$emit('selectedSensor', m)
+    },
     panTo(position) {
       this.$refs.mymap.$mapPromise.then((map) => {
         map.panTo(position)
-        this.zoom = 23
       })
     }
   },
@@ -104,6 +108,7 @@ export default {
       for(var i=0;i<this.markers.length;i++) {
         if(this.markers[i].sensor_id==sensor.sensor_id) {
           this.panTo(this.markers[i].position)
+          this.zoom = 23
         }
       }
       this.zoom = 23
@@ -112,13 +117,13 @@ export default {
     this.$EventBus.$on('selectedGW', (gw) => {
       this.drawTopology(gw, this.range)
       this.gateway = gw
-      this.center = {lat:41.806581, lng:-72.252763}
+      this.panTo({lat:41.806581, lng:-72.252763})
       this.zoom = 20
     });
     this.$EventBus.$on("selectedRange", (r)=>{
       this.drawTopology(this.gateway, r)
       this.range = r
-      this.center = {lat:41.806581, lng:-72.252763}
+      this.panTo({lat:41.806581, lng:-72.252763})
       this.zoom = 20
     })
   }
