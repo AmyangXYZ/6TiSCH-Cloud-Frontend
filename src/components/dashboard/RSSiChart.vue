@@ -60,7 +60,7 @@ export default {
         },
         yAxis: {
           type: "value",
-          boundaryGap: ['20%', '20%'],
+          boundaryGap: ['40%', '40%'],
           scale: true
         },
         dataZoom: [
