@@ -17,34 +17,10 @@ export default {
   },
   data() {
     return {
-      option: {}
-    };
-  },
-  methods: {
-    drawRSSiChart(gw,id,range,adv) {
-      var cTitle = "RSSi";
-      if (id!=0) {
-        cTitle = `RSSi of Sensor ${id}, ${gw}`;
-      }
-      var data = []
-      var date = []
-      this.$api.gateway.getNWStatByID(gw, id, range, adv)
-      .then(res => {
-        if(res.data.flag == 0) {
-          
-          return
-        }
-        for(var i=0; i<res.data.data.length; i++) {
-          data.push(res.data.data[i].avg_rssi)
-
-          var d = new Date(res.data.data[i].timestamp)
-          // time zone diff
-          var curD = new Date(d.getTime() - (d.getTimezoneOffset() * 60000))
-          date.push(curD.toJSON().substr(5, 14).replace('T', ' '))
-        }
-      })
-
-      this.option = {
+      data: [],
+      date: [],
+      title: "RSSi",
+      option: {
         tooltip: {
           trigger: "axis",
           position: function(pt) {
@@ -53,12 +29,12 @@ export default {
         },
         title: {
           left: "left",
-          text: cTitle,
+          text: this.title,
         },
         xAxis: {
           type: "category",
           boundaryGap: false,
-          data: date,
+          data: this.date,
         },
         yAxis: {
           type: "value",
@@ -96,14 +72,41 @@ export default {
             itemStyle: {
               color: "rgb(255, 70, 131)"
             },
-            data: data,
+            data: this.data,
           }
         ]
-      };
+      },
+    };
+  },
+  methods: {
+    drawRSSiChart(gw,id,range) {
+      if (id!=0) {
+        this.title = `RSSi of Sensor ${id}, ${gw}`;
+      }
+
+      this.$api.gateway.getNWStatByID(gw, id, range, 0)
+      .then(res => {
+        this.data = []
+        this.date = []
+        if(res.data.flag == 0) {
+          return
+        }
+        for(var i=0; i<res.data.data.length; i++) {          
+          this.data.push(res.data.data[i].avg_rssi)
+
+          var d = new Date(res.data.data[i].timestamp)
+          // time zone diff
+          var curD = new Date(d.getTime() - (d.getTimezoneOffset() * 60000))
+          this.date.push(curD.toJSON().substr(5, 14).replace('T', ' '))
+        }
+        this.option.title.text = this.title
+        this.option.xAxis.data = this.date
+        this.option.series[0].data = this.data
+      })
     }
   },
   mounted() {
-    this.drawRSSiChart("UCONN_GW", 3, "month", 0);
+    this.drawRSSiChart("UCONN_GW", 3, "month");
     this.$EventBus.$on("selectedSensor", (sensor) => {
       this.drawRSSiChart(sensor.gateway, sensor.sensor_id,"month",0);
     });
