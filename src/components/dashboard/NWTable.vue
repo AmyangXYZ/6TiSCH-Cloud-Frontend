@@ -83,6 +83,8 @@ export default {
           res.data.data[i].app_per = res.data.data[i].avg_app_per_lost_diff/(res.data.data[i].avg_app_per_sent_diff+0.000001)*100.0
         }
         this.sensors = res.data.data
+
+        this.$EventBus.$emit('sensorCnt', res.data.data.length)
       })
     },
     getNWStatByID(id) {

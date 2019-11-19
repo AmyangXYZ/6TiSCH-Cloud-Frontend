@@ -85,7 +85,6 @@ export default {
             fillOpacity: 1,
             strokeColor: "#58B2EC",
           }
-          this.$EventBus.$emit('sensorCnt', res.data.data.length-1)
         })
       })
     },
