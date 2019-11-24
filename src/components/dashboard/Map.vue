@@ -62,8 +62,9 @@ export default {
       this.$gmapApiPromiseLazy().then(() => {
         this.$api.gateway.getTopology(gw, range)
         .then(res=> {
+          this.markers = []
+          this.lines = []
           if (res.data.flag==0||res.data.data.length==0){
-            this.markers = []
             return
           }
           this.$EventBus.$emit('sensorCnt', res.data.data.length-1)
@@ -106,6 +107,8 @@ export default {
         return
       }
       this.selelectedSensor = m
+
+      // high light
       for(var i=0;i<this.lines.length;i++) {
         if (m.position == this.lines[i].path[0] || m.position == this.lines[i].path[1]) {
           this.lines[i].option = {strokeColor:"rgba(102,102,102,0.9)"}
@@ -114,9 +117,9 @@ export default {
         }
       }
     },
-    topoReset() {
+    topoColorReset() {
       for(var i=0;i<this.lines.length;i++) {
-        this.lines[i].option = {strokeColor:"rgba(102,102,102, 0.5)"}
+        this.lines[i].option = {strokeColor:"rgba(102,102,102,0.5)"}
       }
     },
     panTo(position) {
