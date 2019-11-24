@@ -19,7 +19,7 @@ export default {
     return {
       selectedSensor: 3,
       selectedGW: "UCONN_GW",
-      selectedRange: "hour",
+      selectedRange: "day",
       data: [],
       date: [],
       title: "RSSi",

@@ -5,7 +5,7 @@
         <vs-col  vs-w="6">
           <h4>Network Statistics</h4>
         </vs-col>
-        <vs-col vs-offset="1.6" vs-w="2.3">
+        <vs-col vs-offset="1.5" vs-w="2.4">
           <vs-select v-model="selectedGW" width="100%" autocomplete @change="selectGW">
             <vs-select-item :text="item" :value="item" v-for="(item,index) in gateways" :key="index"/>
           </vs-select>
@@ -65,13 +65,13 @@ export default {
       gateways: [],
       sensors: [],
       selectedGW: 'any',
-      selectedSensor:[],
-      selectedRange: 'hour',
+      selectedSensor: {},
+      selectedRange: 'day',
       ranges: ['hour','day','week','month']
     }
   },
   methods: {
-    getNWStat(gw, range) {
+    drawNWTable(gw, range) {
       this.$api.gateway.getNWStat(gw, range)
       .then(res=> {
         if (res.data.flag==0||res.data.data.length==0){
@@ -83,8 +83,6 @@ export default {
           res.data.data[i].app_per = res.data.data[i].avg_app_per_lost_diff/(res.data.data[i].avg_app_per_sent_diff+0.000001)*100.0
         }
         this.sensors = res.data.data
-
-        this.$EventBus.$emit('sensorCnt', res.data.data.length)
       })
     },
     getNWStatByID(id) {
@@ -104,19 +102,19 @@ export default {
     }
   },
   mounted() {
-    this.getNWStat(this.selectedGW, this.selectedRange)
-    
+    this.drawNWTable(this.selectedGW, this.selectedRange)
+
     this.$EventBus.$on("gateways", (gws)=>{
       this.gateways=gws
       this.gateways.unshift("any")
     }) 
     this.$EventBus.$on("selectedGW", (gw)=>{
       this.selectedGW = gw
-      this.getNWStat(this.selectedGW, this.selectedRange)
+      this.drawNWTable(this.selectedGW, this.selectedRange)
     })
     this.$EventBus.$on("selectedRange", (r)=>{
       this.selectedRange = r
-      this.getNWStat(this.selectedGW, this.selectedRange)
+      this.drawNWTable(this.selectedGW, this.selectedRange)
     })
   }
 }

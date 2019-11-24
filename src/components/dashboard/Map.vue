@@ -1,12 +1,12 @@
 <template>
   <vs-card> 
     <GmapMap ref="mymap" id="gmap" :center="center" v-model="zoom" :zoom="zoom">
-      <GmapMarker :key="index" v-for="(m,index) in markers" :position="m.position" :label="{text:m.sensor_id.toString(),color:'#2c3e50'}" :icon="icon"
-        :clickable="true" @click="handleSelect(m)"/>
-      <GmapPolyline :options="lineOpt" 
-        v-for="(m,index) in markers" :key="'x'+index"
-        :path="[m.position, markers[m.parent-2].position]">
-      </GmapPolyline>
+      <GmapMarker :key="i" v-for="(m,i) in markers" :position="m.position" :label="{text:m.sensor_id.toString(),color:'#2c3e50'}" :icon="icon"
+        :clickable="true" @click="handleClick(m)"/>
+      <!-- <GmapPolyline v-for="(m,index) in markers" :key="'x'+index"
+        :path="[m.position, markers[m.parent-2].position]" :options="m.lineOpt">
+      </GmapPolyline> -->
+      <GmapPolyline v-for="(line,i) in lines" :key="'l'+i" :path="line.path" :options="line.option" /> 
     </GmapMap>
   </vs-card>
 </template>
@@ -17,16 +17,15 @@ import result from './result2.json'
 export default {
   data() {
     return {
-      range: "month",
-      gateway: "any",
+      selectedGW: "any",
+      selectedRange: "day",
+      selelectedSensor: {},
       icon: {},
       label: {},
-      lineOpt: {
-        strokeColor: 'grey',
-      },
       zoom: 20,
       center: {lat:41.806581, lng:-72.252763}, // ITEB
       markers: [],
+      lines:[],
     }
   },
   methods: {
@@ -67,6 +66,8 @@ export default {
             this.markers = []
             return
           }
+          this.$EventBus.$emit('sensorCnt', res.data.data.length-1)
+
           for(var i=0;i<res.data.data.length;i++) {
             // because there is no sensor 2.
             if(res.data.data[i].parent==1) {
@@ -76,6 +77,14 @@ export default {
             if(!res.data.data[i].parent) {
               res.data.data[i].parent=2
             }
+
+            // generate lines
+            this.lines.push({
+              path: [res.data.data[i].position, res.data.data[res.data.data[i].parent-2].position],
+              option: {
+                strokeColor: 'rgba(102,102,102, 0.5)',
+              },
+            })
           }
           this.markers = res.data.data
           this.icon = {
@@ -88,10 +97,27 @@ export default {
         })
       })
     },
-    handleSelect(m) {
-      this.panTo(m.position);
-      this.zoom = 23
+    handleClick(m) {
       this.$EventBus.$emit('selectedSensor', m)
+      // double click -> reset
+      if(m==this.selelectedSensor) {
+        this.topoReset()
+        this.selelectedSensor = {}
+        return
+      }
+      this.selelectedSensor = m
+      for(var i=0;i<this.lines.length;i++) {
+        if (m.position == this.lines[i].path[0] || m.position == this.lines[i].path[1]) {
+          this.lines[i].option = {strokeColor:"rgba(102,102,102,0.9)"}
+        } else {
+          this.lines[i].option = {strokeColor:"rgba(192,192,192,0.3)"}
+        }
+      }
+    },
+    topoReset() {
+      for(var i=0;i<this.lines.length;i++) {
+        this.lines[i].option = {strokeColor:"rgba(102,102,102, 0.5)"}
+      }
     },
     panTo(position) {
       this.$refs.mymap.$mapPromise.then((map) => {
@@ -101,8 +127,8 @@ export default {
   },
   mounted() {
     // this.drawHeatMap() 
-    
-    this.drawTopology(this.gateway, this.range);
+    this.drawTopology(this.selectedGW, this.selectedRange);
+
     this.$EventBus.$on('selectedSensor', (sensor) => {
       for(var i=0;i<this.markers.length;i++) {
         if(this.markers[i].sensor_id==sensor.sensor_id) {
@@ -110,18 +136,16 @@ export default {
           this.zoom = 23
         }
       }
-      this.zoom = 23
     });
-    // reset view
     this.$EventBus.$on('selectedGW', (gw) => {
-      this.drawTopology(gw, this.range)
-      this.gateway = gw
+      this.selectedGW = gw
+      this.drawTopology(this.selectedGW, this.range)
       this.panTo({lat:41.806581, lng:-72.252763})
       this.zoom = 20
     });
-    this.$EventBus.$on("selectedRange", (r)=>{
-      this.drawTopology(this.gateway, r)
-      this.range = r
+    this.$EventBus.$on("selectedRange", (range)=>{
+      this.selectedRange = range
+      this.drawTopology(this.selectedGW, this.selectedRange)
       this.panTo({lat:41.806581, lng:-72.252763})
       this.zoom = 20
     })
