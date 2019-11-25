@@ -1,7 +1,7 @@
 <template lang="html" >
   <div>
-    <vs-table max-items="8" pagination v-model="selectedSensor" @selected="selectSensor" :data="sensors">
-      <vs-row slot="header" vs-align="center"  style="margin:6px">
+    <vs-table :max-items="maxItems" pagination :currentPage="currentPage" v-model="selectedSensor" @selected="selectSensor" :data="sensors">
+      <vs-row slot="header" vs-align="center" style="margin:6px">
         <vs-col  vs-w="6">
           <h4>Network Statistics</h4>
         </vs-col>
@@ -66,12 +66,15 @@ export default {
       sensors: [],
       selectedGW: 'any',
       selectedSensor: {},
+      maxItems: 8,
+      currentPage: 0,
       selectedRange: 'day',
       ranges: ['hour','day','week','month']
     }
   },
   methods: {
     drawNWTable(gw, range) {
+      
       this.$api.gateway.getNWStat(gw, range)
       .then(res=> {
         if (res.data.flag==0||res.data.data.length==0){
@@ -82,13 +85,9 @@ export default {
           res.data.data[i].mac_per = res.data.data[i].avg_mac_tx_noack_diff/(res.data.data[i].avg_mac_tx_total_diff+0.000001)*100.0
           res.data.data[i].app_per = res.data.data[i].avg_app_per_lost_diff/(res.data.data[i].avg_app_per_sent_diff+0.000001)*100.0
         }
-        this.sensors = res.data.data
-      })
-    },
-    getNWStatByID(id) {
-      this.$api.gateway.getNWStatByID("UCONN_GW", id)
-      .then(res=> {
-        window.console.log(res)
+        this.sensors = res.data.data.sort(function(a,b) {
+          return a.sensor_id - b.sensor_id
+        });
       })
     },
     selectGW() {
@@ -99,7 +98,7 @@ export default {
     },
     selectRange() {
       this.$EventBus.$emit('selectedRange', this.selectedRange)
-    }
+    },
   },
   mounted() {
     this.drawNWTable(this.selectedGW, this.selectedRange)
@@ -108,6 +107,11 @@ export default {
       this.gateways=gws
       this.gateways.unshift("any")
     }) 
+    // handle sensor selection from Map
+    this.$EventBus.$on("selectedSensor", (s)=>{
+      this.selectedSensor = this.sensors[s.sensor_id-3]
+      this.currentPage = parseInt((s.sensor_id-3+8)/8)
+    })
     this.$EventBus.$on("selectedGW", (gw)=>{
       this.selectedGW = gw
       this.drawNWTable(this.selectedGW, this.selectedRange)

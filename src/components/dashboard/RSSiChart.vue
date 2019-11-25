@@ -71,7 +71,8 @@ export default {
             type: "line",
             smooth: true,
             symbol: "none",
-            sampling: "average",
+            // sampling leads to merge issue
+            // sampling: "average",
             itemStyle: {
               color: "rgb(255, 70, 131)"
             },
@@ -86,7 +87,6 @@ export default {
       if (id!=0) {
         this.title = `RSSi of Sensor ${id}, ${gw}`;
       }
-
       this.$api.gateway.getNWStatByID(gw, id, range, 0)
       .then(res => {
         this.data = []

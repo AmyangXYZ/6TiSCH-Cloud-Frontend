@@ -19,7 +19,11 @@ export default {
     return {
       selectedGW: "any",
       selectedRange: "day",
-      selelectedSensor: {},
+      selectedSensor: {},
+      latencyRange: [],
+      noiseLvRange: [],
+      macPERRange: [],
+      appPERRange: [],
       icon: {},
       label: {},
       zoom: 20,
@@ -86,6 +90,7 @@ export default {
                 strokeColor: 'rgba(102,102,102, 0.5)',
               },
             })
+            
           }
           this.markers = res.data.data
           this.icon = {
@@ -101,12 +106,12 @@ export default {
     handleClick(m) {
       this.$EventBus.$emit('selectedSensor', m)
       // double click -> reset
-      if(m==this.selelectedSensor) {
-        this.topoReset()
-        this.selelectedSensor = {}
+      if(m==this.selectedSensor) {
+        this.topoColorReset()
+        this.selectedSensor = {}
         return
       }
-      this.selelectedSensor = m
+      this.selectedSensor = m
 
       // high light
       for(var i=0;i<this.lines.length;i++) {
