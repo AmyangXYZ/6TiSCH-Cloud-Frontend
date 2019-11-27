@@ -1,3 +1,5 @@
 module.exports = {
-  assetsDir: 'static'
+  assetsDir: 'static',
+  // webpack css error
+  css: { extract: false }
 }

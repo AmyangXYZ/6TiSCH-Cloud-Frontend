@@ -33,7 +33,7 @@ html, body {
 }
 
 /* vertical align issue */
-.material-icons, .fa {
+.material-icons {
     display: inline-block;
     font-size: inherit;
     line-height: inherit;
@@ -47,10 +47,5 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
   margin-top: 105px;
-}
-.material-icons {
-  font-size: inherit;
-  line-height: inherit;
-  vertical-align: bottom;
 }
 </style>
