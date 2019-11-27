@@ -6,7 +6,7 @@
             <vs-col vs-w="3">
               <vs-icon size="60px" icon="router" color="#B4A3DB"></vs-icon>
             </vs-col>
-            <vs-col class="cnt" vs-offset="4" vs-w="3">
+            <vs-col class="cnt" vs-offset="4" vs-w="5">
               <h5>Gateways</h5>
               <h3>{{gateways.length-1}}</h3>
             </vs-col>
@@ -20,7 +20,7 @@
             <vs-col vs-w="3">
               <vs-icon size="60px" icon="memory" color="#58B2EC"></vs-icon>
             </vs-col>
-            <vs-col class="cnt" vs-offset="4.5" vs-w="3">
+            <vs-col class="cnt" vs-offset="4.5" vs-w="4.5">
               <h5>Sensors</h5>
               <h3>{{sensorCnt}}</h3>
             </vs-col>
@@ -66,9 +66,13 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+.material-icons 
+  margin-bottom -10px
 
 .cnt
   font-size 1.32rem
+  margin-bottom -5px
+  overflow hidden
   >h3
     font-size 2rem
   >h5

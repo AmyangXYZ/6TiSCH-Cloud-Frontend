@@ -7,8 +7,8 @@
         <RSSiChart/>
       </vs-col>
       <vs-col style="z-index:99" vs-offset="0.2" vs-w="6.1">
-        <Map/>
         <Slider/>
+        <Map/>
       </vs-col>
     </vs-row> 
   </div>

@@ -32,11 +32,25 @@ html, body {
   font-size: 1.2rem;
 }
 
+/* vertical align issue */
+.material-icons, .fa {
+    display: inline-block;
+    font-size: inherit;
+    line-height: inherit;
+    vertical-align: middle;
+    transform: translateY(-.1em);
+}
+
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
   margin-top: 105px;
+}
+.material-icons {
+  font-size: inherit;
+  line-height: inherit;
+  vertical-align: bottom;
 }
 </style>

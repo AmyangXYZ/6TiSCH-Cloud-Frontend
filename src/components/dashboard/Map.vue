@@ -1,13 +1,26 @@
 <template>
-  <vs-card> 
-    <GmapMap ref="mymap" id="gmap" :center="center" v-model="zoom" :zoom="zoom">
-      <GmapMarker :key="i" v-for="(m,i) in markers" :position="m.position" :label="{text:m.sensor_id.toString(),color:'#2c3e50'}" :icon="icon"
-        :clickable="true" @click="handleClick(m)"/>
-      <!-- <GmapPolyline v-for="(m,index) in markers" :key="'x'+index"
-        :path="[m.position, markers[m.parent-2].position]" :options="m.lineOpt">
-      </GmapPolyline> -->
-      <GmapPolyline v-for="(line,i) in lines" :key="'l'+i" :path="line.path" :options="line.option" /> 
-    </GmapMap>
+  <vs-card>
+    <div slot="header">
+      <vs-row vs-align="center" vs-justify="space-between">
+        <vs-col vs-w="2.5" vs-type="flex" vs-justify="space-between" vs-align="center">
+          <vs-button color="danger" @click="showFilters" icon="filter_list" size="small">
+            Filters
+          </vs-button>
+          <vs-button color="#1F7BBB" @click="showLayers" icon="layers" size="small">
+            Layers
+          </vs-button>
+        </vs-col>
+        <vs-col vs-w="3" vs-type="flex" vs-justify="flex-end" vs-align="center">
+          <vs-button color="#860262" @click="clearMap" icon="clear_all" size="small">
+            Clear
+          </vs-button>
+        </vs-col>
+      </vs-row>
+      <GmapMap ref="mymap" id="gmap" :center="center" v-model="zoom" :zoom="zoom">
+        <GmapMarker :key="i" v-for="(m,i) in markers" :position="m.position" :label="{text:m.sensor_id.toString(),color:'#2c3e50'}" :icon="icon" :clickable="true" @click="handleClick(m)"/>
+        <GmapPolyline v-for="(line,i) in lines" :key="'l'+i" :path="line.path" :options="line.option"/> 
+      </GmapMap>
+    </div>
   </vs-card>
 </template>
 
@@ -28,6 +41,7 @@ export default {
       label: {},
       zoom: 20,
       center: {lat:41.806581, lng:-72.252763}, // ITEB
+      sensors : [],
       markers: [],
       lines:[],
     }
@@ -92,6 +106,8 @@ export default {
             })
             
           }
+          // sensors data backup
+          this.sensors = res.data.data
           this.markers = res.data.data
           this.icon = {
             path: window.google.maps.SymbolPath.CIRCLE,
@@ -104,7 +120,8 @@ export default {
       })
     },
     handleClick(m) {
-      this.$EventBus.$emit('selectedSensor', m)
+      // not gateway
+      if(m.sensor_id!=1) this.$EventBus.$emit('selectedSensor', m)
       // double click -> reset
       if(m==this.selectedSensor) {
         this.topoColorReset()
@@ -131,6 +148,17 @@ export default {
       this.$refs.mymap.$mapPromise.then((map) => {
         map.panTo(position)
       })
+    },
+    showFilters() {
+      this.$EventBus.$emit("showFilters","1")
+    },
+    showLayers() {
+      this.$EventBus.$emit("showLayers","1")
+    },
+    clearMap() {
+      this.$EventBus.$emit("showFilters","1")
+      this.$EventBus.$emit("showLayers","1")
+      this.drawTopology(this.selectedGW, this.selectedRange);
     }
   },
   mounted() {
@@ -157,12 +185,26 @@ export default {
       this.panTo({lat:41.806581, lng:-72.252763})
       this.zoom = 20
     })
+
+    this.$EventBus.$on("shownSensors", (shownSensors)=>{
+      var tmp = []
+      for(var i=0;i<this.sensors.length;i++) {
+        for(var j=0;j<shownSensors.length;j++) {
+          if(this.sensors[i].sensor_id == shownSensors[j]) {
+            tmp.push(this.sensors[i])
+          }
+        }
+      }
+      this.markers = tmp
+      this.lines = []
+    })
   }
 }
 </script>
 
 <style lang="stylus" scoped>
 #gmap
+    margin-top 8px
     width 100%
     height 638px
 </style>
