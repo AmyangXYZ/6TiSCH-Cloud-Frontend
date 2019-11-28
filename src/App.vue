@@ -18,6 +18,14 @@ export default {
     Navbar,
     Sidebar,
   },
+  mounted() { 
+    if (navigator.userAgent.indexOf("Linux") > -1) {
+        var icons = document.getElementsByClassName('material-icons')
+        for(var i=0;i<icons.length;i++) {
+          icons[i].style.transform = 'translateY(-.1em)'
+        }
+    }
+  }
 }
 
 </script>
@@ -30,15 +38,6 @@ html, body {
   padding: 0;
   background-color: #EBECF1;
   font-size: 1.2rem;
-}
-
-/* vertical align issue */
-.material-icons {
-    display: inline-block;
-    font-size: inherit;
-    line-height: inherit;
-    vertical-align: middle;
-    transform: translateY(-.1em);
 }
 
 #app {
