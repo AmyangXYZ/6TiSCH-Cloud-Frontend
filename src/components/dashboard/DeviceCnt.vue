@@ -67,11 +67,10 @@ export default {
 
 <style lang="stylus" scoped>
 .material-icons 
-  margin-bottom -10px
+  // margin-bottom -10px
 
 .cnt
   font-size 1.32rem
-  margin-bottom -5px
   overflow hidden
   >h3
     font-size 2rem

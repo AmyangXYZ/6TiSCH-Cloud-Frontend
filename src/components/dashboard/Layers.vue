@@ -1,29 +1,31 @@
 <template>
 <transition name="expand">
-  <vs-card v-if="show">
-    <div class="layers">
-      <vs-row vs-type="flex" vs-align="center" vs-justify="space-around">
-        <vs-col vs-w="2" vs-type="flex" vs-justify="center" vs-align="center">
+  <vs-card v-if="show" class="layers">
+    <div slot="header">
+      <vs-row vs-type="flex" vs-align="flex-start" vs-justify="space-around">
+        <vs-col vs-w="3" vs-type="flex" vs-justify="center" vs-align="center">
           <vs-button color="success" :type="buttonTypes[currentBtType.powerMap]" @click="showPowerLayer" 
             icon-pack="fa" icon="fa-car-battery" size="small">
             Power Layer
           </vs-button>
         </vs-col>
-        <vs-col vs-w="2"  vs-type="flex" vs-justify="center" vs-align="center" >
-          <vs-button color="#f26522" :type="buttonTypes[currentBtType.noiseLv]" @click="showNoiseLayer" icon-pack="fa" icon="fa-rss" size="small">
+        <vs-col vs-w="3"  vs-type="flex" vs-justify="center" vs-align="center" >
+          <vs-button color="#EAB835" :type="buttonTypes[currentBtType.noiseLv]" @click="showNoiseLayer" 
+            icon-pack="fa" icon="fa-rss" size="small">
             Noise Layer
           </vs-button>
         </vs-col>
-        <vs-col vs-w="2"  vs-type="flex" vs-justify="center" vs-align="center" >
-          <vs-button color="#860262" :type="buttonTypes[currentBtType.layer3]" @click="clearMap" icon="clear_all" size="small">
+        <vs-col vs-w="3"  vs-type="flex" vs-justify="center">
+          <vs-button color="primary" :type="buttonTypes[currentBtType.layer3]" @click="showLayer3" 
+            icon-pack="fa" icon="fa-cookie" size="small">
             Layer 3
           </vs-button>
         </vs-col>
-        <vs-col vs-w="2"  vs-type="flex" vs-justify="center" vs-align="center" >
+        <!-- <vs-col vs-w="2"  vs-type="flex" vs-justify="center" vs-align="center" >
           <vs-button color="primary" :type="buttonTypes[currentBtType.layer4]" @click="clearMap" icon="clear_all" size="small">
             Layer 4
           </vs-button>
-        </vs-col>
+        </vs-col> -->
       </vs-row>
     </div>
   </vs-card>
@@ -38,11 +40,10 @@ export default {
       buttonTypes: ["line","filled"],
       currentBtType: {
         powerMap: 0,
-        noiseLv:0,
-        layer3:0,
-        layer4:0,
+        noiseLv: 0,
+        layer3: 0,
+        layer4: 0,
       },
-      showNoiseMap: false,
       // all sensors
       sensors: [],
       // sensors shown on map
@@ -57,6 +58,9 @@ export default {
     },
     showNoiseLayer() {
       this.currentBtType.noiseLv = 1-this.currentBtType.noiseLv
+    },
+    showLayer3() {
+      this.currentBtType.layer3 = 1-this.currentBtType.layer3
     }
   },
   mounted() {
@@ -71,11 +75,11 @@ export default {
 
 <style lang="stylus" scoped>
 .layers
-  font-size 1.1rem
+  height 55px
 
 .expand-enter-active, .expand-leave-active 
   transition all .3s
-  height 52px
+  height 60px
   overflow: hidden;
 .expand-enter, .expand-leave-to
   height 0px

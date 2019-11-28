@@ -36,7 +36,4 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-.row-2
-  margin-top 25px
-  margin-bottom  25px
 </style>
