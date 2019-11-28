@@ -75,8 +75,10 @@ export default {
   },
   mounted() {
     this.getNWStat()
-    this.$EventBus.$on("showFilters", ()=>{
-      this.show = !this.show
+    this.$EventBus.$on("showFilters", (sig)=>{
+      if(sig)this.show = !this.show
+      // force clear
+      else this.show = false
     })
   },
 }

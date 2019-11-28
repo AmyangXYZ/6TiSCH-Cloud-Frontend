@@ -150,14 +150,14 @@ export default {
       })
     },
     showFilters() {
-      this.$EventBus.$emit("showFilters","1")
+      this.$EventBus.$emit("showFilters", 1)
     },
     showLayers() {
-      this.$EventBus.$emit("showLayers","1")
+      this.$EventBus.$emit("showLayers", 1)
     },
     clearMap() {
-      this.$EventBus.$emit("showFilters","1")
-      this.$EventBus.$emit("showLayers","1")
+      this.$EventBus.$emit("showFilters", 0)
+      this.$EventBus.$emit("showLayers", 0)
       this.drawTopology(this.selectedGW, this.selectedRange);
     }
   },

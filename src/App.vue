@@ -17,17 +17,8 @@ export default {
   components: {
     Navbar,
     Sidebar,
-  },
-  mounted() { 
-    if (navigator.userAgent.indexOf("Linux") > -1) {
-        var icons = document.getElementsByClassName('material-icons')
-        for(var i=0;i<icons.length;i++) {
-          icons[i].style.transform = 'translateY(-.1em)'
-        }
-    }
   }
 }
-
 </script>
 
 <style>

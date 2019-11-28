@@ -1,0 +1,74 @@
+<template>
+<transition name="expand">
+  <vs-card v-if="show">
+    <div class="layers">
+      <vs-row vs-type="flex" vs-align="center" vs-justify="space-around">
+        <vs-col vs-w="2" vs-type="flex" vs-justify="center" vs-align="center">
+          <vs-button color="success" :type="powerButtonType" @click="showPowerLayer" icon-pack="fa" icon="fa-car-battery" size="small">
+            Power Layer
+          </vs-button>
+        </vs-col>
+        <vs-col vs-w="2"  vs-type="flex" vs-justify="center" vs-align="center" >
+          <vs-button color="#f26522" @click="showNoiseLayer" icon-pack="fa" icon="fa-rss" size="small">
+            Noise Layer
+          </vs-button>
+        </vs-col>
+        <vs-col vs-w="2"  vs-type="flex" vs-justify="center" vs-align="center" >
+          <vs-button color="#860262" @click="clearMap" icon="clear_all" size="small">
+            Layer 3
+          </vs-button>
+        </vs-col>
+        <vs-col vs-w="2"  vs-type="flex" vs-justify="center" vs-align="center" >
+          <vs-button color="#860262" @click="clearMap" icon="clear_all" size="small">
+            Layer 4
+          </vs-button>
+        </vs-col>
+      </vs-row>
+    </div>
+  </vs-card>
+</transition>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      show: true,
+      powerButtonType: "line",
+      showNoiseMap: false,
+      // all sensors
+      sensors: [],
+      // sensors shown on map
+      shownSensors: [],
+      selectedGW: "any",
+      timeRange: "day",
+    }
+  },
+  methods: {
+    showPowerLayer() {
+      if(this.powerButtonType=="filled") this.powerButtonType = "line"
+      else this.powerButtonType = "filled"
+
+    }
+  },
+  mounted() {
+    this.$EventBus.$on("showLayers", (sig)=>{
+      if(sig)this.show = !this.show
+      // force clear
+      else this.show = false
+    })
+  },
+}
+</script>
+
+<style lang="stylus" scoped>
+.layers
+  font-size 1.1rem
+
+.expand-enter-active, .expand-leave-active 
+  transition all .3s
+  height 52px
+  overflow: hidden;
+.expand-enter, .expand-leave-to
+  height 0px
+</style>
