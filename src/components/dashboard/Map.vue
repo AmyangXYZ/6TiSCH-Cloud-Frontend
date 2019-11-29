@@ -2,11 +2,11 @@
   <vs-card>
     <div slot="header">
       <vs-row vs-align="center" vs-justify="space-between">
-        <vs-col vs-w="2.5" vs-type="flex" vs-justify="space-between" vs-align="center">
-          <vs-button color="danger" @click="showFilters" icon="filter_list" size="small">
+        <vs-col vs-w="2.5" vs-type="flex" vs-align="center">
+          <vs-button id="fBt" color="danger" @click="showFilters" icon="filter_list" size="small">
             Filters
           </vs-button>
-          <vs-button color="#1F7BBB" @click="showLayers" icon="layers" size="small">
+          <vs-button id="lBt" color="#1F7BBB" @click="showLayers" icon="layers" size="small">
             Layers
           </vs-button>
         </vs-col>
@@ -175,7 +175,7 @@ export default {
     });
     this.$EventBus.$on('selectedGW', (gw) => {
       this.selectedGW = gw
-      this.drawTopology(this.selectedGW, this.range)
+      this.drawTopology(this.selectedGW, this.selectedRange)
       this.panTo({lat:41.806581, lng:-72.252763})
       this.zoom = 20
     });
@@ -203,8 +203,12 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+#fBt
+  border-radius 6px 0 0 6px
+#lBt
+  border-radius 0 6px 6px 0
 #gmap
-    margin-top 8px
-    width 100%
-    height 638px
+  margin-top 8px
+  width 100%
+  height 638px
 </style>
