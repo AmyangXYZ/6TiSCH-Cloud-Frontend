@@ -5,7 +5,7 @@
       <vs-row vs-align="flex-start" vs-w="12">
         <vs-col v-for="(f,i) in filters" :key="i" vs-offset="0.5" vs-w="5.2">
           <span class="title">{{f.name}}: [{{f.value[0]}}, {{f.value[1]}}]</span>
-          <vs-slider :color="f.color" :max="f.max" step=0.01 :step-decimals="true" v-model="f.value"/>
+          <vs-slider :color="f.color" :max="f.max" step="0.01" :step-decimals="true" v-model="f.value"/>
         </vs-col>
       </vs-row>
     </div>
@@ -29,24 +29,13 @@ export default {
      
       filters: {
         latency: {name:"Latency", max: 3, value: [0,3], color:"dark"},
-        macPER: {name:"MAC PER", max: 3, value: [0,2], color:"orange"},
+        macPER: {name:"MAC PER", max: 1, value: [0,1], color:"orange"},
         noiseLv: {name:"Noise Level", max: 3, value: [1,3], color:"green"},
         appPER: {name:"APP PER", max:3, value: [1,3], color:"red"},
       },
     }
   },
   methods: {
-    // get network stat data and sensor array from api.
-    // do this cheap Topologyrequest again is much better than retreiving data from other 
-    // component (NWTable) that makes the code unclean and obfuscated.
-    getNWStat() {
-      this.$api.gateway.getNWStat(this.selectedGW, this.timeRange)
-      .then(res=> {
-        this.sensors = res.data.data.sort(function(a,b) {
-          return a.sensor_id - b.sensor_id
-        });
-      })
-    },
     handleLatencyRange: lodash.debounce(function() {
       this.shownSensors = []
       for(var i=0;i<this.sensors.length;i++) {
@@ -56,7 +45,17 @@ export default {
         }
       }
       this.$EventBus.$emit('shownSensors', this.shownSensors)
-      window.console.log(this.shownSensors)
+    }, 300),
+
+    handleMacPERRange: lodash.debounce(function() {
+      this.shownSensors = []
+      for(var i=0;i<this.sensors.length;i++) {
+        if(this.sensors[i].mac_per>=this.filters.macPER.value[0] 
+          && this.sensors[i].mac_per<=this.filters.macPER.value[1]) {
+          this.shownSensors.push(this.sensors[i].sensor_id)
+        }
+      }
+      this.$EventBus.$emit('shownSensors', this.shownSensors)
     }, 300)
   },
   watch: {
@@ -64,7 +63,7 @@ export default {
       this.handleLatencyRange()
     },
     'filters.macPER.value':function () {
-      this.handleLatencyRange()
+      this.handleMacPERRange()
     },
     'filters.noiseLv.value':function () {
       this.handleLatencyRange()
@@ -74,7 +73,9 @@ export default {
     } 
   },
   mounted() {
-    this.getNWStat()
+    this.$EventBus.$on("sensors", (sensors)=>{
+      this.sensors = sensors
+    })
     this.$EventBus.$on("showFilters", (sig)=>{
       if(sig)this.show = !this.show
       // force clear

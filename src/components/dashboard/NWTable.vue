@@ -88,6 +88,7 @@ export default {
         this.sensors = res.data.data.sort(function(a,b) {
           return a.sensor_id - b.sensor_id
         });
+        this.$EventBus.$emit("sensors",this.sensors)
       })
     },
     selectGW() {
