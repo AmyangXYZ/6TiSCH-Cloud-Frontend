@@ -12,7 +12,7 @@
         </vs-col>
         <vs-col vs-w="3" vs-type="flex" vs-justify="flex-end" vs-align="center">
           <vs-button color="#860262" @click="clearMap" icon="clear_all" size="small">
-            Clear
+            Clear All
           </vs-button>
         </vs-col>
       </vs-row>
@@ -186,11 +186,11 @@ export default {
       this.zoom = 20
     })
 
-    this.$EventBus.$on("shownSensors", (shownSensors)=>{
+    this.$EventBus.$on("filterRes", (res)=>{
       var tmp = []
       for(var i=0;i<this.sensors.length;i++) {
-        for(var j=0;j<shownSensors.length;j++) {
-          if(this.sensors[i].sensor_id == shownSensors[j]) {
+        for(var j=0;j<res.length;j++) {
+          if(this.sensors[i].sensor_id == res[j]) {
             tmp.push(this.sensors[i])
           }
         }
