@@ -8,7 +8,6 @@
             <h2>- Noise map</h2>
             <h2>- Analysis process</h2>
             <h2>- Logo and footbar</h2>
-
         </vs-card>
       </vs-col>
     </vs-row> 
