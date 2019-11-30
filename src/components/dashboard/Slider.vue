@@ -107,7 +107,7 @@ export default {
         this.filterRes[k] = sensorIDs
       }
     })
-    this.$EventBus.$on("showFilters", (sig)=>{
+    this.$EventBus.$on("showFiltersPanel", (sig)=>{
       if(sig)this.show = !this.show
       // force clear
       else this.show = false

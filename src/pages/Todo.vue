@@ -5,12 +5,8 @@
             <div slot="header">
                 Todo
             </div>
-            <h2>- Icons and Tags on map</h2>
-            <h2>- Filter</h2>
             <h2>- Noise map</h2>
-            <h2>- Battery usage</h2>
             <h2>- Analysis process</h2>
-            <h2>- API redesign</h2>
             <h2>- Logo and footbar</h2>
 
         </vs-card>

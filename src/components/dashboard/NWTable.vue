@@ -74,7 +74,6 @@ export default {
   },
   methods: {
     drawNWTable(gw, range) {
-      
       this.$api.gateway.getNWStat(gw, range)
       .then(res=> {
         if (res.data.flag==0||res.data.data.length==0){

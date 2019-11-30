@@ -12,6 +12,9 @@ const gateway = {
     },
     getNWStatByID(gw, id, range, adv) {
         return axios.get(`/api/${gw}/nwstat/${id}?range=${range}&advanced=${adv}`)
+    },
+    getBattery(gw, range) {
+        return axios.get(`/api/${gw}/battery?range=${range}`)
     }
 }
 

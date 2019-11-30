@@ -4,7 +4,7 @@
     <div slot="header">
       <vs-row vs-type="flex" vs-align="flex-start" vs-justify="space-around">
         <vs-col vs-w="3" vs-type="flex" vs-justify="center" vs-align="center">
-          <vs-button color="success" :type="buttonTypes[currentBtType.powerMap]" @click="showPowerLayer" 
+          <vs-button color="success" :type="buttonTypes[currentBtType.power]" @click="showPowerLayer" 
             icon-pack="fa" icon="fa-car-battery" size="small">
             Power Layer
           </vs-button>
@@ -38,8 +38,9 @@ export default {
     return {
       show: false,
       buttonTypes: ["line","filled"],
+      // 0 inactive, 1 active
       currentBtType: {
-        powerMap: 0,
+        power: 0,
         noiseLv: 0,
         layer3: 0,
         layer4: 0,
@@ -54,7 +55,8 @@ export default {
   },
   methods: {
     showPowerLayer() {
-      this.currentBtType.powerMap = 1-this.currentBtType.powerMap
+      this.currentBtType.power = 1-this.currentBtType.power
+      this.$EventBus.$emit("showPowerLayer", this.currentBtType.power)
     },
     showNoiseLayer() {
       this.currentBtType.noiseLv = 1-this.currentBtType.noiseLv
@@ -64,7 +66,7 @@ export default {
     }
   },
   mounted() {
-    this.$EventBus.$on("showLayers", (sig)=>{
+    this.$EventBus.$on("showLayersPanel", (sig)=>{
       if(sig)this.show = !this.show
       // force clear
       else this.show = false
