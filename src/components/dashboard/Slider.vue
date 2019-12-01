@@ -23,7 +23,7 @@ export default {
       filters: {
         latency: {name:"Latency", max: 3, step:0.001, value: [0,3], color:"dark"},
         macPER: {name:"MAC PER", max: 1, step:0.001, value: [0,1], color:"orange"},
-        noiseLv: {name:"Noise Level", max: 3, step:0.1, value: [1,3], color:"green"},
+        noiseLv: {name:"Noise Level", max: 3, step:0.1, value: [0,3], color:"green"},
         appPER: {name:"APP PER", max:1, step:0.001, value: [0,1], color:"red"},
       },
       // all sensors
@@ -93,7 +93,7 @@ export default {
       this.handleAppPERRange()
     },
     'finalRes': function() {
-      this.$EventBus.$emit("filterRes", this.finalRes)
+      this.$EventBus.$emit("filterRes", {data:this.finalRes, show: this.show})
     }
   },
   mounted() {
@@ -110,7 +110,10 @@ export default {
     this.$EventBus.$on("showFiltersPanel", (sig)=>{
       if(sig)this.show = !this.show
       // force clear
-      else this.show = false
+      else {
+        this.show = false
+        for(var key in this.filters) this.filters[key].value = [0, this.filters[key].max]
+      }
     })
   },
 }

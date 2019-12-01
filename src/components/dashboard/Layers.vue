@@ -69,7 +69,10 @@ export default {
     this.$EventBus.$on("showLayersPanel", (sig)=>{
       if(sig)this.show = !this.show
       // force clear
-      else this.show = false
+      else {
+        this.show = false
+        for(var key in this.currentBtType) this.currentBtType[key] = 0
+      }
     })
   },
 }

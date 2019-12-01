@@ -101,7 +101,6 @@ export default {
                 strokeColor: 'rgba(102,102,102, 0.5)',
               },
             })
-            
           }
           // sensors data backup
           this.sensors = res.data.data.sort(function(a,b) {
@@ -202,17 +201,12 @@ export default {
     clearMap() {
       this.$EventBus.$emit("showFiltersPanel", 0)
       this.$EventBus.$emit("showLayersPanel", 0)
-      this.drawTopology(this.selectedGW, this.selectedRange);
+      setTimeout(this.drawTopology(this.selectedGW, this.selectedRange), 5000)
     }
   },
   mounted() {
     // this.drawHeatMap() 
     this.drawTopology(this.selectedGW, this.selectedRange);
-    
-    this.$EventBus.$on("showPowerLayer", (sig) => {
-      if(sig) this.drawPowerLayer()
-      else this.clearPowerLayer()
-    })
     
     this.$EventBus.$on('selectedSensor', (sensor) => {
       for(var i=0;i<this.markers.length;i++) {
@@ -236,10 +230,12 @@ export default {
     })
 
     this.$EventBus.$on("filterRes", (res)=>{
+      // if result is returned after reset/clear, shall not be shown
+      if(!res.show) return
       var tmp = []
       for(var i=0;i<this.sensors.length;i++) {
-        for(var j=0;j<res.length;j++) {
-          if(this.sensors[i].sensor_id == res[j]) {
+        for(var j=0;j<res.data.length;j++) {
+          if(this.sensors[i].sensor_id == res.data[j]) {
             tmp.push(this.sensors[i])
           }
         }
@@ -247,6 +243,12 @@ export default {
       this.markers = tmp
       this.lines = []
     })
+
+    this.$EventBus.$on("showPowerLayer", (sig) => {
+      if(sig) this.drawPowerLayer()
+      else this.clearPowerLayer()
+    })
+    
   }
 }
 </script>
