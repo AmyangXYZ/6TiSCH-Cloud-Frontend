@@ -132,16 +132,21 @@ export default {
           if(avgPWR>1)avgPWR=1
           var colorStr = "#"+parseInt(avgPWR*255).toString(16).repeat(3)
           var reverseColor = "#"+parseInt((1-avgPWR)*255).toString(16).repeat(3)
-          this.markers[res.data.data[i].sensor_id-2].icon = {
-            path: window.google.maps.SymbolPath.CIRCLE,
-            scale: 8,
-            fillColor: colorStr,
-            fillOpacity: 1,
-            strokeColor: colorStr,
-          }
-          this.markers[res.data.data[i].sensor_id-2].label = {
-            color: reverseColor,
-            text: this.markers[i].sensor_id.toString()
+
+          for(var j=0;j<this.markers.length;j++) {
+            if(this.markers[j].sensor_id == res.data.data[i].sensor_id) {
+              this.markers[j].icon = {
+                path: window.google.maps.SymbolPath.CIRCLE,
+                scale: 8,
+                fillColor: colorStr,
+                fillOpacity: 1,
+                strokeColor: colorStr,
+              }
+              this.markers[j].label = {
+                color: reverseColor,
+                text: this.markers[j].sensor_id.toString()
+              }
+            }
           }
         }
       })
