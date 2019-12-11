@@ -21,7 +21,7 @@ export default {
     return {
       show: false,
       filters: {
-        latency: {name:"Latency", max: 3, step:0.001, value: [0,3], color:"dark"},
+        latency: {name:"Latency", max: 4, step:0.001, value: [0,4], color:"dark"},
         macPER: {name:"MAC PER", max: 1, step:0.001, value: [0,1], color:"orange"},
         noiseLv: {name:"Noise Level", max: 3, step:0.1, value: [0,3], color:"green"},
         appPER: {name:"APP PER", max:1, step:0.001, value: [0,1], color:"red"},

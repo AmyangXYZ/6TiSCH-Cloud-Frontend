@@ -35,6 +35,7 @@ export default {
       noiseLvRange: [],
       macPERRange: [],
       appPERRange: [],
+      powerHeatmapData: [],
       label: {},
       zoom: 20,
       center: {lat:41.806581, lng:-72.252763}, // ITEB
@@ -44,35 +45,6 @@ export default {
     }
   },
   methods: {
-    // drawHeatMap() {
-    //   this.$gmapApiPromiseLazy().then(() => {
-    //     var heatmapData = [];
-    //     for(var i=0;i<result.length;i++) {
-    //       heatmapData.push({ location: new window.google.maps.LatLng(result[i].lat, result[i].lng), weight: result[i].weight/1000})
-    //     }
-    //     var gradient = [
-    //         'rgba(0, 255, 255, 0)',
-    //         'rgba(0, 255, 255, 1)',
-    //         'rgba(0, 191, 255, 1)',
-    //         'rgba(0, 127, 255, 1)',
-    //         'rgba(0, 63, 255, 1)',
-    //         'rgba(0, 0, 255, 1)',
-    //         'rgba(0, 0, 223, 1)',
-    //         'rgba(0, 0, 191, 1)',
-    //         'rgba(0, 0, 159, 1)',
-    //         'rgba(0, 0, 127, 1)',
-    //         'rgba(63, 0, 91, 1)',
-    //         'rgba(127, 0, 63, 1)',
-    //         'rgba(191, 0, 31, 1)',
-    //         'rgba(255, 0, 0, 1)'
-    //       ]
-    //     var heatmap = new window.google.maps.visualization.HeatmapLayer({
-    //       data: heatmapData,
-    //       map: this.$refs.mymap.$mapObject,
-    //     })
-    //     heatmap.set('gradient', heatmap.get('gradient') ? null : gradient);
-    //   })
-    // },
     drawTopology(gw, range) {
       this.$gmapApiPromiseLazy().then(() => {
         this.$api.gateway.getTopology(gw, range)
@@ -125,12 +97,26 @@ export default {
     drawPowerLayer() {
       this.$api.gateway.getBattery(this.selectedGW, this.selectedRange)
       .then(res => {
+        var min = res.data.data[0].avg_cc2650_active+res.data.data[0].avg_cc2650_sleep
+                                +res.data.data[0].avg_rf_rx+res.data.data[0].avg_rf_tx
+        var max = min
+        for(var x=1;x<res.data.data.length;x++) {
+          var avgPWR = (res.data.data[x].avg_cc2650_active+res.data.data[x].avg_cc2650_sleep
+                                +res.data.data[x].avg_rf_rx+res.data.data[x].avg_rf_tx)
+          min = avgPWR>min?min:avgPWR
+          max = avgPWR>max?avgPWR:max
+        }
+        var mid = (max - min)/2
+        
+        var r; var g; var b=0;
         for(var i=0;i<res.data.data.length;i++) {
-          var avgPWR = (res.data.data[i].avg_cc2650_active+res.data.data[i].avg_cc2650_sleep
-                                +res.data.data[i].avg_rf_rx+res.data.data[i].avg_rf_tx)*0.0033
-          if(avgPWR>1)avgPWR=1
-          var colorStr = "#"+parseInt(avgPWR*255).toString(16).repeat(3)
-          var reverseColor = "#"+parseInt((1-avgPWR)*255).toString(16).repeat(3)
+          avgPWR = (res.data.data[i].avg_cc2650_active+res.data.data[i].avg_cc2650_sleep
+                                +res.data.data[i].avg_rf_rx+res.data.data[i].avg_rf_tx)
+          
+          if(avgPWR>=mid) {r=255;g=Math.round(255*((max-avgPWR)/(max-mid)))}
+          else {g=255;r=Math.round(255*((avgPWR-min)/(mid-min)))}
+
+          var colorStr = "#"+('0'+r.toString(16)).slice(-2)+('0'+g.toString(16)).slice(-2)+('0'+b.toString(16)).slice(-2)   
 
           for(var j=0;j<this.markers.length;j++) {
             if(this.markers[j].sensor_id == res.data.data[i].sensor_id) {
@@ -142,12 +128,33 @@ export default {
                 strokeColor: colorStr,
               }
               this.markers[j].label = {
-                color: reverseColor,
-                text: this.markers[j].sensor_id.toString()
+                color: '#2c3e50',
+                text: this.markers[j].sensor_id.toString(),
               }
             }
           }
         }
+      })
+    },
+    drawNoiseLayer() {
+      this.$gmapApiPromiseLazy().then(() => {
+        this.$api.gateway.getBattery(this.selectedGW, this.selectedRange)
+          .then(res => {
+            for(var i=0;i<res.data.data.length;i++) {
+              var avgPWR = res.data.data[i].avg_cc2650_active+res.data.data[i].avg_cc2650_sleep                                    +res.data.data[i].avg_rf_rx+res.data.data[i].avg_rf_tx
+              for(var j=0;j<this.markers.length;j++) {
+                if(this.markers[j].sensor_id == res.data.data[i].sensor_id) {
+                  this.powerHeatmapData.push({location: new window.google.maps.LatLng(parseFloat(this.markers[j].position.lat), parseFloat(this.markers[j].position.lng)), weight: avgPWR})
+                }
+              }
+            }
+            new window.google.maps.visualization.HeatmapLayer({
+              data: this.powerHeatmapData,
+              map: this.$refs.mymap.$mapObject,
+              radius: 80,
+            })
+          })
+
       })
     },
     clearPowerLayer() {
@@ -205,7 +212,6 @@ export default {
     }
   },
   mounted() {
-    // this.drawHeatMap() 
     this.drawTopology(this.selectedGW, this.selectedRange);
     
     this.$EventBus.$on('selectedSensor', (sensor) => {
@@ -248,7 +254,11 @@ export default {
       if(sig) this.drawPowerLayer()
       else this.clearPowerLayer()
     })
-    
+
+    this.$EventBus.$on("showNoiseLayer", (sig) => {
+      if(sig) this.drawNoiseLayer()
+      // else this.clearPowerLayer()
+    })
   }
 }
 </script>
