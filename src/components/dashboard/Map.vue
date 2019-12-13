@@ -182,10 +182,15 @@ export default {
 
       // high light
       for(var i=0;i<this.lines.length;i++) {
-        if (m.position == this.lines[i].path[0] || m.position == this.lines[i].path[1]) {
-          this.lines[i].option = {strokeColor:"rgba(102,102,102,0.9)"}
-        } else {
-          this.lines[i].option = {strokeColor:"rgba(192,192,192,0.3)"}
+        // as child
+        if (m.position == this.lines[i].path[0]) {
+          this.lines[i].option = {strokeColor:"green",zIndex:2000}
+          // as parent
+        } else if (m.position == this.lines[i].path[1]) { 
+          this.lines[i].option = {strokeColor:"lime",zIndex:2000}
+        }
+        else {
+          this.lines[i].option = {strokeColor:"rgba(192,192,192,0.3)",zIndex:1}
         }
       }
     },

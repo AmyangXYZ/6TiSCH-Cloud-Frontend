@@ -6,6 +6,8 @@ import api from './api'
 import * as VueGoogleMaps from 'vue2-google-maps'
 import 'vuesax/dist/vuesax.css'
 import 'material-icons/iconfont/material-icons.css';
+import '@fortawesome/fontawesome-free/css/all.css'
+import '@fortawesome/fontawesome-free/js/all.js'
 
 Vue.prototype.$EventBus = new Vue()
 Vue.prototype.$api = api
