@@ -38,7 +38,7 @@ export default {
       powerHeatmapData: [],
       label: {},
       zoom: 20,
-      center: {lat:41.806581, lng:-72.252763}, // ITEB
+      center: {lat:41.806611, lng:-72.252703}, // ITEB
       sensors : [],
       markers: [],
       lines:[],
@@ -81,7 +81,7 @@ export default {
           this.markers = this.sensors
           var icon = {
             path: window.google.maps.SymbolPath.CIRCLE,
-            scale: 8,
+            scale: 7,
             fillColor: "#58B2EC",
             fillOpacity: 1,
             strokeColor: "#58B2EC",
@@ -89,7 +89,7 @@ export default {
           
           for(var j=0;j<this.markers.length;j++) {
             this.$set(this.markers[j],'icon', icon)
-            this.$set(this.markers[j],'label', {text:this.markers[j].sensor_id.toString(), color:'#2c3e50'})
+            this.$set(this.markers[j],'label', {text:this.markers[j].sensor_id.toString(), color:'#2c3e50', fontSize:"10pt"})
           }
         })
       })
@@ -213,7 +213,9 @@ export default {
     clearMap() {
       this.$EventBus.$emit("showFiltersPanel", 0)
       this.$EventBus.$emit("showLayersPanel", 0)
-      setTimeout(this.drawTopology(this.selectedGW, this.selectedRange), 5000)
+      this.drawTopology(this.selectedGW, this.selectedRange)
+      this.zoom = 20
+      this.panTo({lat:41.806611, lng:-72.252703})
     }
   },
   mounted() {

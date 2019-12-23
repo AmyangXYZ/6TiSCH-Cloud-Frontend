@@ -87,6 +87,12 @@ export default {
         this.sensors = res.data.data.sort(function(a,b) {
           return a.sensor_id - b.sensor_id
         });
+        
+        // index for pagination
+        for(var j=0;j<this.sensors.length;j++) {
+          this.sensors[j].index = j
+        }
+
         this.$EventBus.$emit("sensors",this.sensors)
       })
     },
@@ -109,8 +115,12 @@ export default {
     }) 
     // handle sensor selection from Map
     this.$EventBus.$on("selectedSensor", (s)=>{
-      this.selectedSensor = this.sensors[s.sensor_id-3]
-      this.currentPage = parseInt((s.sensor_id-3+8)/8)
+      for(var i=0;i<this.sensors.length;i++) {
+        if(this.sensors[i].sensor_id == s.sensor_id) {
+          this.currentPage = parseInt((this.sensors[i].index+this.maxItems)/this.maxItems)
+          this.selectedSensor = this.sensors[i]
+        }
+      }
     })
     this.$EventBus.$on("selectedGW", (gw)=>{
       this.selectedGW = gw
