@@ -35,9 +35,9 @@ export default {
       noiseLvRange: [],
       macPERRange: [],
       appPERRange: [],
-      powerHeatmapData: [],
+      noiseLayer: {},
       label: {},
-      zoom: 20,
+      zoom: 21,
       center: {lat:41.806611, lng:-72.252703}, // ITEB
       sensors : [],
       markers: [],
@@ -55,20 +55,23 @@ export default {
             return
           }
           this.$EventBus.$emit('sensorCnt', res.data.data.length-1)
-
           for(var i=0;i<res.data.data.length;i++) {
-            // because there is no sensor 2.
-            if(res.data.data[i].parent==1) {
-              res.data.data[i].parent++
-            }
-            // gateway itself
-            if(!res.data.data[i].parent) {
-              res.data.data[i].parent=2
-            }
+            
 
             // generate lines
+            // window.console.log(i,res.data.data[i].position)
+            var parentPos = []
+            if(res.data.data[i].parent == 0) {
+              parentPos = res.data.data[i].position
+            } else {
+              for(var j=0;j<res.data.data.length;j++) {
+                if(res.data.data[j].sensor_id == res.data.data[i].parent) {
+                  parentPos = res.data.data[j].position
+                }
+              }
+            }
             this.lines.push({
-              path: [res.data.data[i].position, res.data.data[res.data.data[i].parent-2].position],
+              path: [res.data.data[i].position, parentPos],
               option: {
                 strokeColor: 'rgba(102,102,102, 0.5)',
               },
@@ -87,9 +90,9 @@ export default {
             strokeColor: "#58B2EC",
           }
           
-          for(var j=0;j<this.markers.length;j++) {
-            this.$set(this.markers[j],'icon', icon)
-            this.$set(this.markers[j],'label', {text:this.markers[j].sensor_id.toString(), color:'#2c3e50', fontSize:"10pt"})
+          for(var k=0;k<this.markers.length;k++) {
+            this.$set(this.markers[k],'icon', icon)
+            this.$set(this.markers[k],'label', {text:this.markers[k].sensor_id.toString(), color:'#2c3e50', fontSize:"10pt"})
           }
         })
       })
@@ -122,15 +125,12 @@ export default {
             if(this.markers[j].sensor_id == res.data.data[i].sensor_id) {
               this.markers[j].icon = {
                 path: window.google.maps.SymbolPath.CIRCLE,
-                scale: 8,
+                scale: 7,
                 fillColor: colorStr,
                 fillOpacity: 1,
                 strokeColor: colorStr,
               }
-              this.markers[j].label = {
-                color: '#2c3e50',
-                text: this.markers[j].sensor_id.toString(),
-              }
+              this.markers[j].label = {text:this.markers[j].sensor_id.toString(), color:'#2c3e50', fontSize:"10pt"}
             }
           }
         }
@@ -138,18 +138,19 @@ export default {
     },
     drawNoiseLayer() {
       this.$gmapApiPromiseLazy().then(() => {
+        var noiseData = []
         this.$api.gateway.getBattery(this.selectedGW, this.selectedRange)
           .then(res => {
             for(var i=0;i<res.data.data.length;i++) {
               var avgPWR = res.data.data[i].avg_cc2650_active+res.data.data[i].avg_cc2650_sleep                                    +res.data.data[i].avg_rf_rx+res.data.data[i].avg_rf_tx
               for(var j=0;j<this.markers.length;j++) {
                 if(this.markers[j].sensor_id == res.data.data[i].sensor_id) {
-                  this.powerHeatmapData.push({location: new window.google.maps.LatLng(parseFloat(this.markers[j].position.lat), parseFloat(this.markers[j].position.lng)), weight: avgPWR})
+                  noiseData.push({location: new window.google.maps.LatLng(parseFloat(this.markers[j].position.lat), parseFloat(this.markers[j].position.lng)), weight: avgPWR})
                 }
               }
             }
-            new window.google.maps.visualization.HeatmapLayer({
-              data: this.powerHeatmapData,
+            this.noiseLayer = new window.google.maps.visualization.HeatmapLayer({
+              data: noiseData,
               map: this.$refs.mymap.$mapObject,
               radius: 80,
             })
@@ -161,13 +162,16 @@ export default {
       for(var i=0;i<this.markers.length;i++) {
         this.markers[i].icon = {
           path: window.google.maps.SymbolPath.CIRCLE,
-          scale: 8,
+          scale: 7,
           fillColor: "#58B2EC",
           fillOpacity: 1,
           strokeColor: "#58B2EC",
         }
-        this.markers[i].label = {text:this.markers[i].sensor_id.toString(), color:'#2c3e50'}
+        this.markers[i].label = {text:this.markers[i].sensor_id.toString(), color:'#2c3e50', fontSize:"10pt"}
       }
+    },
+    clearNoiseLayer() {
+      this.noiseLayer.setMap(null)
     },
     handleClick(m) {
       // not gateway
@@ -214,7 +218,7 @@ export default {
       this.$EventBus.$emit("showFiltersPanel", 0)
       this.$EventBus.$emit("showLayersPanel", 0)
       this.drawTopology(this.selectedGW, this.selectedRange)
-      this.zoom = 20
+      this.zoom = 21
       this.panTo({lat:41.806611, lng:-72.252703})
     }
   },
@@ -233,13 +237,13 @@ export default {
       this.selectedGW = gw
       this.drawTopology(this.selectedGW, this.selectedRange)
       this.panTo({lat:41.806581, lng:-72.252763})
-      this.zoom = 20
+      this.zoom = 21
     });
     this.$EventBus.$on("selectedRange", (range)=>{
       this.selectedRange = range
       this.drawTopology(this.selectedGW, this.selectedRange)
       this.panTo({lat:41.806581, lng:-72.252763})
-      this.zoom = 20
+      this.zoom = 21
     })
 
     this.$EventBus.$on("filterRes", (res)=>{
@@ -264,7 +268,7 @@ export default {
 
     this.$EventBus.$on("showNoiseLayer", (sig) => {
       if(sig) this.drawNoiseLayer()
-      // else this.clearPowerLayer()
+      else this.clearNoiseLayer()
     })
   }
 }
@@ -278,5 +282,5 @@ export default {
 #gmap
   margin-top 8px
   width 100%
-  height 638px
+  height 688px
 </style>
