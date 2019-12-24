@@ -38,7 +38,7 @@ export default {
       noiseLayer: {},
       label: {},
       zoom: 21,
-      center: {lat:41.806611, lng:-72.252703}, // ITEB
+      center: {lat:41.806611, lng:-72.252733}, // ITEB
       sensors : [],
       markers: [],
       lines:[],
@@ -236,13 +236,13 @@ export default {
     this.$EventBus.$on('selectedGW', (gw) => {
       this.selectedGW = gw
       this.drawTopology(this.selectedGW, this.selectedRange)
-      this.panTo({lat:41.806581, lng:-72.252763})
+      this.panTo({lat:41.806611, lng:-72.252733})
       this.zoom = 21
     });
     this.$EventBus.$on("selectedRange", (range)=>{
       this.selectedRange = range
       this.drawTopology(this.selectedGW, this.selectedRange)
-      this.panTo({lat:41.806581, lng:-72.252763})
+      this.panTo({lat:41.806611, lng:-72.252733})
       this.zoom = 21
     })
 
