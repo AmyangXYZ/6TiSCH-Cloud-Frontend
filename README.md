@@ -11,6 +11,6 @@ Frontend for 6TiSCH Testbed @ UConn
 - [x] Network statistic table
 - [x] RSSi chart for specific sensor
 - [x] Slider filter options
-- [x] Battery map
-- [ ] Noise map
+- [x] Battery usage layer
+- [x] Noise level layer
 - [ ] ...

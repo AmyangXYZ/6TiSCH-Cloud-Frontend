@@ -36,6 +36,7 @@ export default {
       macPERRange: [],
       appPERRange: [],
       noiseLayer: {},
+      noiseRadius: 60,
       label: {},
       zoom: 21,
       center: {lat:41.806611, lng:-72.252733}, // ITEB
@@ -139,20 +140,15 @@ export default {
     drawNoiseLayer() {
       this.$gmapApiPromiseLazy().then(() => {
         var noiseData = []
-        this.$api.gateway.getBattery(this.selectedGW, this.selectedRange)
+        this.$api.gateway.getNoiseLevel(this.selectedGW, this.selectedRange)
           .then(res => {
             for(var i=0;i<res.data.data.length;i++) {
-              var avgPWR = res.data.data[i].avg_cc2650_active+res.data.data[i].avg_cc2650_sleep                                    +res.data.data[i].avg_rf_rx+res.data.data[i].avg_rf_tx
-              for(var j=0;j<this.markers.length;j++) {
-                if(this.markers[j].sensor_id == res.data.data[i].sensor_id) {
-                  noiseData.push({location: new window.google.maps.LatLng(parseFloat(this.markers[j].position.lat), parseFloat(this.markers[j].position.lng)), weight: avgPWR})
-                }
-              }
+                noiseData.push({location: new window.google.maps.LatLng(parseFloat(res.data.data[i].position.lat), parseFloat(res.data.data[i].position.lng)), weight: res.data.data[i].noise_level*(-1)})
             }
             this.noiseLayer = new window.google.maps.visualization.HeatmapLayer({
               data: noiseData,
               map: this.$refs.mymap.$mapObject,
-              radius: 80,
+              radius: this.noiseRadius,
             })
           })
 
@@ -217,9 +213,10 @@ export default {
     clearMap() {
       this.$EventBus.$emit("showFiltersPanel", 0)
       this.$EventBus.$emit("showLayersPanel", 0)
+      this.clearNoiseLayer()
       this.drawTopology(this.selectedGW, this.selectedRange)
       this.zoom = 21
-      this.panTo({lat:41.806611, lng:-72.252703})
+      this.panTo({lat:41.806611, lng:-72.252733})
     }
   },
   mounted() {
