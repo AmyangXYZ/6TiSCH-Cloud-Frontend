@@ -5,6 +5,7 @@
         <DeviceCnt/>
         <NWTable/>
         <RSSiChart/>
+        <ChInfoChart/>
       </vs-col>
       <vs-col style="z-index:99" vs-offset="0.2" vs-w="6.1">
         <Slider/>
@@ -19,6 +20,7 @@
 import DeviceCnt from '../components/dashboard/DeviceCnt'
 import NWTable from '../components/dashboard/NWTable'
 import RSSiChart from '../components/dashboard/RSSiChart'
+import ChInfoChart from '../components/dashboard/ChInfoChart'
 import Map from '../components/dashboard/Map'
 import Slider from '../components/dashboard/Slider'
 import Layers from '../components/dashboard/Layers'
@@ -28,6 +30,7 @@ export default {
       DeviceCnt,
       NWTable,
       RSSiChart,
+      ChInfoChart,
       Map,
       Slider,
       Layers,
