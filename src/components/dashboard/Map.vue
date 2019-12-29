@@ -12,7 +12,7 @@
         </vs-col>
         <vs-col vs-w="3" vs-type="flex" vs-justify="flex-end" vs-align="center">
           <vs-button color="#860262" @click="clearMap" icon="clear_all" size="small">
-            Clear All
+            Reset All
           </vs-button>
         </vs-col>
       </vs-row>
@@ -36,7 +36,7 @@ export default {
       macPERRange: [],
       appPERRange: [],
       noiseLayer: {},
-      noiseRadius: 60,
+      noiseLayerFlag: 0,
       label: {},
       zoom: 21,
       center: {lat:41.806611, lng:-72.252733}, // ITEB
@@ -148,7 +148,7 @@ export default {
             this.noiseLayer = new window.google.maps.visualization.HeatmapLayer({
               data: noiseData,
               map: this.$refs.mymap.$mapObject,
-              radius: this.noiseRadius,
+              radius: 60,
             })
           })
 
@@ -167,7 +167,8 @@ export default {
       }
     },
     clearNoiseLayer() {
-      this.noiseLayer.setMap(null)
+      if(this.noiseLayerFlag)
+        this.noiseLayer.setMap(null)
     },
     handleClick(m) {
       // not gateway
@@ -264,8 +265,14 @@ export default {
     })
 
     this.$EventBus.$on("showNoiseLayer", (sig) => {
-      if(sig) this.drawNoiseLayer()
-      else this.clearNoiseLayer()
+      if(sig) {
+        this.drawNoiseLayer()
+        this.noiseLayerFlag=!this.noiseLayerFlag
+      }
+      else {
+        this.clearNoiseLayer()
+        this.noiseLayerFlag=0
+      }
     })
   }
 }
