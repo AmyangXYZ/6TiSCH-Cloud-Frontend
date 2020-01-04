@@ -173,6 +173,9 @@ export default {
     handleClick(m) {
       // not gateway
       if(m.sensor_id!=1) this.$EventBus.$emit('selectedSensor', m)
+      // this.topoHighLight(m)
+    },
+    topoHighLight(m) {
       // double click -> reset
       if(m==this.selectedSensor) {
         this.topoColorReset()
@@ -224,10 +227,12 @@ export default {
     this.drawTopology(this.selectedGW, this.selectedRange);
     
     this.$EventBus.$on('selectedSensor', (sensor) => {
+      
       for(var i=0;i<this.markers.length;i++) {
         if(this.markers[i].sensor_id==sensor.sensor_id) {
           this.panTo(this.markers[i].position)
           this.zoom = 23
+          this.topoHighLight(this.markers[i])
         }
       }
     });
