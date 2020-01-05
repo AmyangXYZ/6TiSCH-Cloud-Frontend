@@ -19,6 +19,9 @@ const gateway = {
     getBattery(gw, range) {
         return axios.get(`/api/${gw}/battery?range=${range}`)
     },
+    getBatteryByID(gw, id, range) {
+        return axios.get(`/api/${gw}/battery/${id}?range=${range}`)
+    },
     getNoiseLevel(gw, range) {
         return axios.get(`/api/${gw}/noise?range=${range}`)
     }

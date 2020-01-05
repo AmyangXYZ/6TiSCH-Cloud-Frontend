@@ -17,7 +17,7 @@
         </vs-col>
       </vs-row>
       <GmapMap ref="mymap" id="gmap" :center="center" v-model="zoom" :zoom="zoom">
-        <GmapMarker :key="i" v-for="(m,i) in markers" :position="m.position" :label="m.label" :icon="m.icon" :clickable="true" @click="handleClick(m)"/>
+        <GmapMarker :key="i" v-for="(m,i) in markers" :position="m.position" :label="m.label" :icon="m.icon" :clickable="true" @click="handleClick(m)"/><GmapInfoWindow :opened="infoWindowActive" :options="infoWindowOpt" :position="infoWindowPos" @closeclick="infoWindowActive=false"><PowerChart/></GmapInfoWindow>
         <GmapPolyline v-for="(line,i) in lines" :key="'l'+i" :path="line.path" :options="line.option"/> 
       </GmapMap>
     </div>
@@ -25,7 +25,12 @@
 </template>
 
 <script>
+import PowerChart from '@/components/dashboard/PowerChart'
+
 export default {
+  components: {
+    PowerChart,
+  },
   data() {
     return {
       selectedGW: "any",
@@ -37,7 +42,11 @@ export default {
       appPERRange: [],
       noiseLayer: {},
       noiseLayerFlag: 0,
+      powerLayerFlag: 0,
       label: {},
+      infoWindowActive:false,
+      infoWindowPos: {},
+      infoWindowOpt: {},
       zoom: 21,
       center: {lat:41.806611, lng:-72.252733}, // ITEB
       sensors : [],
@@ -99,6 +108,7 @@ export default {
       })
     },
     drawPowerLayer() {
+      this.powerLayerFlag = 1
       this.$api.gateway.getBattery(this.selectedGW, this.selectedRange)
       .then(res => {
         var min = res.data.data[0].avg_cc2650_active+res.data.data[0].avg_cc2650_sleep
@@ -155,6 +165,7 @@ export default {
       })
     },
     clearPowerLayer() {
+      this.powerLayerFlag = 0
       for(var i=0;i<this.markers.length;i++) {
         this.markers[i].icon = {
           path: window.google.maps.SymbolPath.CIRCLE,
@@ -172,18 +183,28 @@ export default {
     },
     handleClick(m) {
       // not gateway
-      if(m.sensor_id!=1) this.$EventBus.$emit('selectedSensor', m)
-      // this.topoHighLight(m)
-    },
-    topoHighLight(m) {
+      if(m.sensor_id!=1) this.$EventBus.$emit('selectedSensor', m)  
       // double click -> reset
       if(m==this.selectedSensor) {
         this.topoColorReset()
+        this.infoWindowActive = false
         this.selectedSensor = {}
         return
       }
       this.selectedSensor = m
-
+    },
+    showInfoWindow(m) {
+      this.infoWindowActive = true
+      this.infoWindowPos = m.position
+      this.infoWindowOpt = {
+        closeBoxURL: "",
+        pixelOffset: {
+            width: 0,
+            height: -15
+          }
+      }
+    },
+    topoHighLight(m) {
       // high light
       for(var i=0;i<this.lines.length;i++) {
         // as child
@@ -227,24 +248,26 @@ export default {
     this.drawTopology(this.selectedGW, this.selectedRange);
     
     this.$EventBus.$on('selectedSensor', (sensor) => {
-      
       for(var i=0;i<this.markers.length;i++) {
         if(this.markers[i].sensor_id==sensor.sensor_id) {
           this.panTo(this.markers[i].position)
           this.zoom = 23
           this.topoHighLight(this.markers[i])
+          if(this.powerLayerFlag) this.showInfoWindow(this.markers[i])
         }
       }
     });
     this.$EventBus.$on('selectedGW', (gw) => {
       this.selectedGW = gw
       this.drawTopology(this.selectedGW, this.selectedRange)
+      this.infoWindowActive = false
       this.panTo({lat:41.806611, lng:-72.252733})
       this.zoom = 21
     });
     this.$EventBus.$on("selectedRange", (range)=>{
       this.selectedRange = range
       this.drawTopology(this.selectedGW, this.selectedRange)
+      this.infoWindowActive = false
       this.panTo({lat:41.806611, lng:-72.252733})
       this.zoom = 21
     })
@@ -283,7 +306,7 @@ export default {
 }
 </script>
 
-<style lang="stylus" scoped>
+<style lang="stylus">
 #fBt
   border-radius 6px 0 0 6px
 #lBt
@@ -292,4 +315,5 @@ export default {
   margin-top 8px
   width 100%
   height 688px
+.gm-style-iw + button {display: none;}  
 </style>

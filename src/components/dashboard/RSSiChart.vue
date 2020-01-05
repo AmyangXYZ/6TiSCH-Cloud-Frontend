@@ -65,6 +65,7 @@ export default {
             nameTextStyle: {
               fontWeight: 800,
               fontSize: 16,
+              padding: [0,0,0,20]
             },
             gridIndex: 1,
             type: 'category',
