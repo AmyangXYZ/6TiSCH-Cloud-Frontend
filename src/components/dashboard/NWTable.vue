@@ -22,7 +22,7 @@
           ID
         </vs-th>
         <vs-th sort-key="gateway">
-          Gateway
+          GATEWAY
         </vs-th>
         <vs-th sort-key="avg_rtt">
           LATENCY

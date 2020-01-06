@@ -7,6 +7,9 @@ const gateway = {
     getTopology(gw, range) {
         return axios.get(`/api/${gw}/topology?range=${range}`)
     },
+    getTopoHistory() {
+        return axios.get(`/api/any/topology/history`)
+    },
     getNWStat(gw, range) {
         return axios.get(`/api/${gw}/nwstat?range=${range}`)
     },
