@@ -112,7 +112,7 @@ export default {
         },
         series: [
           {
-            name: "RSSi",
+            name: "Average RSSi",
             type: "line",
             smooth: true,
             symbol: "none",
@@ -124,7 +124,6 @@ export default {
             data: this.dataAvg,
           },
           {
-            name: 'RSSI',
             type: 'heatmap',
             xAxisIndex: 1,
             yAxisIndex: 1,

@@ -267,6 +267,8 @@ export default {
     this.$EventBus.$on("selectedRange", (range)=>{
       this.selectedRange = range
       this.drawTopology(this.selectedGW, this.selectedRange)
+      if(this.powerLayerFlag) this.drawPowerLayer()
+      if(this.noiseLayerFlag) {this.clearNoiseLayer();this.drawNoiseLayer()}
       this.infoWindowActive = false
       this.panTo({lat:41.806611, lng:-72.252733})
       this.zoom = 21

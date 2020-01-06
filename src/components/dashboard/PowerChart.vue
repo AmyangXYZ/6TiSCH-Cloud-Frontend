@@ -101,5 +101,5 @@ export default {
 <style lang="stylus" scoped>
 .echarts 
   width 140px
-  height 80px
+  height 90px
 </style>
