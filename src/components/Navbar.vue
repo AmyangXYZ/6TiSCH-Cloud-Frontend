@@ -10,7 +10,7 @@
         <vs-dropdown id="events" vs-navbar-item vs-custom-content vs-trigger-click >
           <a class="a-icon" href.prevent>Events</a>
           <vs-dropdown-menu>
-            <vs-table max-items="12" stripe pagination :data="topoHistory">
+            <vs-table id="t" max-items="13" stripe pagination :data="events">
               <template slot="thead">
                 <vs-th>
                   Date
@@ -26,7 +26,7 @@
                     {{data[indextr].datetime}}
                   </vs-td>
                   <vs-td>
-                    Node {{data[indextr].sensor_id}} connected to Node {{data[indextr].parent}}
+                    {{data[indextr].event}}
                   </vs-td>
                 </vs-tr>
               </template>
@@ -48,25 +48,47 @@
 export default {
   data() {
     return {
-      topoHistory: []
+      events: []
     }
   },
   methods: {
     getTopoHistory() {
       this.$api.gateway.getTopoHistory()
       .then(res => {
-        res.data.data = res.data.data.sort(function(a,b) {
-          return b.timestamp - a.timestamp
-        });
+        
+        var tmp = []
+        var now = Date.now()
+        var nodeList = {}
         for(var i=0;i<res.data.data.length;i++) {
-          var d = new Date(res.data.data[i].timestamp)
+          var d = new Date(res.data.data[i].first_appear)
           // time zone diff
           var curD = new Date(d.getTime() - (d.getTimezoneOffset() * 60000))
-          res.data.data[i].datetime = curD.toJSON().substr(5, 14).replace('T', ' ')
 
-           
-          this.topoHistory.push(res.data.data[i])
+          tmp.push({
+            timestamp: res.data.data[i].first_appear, // for sort
+            datetime: curD.toJSON().substr(5, 14).replace('T', ' '),
+            event: `Node ${res.data.data[i].sensor_id} connected to Node ${res.data.data[i].parent}`
+          })
+
+          nodeList[res.data.data[i].sensor_id] = res.data.data[i].last_seen
         }
+        window.console.log(nodeList,now)
+        for(let id in nodeList) {
+          if((now - nodeList[id])>1000*60*10) {
+            var d2 = new Date(nodeList[id])
+            // time zone diff
+            var curD2 = new Date(d2.getTime() - (d2.getTimezoneOffset() * 60000))
+            tmp.push({
+              timestamp: nodeList[id], // for sort
+              datetime: curD2.toJSON().substr(5, 14).replace('T', ' '),
+              event: `Node ${id} lost`
+            })
+          }
+        }
+          
+        this.events = tmp.sort(function(a,b) {
+          return b.timestamp - a.timestamp
+        });
       })
     }
   },
@@ -101,7 +123,4 @@ export default {
   color white
   font-size 1rem
   display block
-  margin-top -4px
-.vs-table-text
-  text-align center
 </style>
