@@ -1,5 +1,5 @@
 <template>
-  <vs-dropdown id="events" vs-navbar-item vs-custom-content vs-trigger-click >  
+  <vs-dropdown id="events" vs-navline-item vs-custom-content vs-trigger-click >  
     <a class="a-icon" href.prevent>Events</a>
     <vs-dropdown-menu>
       <div><ECharts autoresize :options="option"/></div>
@@ -31,7 +31,7 @@
 <script>
 import ECharts from "vue-echarts/components/ECharts";
 import "echarts/lib/chart/line";
-import "echarts/lib/component/title";
+import "echarts/lib/component/tooltip";
 import "echarts/lib/component/dataZoom";
 
 export default {
@@ -42,8 +42,10 @@ export default {
     return {
       events: [],
       option: {
+        tooltip: {
+          trigger: 'axis'
+        },
         xAxis: {
-            // show: false,
             type: 'category',
             data: [],
           },
@@ -54,6 +56,7 @@ export default {
         },
         
         series: [{
+          name: 'Events count',
           data: [],
           smooth: true,
           type: 'line',
@@ -138,5 +141,5 @@ export default {
   display block
 .echarts 
   width 400px
-  height 90px
+  height 80px
 </style>
