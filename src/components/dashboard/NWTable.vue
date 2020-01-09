@@ -24,6 +24,9 @@
         <vs-th sort-key="gateway">
           GATEWAY
         </vs-th>
+        <vs-th sort-key="hop">
+          HOP
+        </vs-th>
         <vs-th sort-key="avg_rtt">
           LATENCY
         </vs-th>
@@ -42,6 +45,9 @@
           </vs-td>
           <vs-td :data="data[index].gateway">
             {{data[index].gateway}}
+          </vs-td>
+          <vs-td :data="data[index].hop">
+            {{data[index].hop}}
           </vs-td>
           <vs-td :data="data[index].avg_rtt">
             {{data[index].avg_rtt.toFixed(3)}}
@@ -84,16 +90,49 @@ export default {
           res.data.data[i].mac_per = res.data.data[i].avg_mac_tx_noack_diff/(res.data.data[i].avg_mac_tx_total_diff+0.000001)*100.0
           res.data.data[i].app_per = res.data.data[i].avg_app_per_lost_diff/(res.data.data[i].avg_app_per_sent_diff+0.000001)*100.0
         }
-        this.sensors = res.data.data.sort(function(a,b) {
+
+        var sensors = res.data.data.sort(function(a,b) {
           return a.sensor_id - b.sensor_id
         });
         
-        // index for pagination
-        for(var j=0;j<this.sensors.length;j++) {
-          this.sensors[j].index = j
-        }
-
-        this.$EventBus.$emit("sensors",this.sensors)
+        // get hop
+        this.$api.gateway.getTopology(gw, range)
+        .then(res=>{
+          var nodes = res.data.data
+          for(var n=0;n<nodes.length;n++) {
+            if(nodes[n].sensor_id!=1) {
+              var hop = 1
+              var parent = nodes[n].parent
+              // window.console.log(parent)
+              while(parent!=1) {
+                for(var nn=0;nn<nodes.length;nn++) {
+                  if(nodes[nn].sensor_id == parent) {
+                    parent = nodes[nn].parent
+                    hop++
+                  }
+                }
+              }
+              nodes[n].hop = hop
+            }
+          }
+          for(var x=0;x<sensors.length;x++) {
+            for(var y=0;y<nodes.length;y++) {
+              if(sensors[x].sensor_id==nodes[y].sensor_id) {
+                sensors[x].hop = nodes[y].hop
+              }
+            }
+          }
+          window.console.log(sensors)
+          // index for pagination
+          for(var j=0;j<sensors.length;j++) {
+            sensors[j].index = j
+          }
+          this.sensors = sensors
+          this.$EventBus.$emit("sensors",this.sensors)
+        })
+        
+        
+        
       })
     },
     selectGW() {

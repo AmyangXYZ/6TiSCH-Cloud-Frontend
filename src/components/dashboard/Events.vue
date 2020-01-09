@@ -1,5 +1,5 @@
 <template>
-  <vs-dropdown id="events" vs-navline-item vs-custom-content vs-trigger-click >  
+  <vs-dropdown id="events" vs-custom-content vs-trigger-click >  
     <a class="a-icon" href.prevent>Events</a>
     <vs-dropdown-menu>
       <div><ECharts autoresize :options="option"/></div>
@@ -45,6 +45,13 @@ export default {
         tooltip: {
           trigger: 'axis'
         },
+        dataZoom: [
+          {
+            type: "inside",
+            start: 0,
+            end: 100,
+          },
+        ],
         xAxis: {
             type: 'category',
             data: [],
@@ -122,7 +129,6 @@ export default {
         for(let t in time_series) {
           this.option.xAxis.data.push(t)
           this.option.series[0].data.push(time_series[t])
-          window.console.log(t,time_series[t])
         }
       })
     }
@@ -141,5 +147,5 @@ export default {
   display block
 .echarts 
   width 400px
-  height 80px
+  height 100px
 </style>
