@@ -19,7 +19,7 @@ export default {
   },
   data() {
     return {
-      selectedSensor: 3,
+      selectedSensor: 8,
       selectedGW: "UCONN_GW",
       selectedRange: "day",
       dataAvg: [],
