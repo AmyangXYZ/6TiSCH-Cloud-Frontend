@@ -19,7 +19,7 @@ export default {
   },
   data() {
     return {
-      selectedSensor: 8,
+      selectedSensor: 3,
       selectedGW: "UCONN_GW",
       selectedRange: "day",
       dataAvg: [],
@@ -200,8 +200,11 @@ export default {
     }
   },
   mounted() {
-    this.draw(this.selectedGW, this.selectedSensor, this.selectedRange);
-
+    // this.draw(this.selectedGW, this.selectedSensor, this.selectedRange);
+    this.$EventBus.$on("sensors", (sensors)=>{
+      this.selectedSensor = sensors[0].sensor_id
+      this.draw(this.selectedGW, this.selectedSensor, this.selectedRange);
+    })
     this.$EventBus.$on("selectedSensor", (sensor) => {
       this.selectedSensor = sensor.sensor_id
       this.selectedGW = sensor.gateway
