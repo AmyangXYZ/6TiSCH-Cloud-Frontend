@@ -11,7 +11,7 @@
         </vs-col>
         
         <vs-col vs-offset="4.8" vs-w="4">
-          <h3> {{d}} days, {{h.toString().padStart(2,'0')}}:{{m.toString().padStart(2,'0')}}:{{s.toString().padStart(2,'0')}}</h3>
+          <h3> {{d}} day<span v-if="d>1">s</span>, {{h.toString().padStart(2,'0')}}:{{m.toString().padStart(2,'0')}}:{{s.toString().padStart(2,'0')}}</h3>
         </vs-col>
       </vs-row>
     </vs-card>
