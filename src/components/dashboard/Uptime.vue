@@ -55,6 +55,6 @@ export default {
   height 103px
 #r
   margin-top 3px
-  font-size 1.52rem
+  font-size 1.32rem
   overflow hidden
 </style>

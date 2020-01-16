@@ -5,18 +5,21 @@
     <keep-alive>
       <router-view/>
     </keep-alive>
+    <Footer/>
   </div>
 </template>
 
 <script>
 import Navbar from './components/Navbar'
 import Sidebar from './components/Sidebar'
+import Footer from './components/Footer'
 
 export default {
   name: 'app',
   components: {
     Navbar,
     Sidebar,
+    Footer
   }
 }
 </script>
@@ -32,7 +35,7 @@ html, body {
 }
 
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  font-family: "Noto Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
