@@ -7,7 +7,7 @@
         </vs-navbar-title>
       </div>
       <vs-navbar-item>  
-        <Events/>
+        <Events style="cursor:pointer;"/>
       </vs-navbar-item>
       <vs-navbar-item >
         <a href="#">foo2</a>

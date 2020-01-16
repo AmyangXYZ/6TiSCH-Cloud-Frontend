@@ -4,7 +4,7 @@
       <vs-card>
           <vs-row vs-align="center">
             <vs-col vs-w="3">
-              <vs-icon size="60px" icon="router" color="#B4A3DB"></vs-icon>
+              <vs-icon size="75px" icon="router" color="#B4A3DB"></vs-icon>
             </vs-col>
             <vs-col class="cnt" vs-offset="4" vs-w="5">
               <h5>Gateways</h5>
@@ -18,7 +18,7 @@
       <vs-card>
           <vs-row vs-align="center">
             <vs-col vs-w="3">
-              <vs-icon size="60px" icon="memory" color="#58B2EC"></vs-icon>
+              <vs-icon size="75px" icon="memory" color="#58B2EC"></vs-icon>
             </vs-col>
             <vs-col class="cnt" vs-offset="4.5" vs-w="4.5">
               <h5>Sensors</h5>
@@ -66,14 +66,11 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-.material-icons 
-  // margin-bottom -10px
-
 .cnt
   font-size 1.32rem
   overflow hidden
   >h3
-    font-size 2rem
+    font-size 2.1rem
   >h5
     color #3B4F63
 </style>

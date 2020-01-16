@@ -206,9 +206,11 @@ export default {
       this.draw(this.selectedGW, this.selectedSensor, this.selectedRange);
     })
     this.$EventBus.$on("selectedSensor", (sensor) => {
-      this.selectedSensor = sensor.sensor_id
-      this.selectedGW = sensor.gateway
-      this.draw(this.selectedGW, this.selectedSensor, this.selectedRange);
+      if(sensor.sensor_id!=1) {
+        this.selectedSensor = sensor.sensor_id
+        this.selectedGW = sensor.gateway
+        this.draw(this.selectedGW, this.selectedSensor, this.selectedRange);
+      }
     });
     this.$EventBus.$on("selectedRange", (range) => {
       this.selectedRange = range

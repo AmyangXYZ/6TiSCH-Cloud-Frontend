@@ -7,6 +7,7 @@
         <RSSiChart/>
       </vs-col>
       <vs-col style="z-index:99" vs-offset="0.2" vs-w="6.1">
+        <Uptime/>
         <Slider/>
         <Layers/>
         <Map/>
@@ -17,6 +18,7 @@
 
 <script>
 import DeviceCnt from '../components/dashboard/DeviceCnt'
+import Uptime from '../components/dashboard/Uptime'
 import NWTable from '../components/dashboard/NWTable'
 import RSSiChart from '../components/dashboard/RSSiChart'
 import Map from '../components/dashboard/Map'
@@ -26,6 +28,7 @@ import Layers from '../components/dashboard/Layers'
 export default {
     components: {
       DeviceCnt,
+      Uptime,
       NWTable,
       RSSiChart,
       Map,

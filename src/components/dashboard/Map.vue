@@ -65,9 +65,12 @@ export default {
             return
           }
           this.$EventBus.$emit('sensorCnt', res.data.data.length-1)
+          
           for(var i=0;i<res.data.data.length;i++) {
+            if(res.data.data[i].sensor_id==1) {
+              this.$EventBus.$emit('startTime', res.data.data[i].first_appear)
+            }
             
-
             // generate lines
             // window.console.log(i,res.data.data[i].position)
             var parentPos = []
