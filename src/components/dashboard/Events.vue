@@ -1,6 +1,6 @@
 <template>
   <vs-dropdown id="events" vs-custom-content vs-trigger-click >  
-    <a class="a-icon" href.prevent>Events</a>
+    <a href.prevent>Events</a>
     <vs-dropdown-menu>
       <div><ECharts autoresize :options="option"/></div>
 

@@ -27,8 +27,11 @@
         <vs-th sort-key="hop">
           HOP
         </vs-th>
+        <vs-th sort-key="children">
+          CHILDREN
+        </vs-th>
         <vs-th sort-key="avg_rtt">
-          LATENCY
+          LATENCY(s)
         </vs-th>
         <vs-th sort-key="mac_per">
           MAC PER(%)
@@ -48,6 +51,9 @@
           </vs-td>
           <vs-td :data="data[index].hop">
             {{data[index].hop}}
+          </vs-td>
+          <vs-td :data="data[index].children">
+            {{data[index].children}}
           </vs-td>
           <vs-td :data="data[index].avg_rtt">
             {{data[index].avg_rtt.toFixed(3)}}
@@ -95,11 +101,15 @@ export default {
           return a.sensor_id - b.sensor_id
         });
         
-        // get hop
+        // get hop and children
+        var links = []
         this.$api.gateway.getTopology(gw, range)
         .then(res=>{
           var nodes = res.data.data
           for(var n=0;n<nodes.length;n++) {
+            // links: [[child, parent]]
+            links.push([nodes[n].sensor_id,nodes[n].parent])
+
             if(nodes[n].sensor_id!=1) {
               var hop = 1
               var parent = nodes[n].parent
@@ -117,10 +127,21 @@ export default {
             }
           }
           
+          for(var nnn=0;nnn<nodes.length;nnn++) {
+            var children = 0
+            for(var l=0;l<links.length;l++) {
+              // is someone's parent
+              if(nodes[nnn].sensor_id==links[l][1])
+                children++
+            }
+            nodes[nnn].children=children
+          }
+          
           for(var x=0;x<sensors.length;x++) {
             for(var y=0;y<nodes.length;y++) {
               if(sensors[x].sensor_id==nodes[y].sensor_id) {
                 sensors[x].hop = nodes[y].hop
+                sensors[x].children = nodes[y].children
               }
             }
           }

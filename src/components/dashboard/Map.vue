@@ -183,7 +183,7 @@ export default {
     },
     handleClick(m) {
       // not gateway
-      if(m.sensor_id!=1) this.$EventBus.$emit('selectedSensor', m)  
+      this.$EventBus.$emit('selectedSensor', m)
       // double click -> reset
       if(m==this.selectedSensor) {
         this.topoColorReset()
@@ -253,7 +253,9 @@ export default {
           this.panTo(this.markers[i].position)
           this.zoom = 23
           this.topoHighLight(this.markers[i])
-          if(this.powerLayerFlag) this.showInfoWindow(this.markers[i])
+          if(sensor.sensor_id!=1 && this.powerLayerFlag) {
+            this.showInfoWindow(this.markers[i])
+          }
         }
       }
     });
