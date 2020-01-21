@@ -1,6 +1,6 @@
 <template>
     <vs-row vs-align="flex-start" vs-w="12">
-      <vs-col   style="z-index:99" vs-offset="3" vs-w="6">  
+      <vs-col style="z-index:99" vs-offset="2" vs-w="8">  
         <vs-card id="todo">
           <Topology/>
         </vs-card>
@@ -22,5 +22,5 @@ export default {
 #todo
   font-size 2rem
   line-height 40px
-  height: 600px;
+  height: 1000px;
 </style>
