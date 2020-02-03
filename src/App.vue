@@ -3,10 +3,11 @@
     <Navbar/>
     <Sidebar/>
     <keep-alive>
-      <router-view/>
+      <router-view style="min-height:80vh"/>
     </keep-alive>
     <Footer/>
   </div>
+  
 </template>
 
 <script>
@@ -26,7 +27,7 @@ export default {
 
 <style>
 html, body {
-  height: 100%;
+  max-height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
@@ -39,6 +40,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
-  margin-top: 105px;
+  margin-top: 10vh;
+  height: 100%;
 }
 </style>

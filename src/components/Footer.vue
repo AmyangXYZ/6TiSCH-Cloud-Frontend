@@ -19,11 +19,11 @@ export default {
 	margin-bottom 0px
 .footer
 	width 100%
-	height 70px
+	height 7vh
 	border-radius 0px
-	margin-top 30px
-	padding 14px
-	margin-bottom 0
+	padding 1.2vh
+	margin-top 3vh
+	margin-bottom -10vh
 	color black
 	h3
 		font-size 0.8rem

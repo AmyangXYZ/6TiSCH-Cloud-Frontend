@@ -33,16 +33,16 @@ export default {
 #ntitle
   text-align right
   font-weight 500
-  font-size 1.8rem
+  font-size 1.6rem
   margin-left 90px
-  margin-bottom 20px
+  margin-bottom 30px
   #subtitle  
     font-size 1.4rem
 #nbar
   height 135px
   z-index 1
   position absolute
-  margin-top -105px
+  margin-top -10vh
   color white
   li
     margin-right 30px
