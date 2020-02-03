@@ -1,7 +1,8 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Dashboard from '@/pages/Dashboard'
-import Todo from '@/pages/Todo'
+import Analysis from '@/pages/Analysis'
+import Schedule from '@/pages/Schedule'
 
 Vue.use(Router)
 
@@ -16,11 +17,12 @@ export default new Router({
             component: Dashboard,
         },
         {
-            path: '/analysis',
+            path: '/schedule',
+            component: Schedule,
         },
         {
-            path: '/todo',
-            component: Todo,
-        }
+            path: '/analysis',
+            component: Analysis,
+        },
     ]
 })

@@ -22,9 +22,9 @@ export default {
       show: false,
       filters: {
         latency: {name:"Latency", max: 4, step:0.001, value: [0,4], color:"dark"},
-        macPER: {name:"MAC PER", max: 1, step:0.001, value: [0,1], color:"orange"},
+        macPER: {name:"MAC PER", max: 5, step:0.001, value: [0,5], color:"orange"},
         noiseLv: {name:"Noise Level", max: 3, step:0.1, value: [0,3], color:"green"},
-        appPER: {name:"APP PER", max:1, step:0.001, value: [0,1], color:"red"},
+        appPER: {name:"APP PER", max: 1, step:0.001, value: [0,1], color:"red"},
       },
       // all sensors
       sensors: [],
@@ -55,6 +55,19 @@ export default {
 
     handleMacPERRange: lodash.debounce(function() {
       this.filterRes.macPER = []
+      for(var i=0;i<this.sensors.length;i++) {
+        if(this.sensors[i].noiseLv>=this.filters.noiseLv.value[0] 
+          && this.sensors[i].noiseLv<=this.filters.noiseLv.value[1]) {
+          this.filterRes.noiseLv.push(this.sensors[i].sensor_id)
+        }
+      }
+      // intersection
+      this.finalRes = this.filterRes.latency.filter(x => this.filterRes.macPER.includes(x))
+        .filter(y => this.filterRes.appPER.includes(y)).filter(y => this.filterRes.noiseLv.includes(y))
+    }, 300),
+
+    handleNoiseLvRange: lodash.debounce(function() {
+      this.filterRes.noiseLv = []
       for(var i=0;i<this.sensors.length;i++) {
         if(this.sensors[i].mac_per>=this.filters.macPER.value[0] 
           && this.sensors[i].mac_per<=this.filters.macPER.value[1]) {

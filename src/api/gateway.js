@@ -10,6 +10,12 @@ const gateway = {
     getTopoHistory() {
         return axios.get(`/api/any/topology/history`)
     },
+    getSchedule() {
+        return axios.get(`/api/any/schedule`)
+    },
+    getPartition() {
+        return axios.get(`/api/any/schedule/partition`)
+    },
     getNWStat(gw, range) {
         return axios.get(`/api/${gw}/nwstat?range=${range}`)
     },
