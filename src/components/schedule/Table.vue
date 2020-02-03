@@ -31,8 +31,8 @@ export default {
         tooltip: {
           formatter: (item) => {
             var layer = ""
-            for(var i=0;i<this.slots.length;++i) {
-              if(this.slots[i].slot[0]==item.data[0] && this.slots[i].slot[1]==(item.data[1]*2+1)) {
+            for(var i=0;i<this.slots.length;i++) {
+              if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]*2+1)) {
                 if(this.slots[i].sender==1 || this.slots[i].type == "beacon") {
                   layer = 0
                 }
@@ -44,7 +44,8 @@ export default {
                     }
                   }
                 }
-                return `${this.slots[i].type.replace(/^\S/, s => s.toUpperCase())}<br/>
+                return `[${item.data[0]-0.5}, ${item.data[1]}]<br/>
+                        ${this.slots[i].type.replace(/^\S/, s => s.toUpperCase())}<br/>
                         Layer ${layer}<br/>
                         ${this.slots[i].sender} -> ${this.slots[i].receiver}`
               }
@@ -60,9 +61,13 @@ export default {
           
         },
         xAxis: {
+          min:0,
           max:127,
+          // interval:0,
+          splitNumber: 20,
+          minInterval: 1,
           name: "Slot Offset",
-          type: 'category',
+          type: 'value',
           position: "top",
           nameLocation: "middle",
           nameTextStyle: {
@@ -115,9 +120,9 @@ export default {
         visualMap: {
           min: 0,
           max: 10,
-          // show:false,
-          // splitNumber: 10,
-          // type: 'piecewise',
+          show:false,
+          splitNumber: 10,
+          type: 'piecewise',
           inRange: {
             color: ['#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027']
           },
@@ -132,21 +137,6 @@ export default {
           markArea: {
             silent:true,
             data: []
-          },
-          label: {
-            // show: true,
-            color:"black",
-            // formatter: (item) => {
-            //   // for(var i=0;i<this.slots.length;i++) {
-            //   //   if(this.slots[i].slot[0]==item.data[0] && this.slots[i].slot[1]==(item.data[1]*2+1)) {
-            //   //     return this.slots[i].type[0].toUpperCase()
-            //   //   }
-            //   // }
-            //   // return item.data
-            //   window.console.log(item)
-            //   // return `${this.partition[item.data[2]].type[0].toUpperCase()}${this.partition[item.data[2]].layer}`
-            //   return ''
-            // }
           },
         }]
       }
@@ -170,9 +160,10 @@ export default {
             if(name!="B") name+=res.data.data[i].layer
             
             this.option.series[0].markArea.data.push([
-              {name:name,xAxis:res.data.data[i].range[0]},
+              {name:name,coord:[res.data.data[i].range[0]]},
               {
-                xAxis:res.data.data[i].range[1], 
+                coord:[res.data.data[i].range[1]],
+                // xAxis:res.data.data[i].range[1], 
                 itemStyle:{color:colors[i+1],opacity:0.4},
                 label:{position:"bottom",color:"black",fontWeight:"bold",fontSize:14}
               }
@@ -183,10 +174,6 @@ export default {
 
       this.$api.gateway.getSchedule()
       .then(res => {
-        for(var x=0;x<this.SlotFrameLength;x++) {
-          this.option.xAxis.data.push(x)
-        }
-        this.option.yAxis.data = this.Channels
         this.slots = res.data.data
         for(var i=0;i<res.data.data.length;i++) {
           var tag = 0.2
@@ -197,7 +184,7 @@ export default {
             tag = 10
           }
 
-          this.option.series[0].data.push([res.data.data[i].slot[0],Math.floor(res.data.data[i].slot[1]/2),tag])
+          this.option.series[0].data.push([res.data.data[i].slot[0]+0.5,Math.floor(res.data.data[i].slot[1]/2),tag])
         }
          
       })
