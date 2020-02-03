@@ -3,6 +3,7 @@
     <vs-col style="z-index:99" vs-offset="1" vs-w="10.4">  
     <vs-card>
       <div slot="header"><h4>Partition-based Scheduling</h4></div>
+      <h3>{{this.slots.length}} links, {{nonOptimalCnt}} non-optimal</h3>
       <ECharts id="sch-table" autoresize :options="option"/>
     </vs-card>
     </vs-col>
@@ -26,6 +27,7 @@ export default {
       SlotFrameLength: 127,
       Channels: [1,3,5,7,9,11,13,15],
       slots: [],
+      nonOptimalCnt:0,
       nodes: [],
       option: {
         tooltip: {
@@ -54,31 +56,33 @@ export default {
           }
         },
         grid: {
-          height: '60%',
-          top: 'middle',
+          height: '70%',
           left: '5%',
           right: '5%',
-          
         },
         xAxis: {
           min:0,
           max:127,
-          // interval:0,
-          splitNumber: 20,
+          splitNumber: 127,
           minInterval: 1,
+          axisLabel: {
+            formatter: (item)=>{
+              if(item%2==1) 
+                return item
+            }
+          },
           name: "Slot Offset",
           type: 'value',
           position: "top",
           nameLocation: "middle",
           nameTextStyle: {
             fontWeight: "bold",
-            padding: 10,
+            padding: 15,
             fontSize: 15
           },
           data: [],
           splitArea: {
             show: true,
-            interval: 0
           },
         },
         yAxis: {
@@ -121,7 +125,7 @@ export default {
           min: 0,
           max: 10,
           show:false,
-          splitNumber: 10,
+          splitNumber: 5,
           type: 'piecewise',
           inRange: {
             color: ['#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027']
@@ -158,14 +162,13 @@ export default {
           if(res.data.data[i].range[0]<res.data.data[i].range[1]) {
             var name = res.data.data[i].type[0].toUpperCase()
             if(name!="B") name+=res.data.data[i].layer
-            
+            // name+=`\n${res.data.data[i].range[0]}~${res.data.data[i].range[1]}`
             this.option.series[0].markArea.data.push([
-              {name:name,coord:[res.data.data[i].range[0]]},
+              {name:name,xAxis:res.data.data[i].range[0]},
               {
-                coord:[res.data.data[i].range[1]],
-                // xAxis:res.data.data[i].range[1], 
-                itemStyle:{color:colors[i+1],opacity:0.4},
-                label:{position:"bottom",color:"black",fontWeight:"bold",fontSize:14}
+                xAxis:res.data.data[i].range[1], 
+                itemStyle:{color:colors[i+1],opacity:0.5},
+                label:{position:"bottom",color:"black",fontWeight:"bold",fontSize:14 }
               }
             ])
           }
@@ -181,6 +184,7 @@ export default {
           //   tag = 1
           // }
           if(!res.data.data[i].is_optimal) {
+            this.nonOptimalCnt++
             tag = 10
           }
 
@@ -228,5 +232,5 @@ export default {
 <style lang="stylus" scoped>
 #sch-table
   width 100%
-  height 560px
+  height 540px
 </style>
