@@ -26,12 +26,27 @@ export default {
       SlotFrameLength: 127,
       Channels: [1,3,5,7,9,11,13,15],
       slots: [],
+      nodes: [],
       option: {
         tooltip: {
           formatter: (item) => {
+            var layer = ""
             for(var i=0;i<this.slots.length;++i) {
               if(this.slots[i].slot[0]==item.data[0] && this.slots[i].slot[1]==(item.data[1]*2+1)) {
-                return `${this.slots[i].sender}->${this.slots[i].receiver}`
+                if(this.slots[i].sender==1 || this.slots[i].type == "beacon") {
+                  layer = 0
+                }
+                else {
+                  for(var j=0;j<this.nodes.length;j++) {
+                    if(this.nodes[j].sensor_id==this.slots[i].sender) {
+                      if(this.slots[i].type=="uplink") layer = this.nodes[j].hop-1
+                      else layer = this.nodes[j].hop
+                    }
+                  }
+                }
+                return `${this.slots[i].type.replace(/^\S/, s => s.toUpperCase())}<br/>
+                        Layer ${layer}<br/>
+                        ${this.slots[i].sender} -> ${this.slots[i].receiver}`
               }
             }
             return item.data
@@ -100,10 +115,11 @@ export default {
         visualMap: {
           min: 0,
           max: 10,
-          // splitNumber: 11,
-          type: 'piecewise',
+          // show:false,
+          // splitNumber: 10,
+          // type: 'piecewise',
           inRange: {
-            color: [ '#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027']
+            color: ['#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027']
           },
           position: 'top',
           orient: "horizontal",
@@ -111,7 +127,6 @@ export default {
           left: 'center',
         },
         series: [{
-          name: 'Punch Card',
           type: 'heatmap',
           data: [],
           markArea: {
@@ -119,19 +134,19 @@ export default {
             data: []
           },
           label: {
-            show: true,
+            // show: true,
             color:"black",
-            formatter: (item) => {
-              // for(var i=0;i<this.slots.length;i++) {
-              //   if(this.slots[i].slot[0]==item.data[0] && this.slots[i].slot[1]==(item.data[1]*2+1)) {
-              //     return this.slots[i].type[0].toUpperCase()
-              //   }
-              // }
-              // return item.data
-              window.console.log(item)
-              // return `${this.partition[item.data[2]].type[0].toUpperCase()}${this.partition[item.data[2]].layer}`
-              return ''
-            }
+            // formatter: (item) => {
+            //   // for(var i=0;i<this.slots.length;i++) {
+            //   //   if(this.slots[i].slot[0]==item.data[0] && this.slots[i].slot[1]==(item.data[1]*2+1)) {
+            //   //     return this.slots[i].type[0].toUpperCase()
+            //   //   }
+            //   // }
+            //   // return item.data
+            //   window.console.log(item)
+            //   // return `${this.partition[item.data[2]].type[0].toUpperCase()}${this.partition[item.data[2]].layer}`
+            //   return ''
+            // }
           },
         }]
       }
@@ -158,7 +173,7 @@ export default {
               {name:name,xAxis:res.data.data[i].range[0]},
               {
                 xAxis:res.data.data[i].range[1], 
-                itemStyle:{color:colors[i],opacity:0.5},
+                itemStyle:{color:colors[i+1],opacity:0.4},
                 label:{position:"bottom",color:"black",fontWeight:"bold",fontSize:14}
               }
             ])
@@ -166,30 +181,59 @@ export default {
         }
       })
 
-      // this.$api.gateway.getSchedule()
-      // .then(res => {
-      //   for(var x=0;x<this.SlotFrameLength;x++) {
-      //     this.option.xAxis.data.push(x)
-      //   }
-      //   this.option.yAxis.data = this.Channels
-      //   this.slots = res.data.data
-      //   for(var i=0;i<res.data.data.length;i++) {
-      //     var tag = 8
-      //     if(res.data.data[i].type=="beacon") {
-      //       tag = 1
-      //     }
-      //     if(!res.data.data[i].is_optimal) {
-      //       tag = 10
-      //     }
+      this.$api.gateway.getSchedule()
+      .then(res => {
+        for(var x=0;x<this.SlotFrameLength;x++) {
+          this.option.xAxis.data.push(x)
+        }
+        this.option.yAxis.data = this.Channels
+        this.slots = res.data.data
+        for(var i=0;i<res.data.data.length;i++) {
+          var tag = 0.2
+          // if(res.data.data[i].type=="beacon") {
+          //   tag = 1
+          // }
+          if(!res.data.data[i].is_optimal) {
+            tag = 10
+          }
 
-      //     this.option.series[0].data.push([res.data.data[i].slot[0],Math.floor(res.data.data[i].slot[1]/2),tag])
-      //   }
+          this.option.series[0].data.push([res.data.data[i].slot[0],Math.floor(res.data.data[i].slot[1]/2),tag])
+        }
          
-      // })
+      })
+    },
+    getLayer() {
+      this.$api.gateway.getTopology('any', 'hour')
+      .then(res=>{
+        if(res.data.flag>0) {
+          var nodes = res.data.data
+          for(var n=0;n<nodes.length;n++) {
+            if(nodes[n].sensor_id!=1) {
+              var hop = 1
+              var parent = nodes[n].parent
+              var MaxHop = 10
+              while(parent!=1&&MaxHop>=0) {
+                for(var nn=0;nn<nodes.length;nn++) {
+                  if(nodes[nn].sensor_id == parent) {
+                    parent = nodes[nn].parent
+                    hop++
+                  }
+                }
+                MaxHop--
+              }
+              nodes[n].hop = hop
+            }
+          }
+          this.nodes = nodes
+        }
+        // make sure layers info is ready
+        this.draw()
+      })
+      
     }
   },
   mounted() {
-    this.draw()
+    this.getLayer()
   }
 }
 </script>
@@ -197,5 +241,5 @@ export default {
 <style lang="stylus" scoped>
 #sch-table
   width 100%
-  height 500px
+  height 560px
 </style>
