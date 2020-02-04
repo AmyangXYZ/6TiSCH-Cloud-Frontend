@@ -40,9 +40,13 @@ export default {
               if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]*2+1)) {
                 if(this.slots[i].type == "beacon") {
                   var res = `[${item.data[0]-0.5}, ${item.data[1]*2+1}]<br/>
+                            Beacon<br/>
                             Subslots<br/>`
                   for(var sub in this.bcnSubslots[this.slots[i].slot[0]]) {
-                    res+=`${sub}&nbsp&nbsp-&nbsp&nbsp${this.bcnSubslots[this.slots[i].slot[0]][sub]}<br/>`
+                    
+                    var sub_text = sub.toString()
+                    sub_text = (sub_text.length<2) ? ("\xa0\xa0"+sub_text):sub_text
+                    res+=`${sub_text}\xa0\xa0-\xa0\xa0${this.bcnSubslots[this.slots[i].slot[0]][sub]}<br/>`
                   }
                   return res
                 }
