@@ -1,12 +1,20 @@
 <template>
   <vs-row>
     <vs-col style="z-index:99" vs-offset="1" vs-w="10.4">  
-    <vs-card>
-      <div slot="header"><h4>Partition-based Scheduling</h4></div>
-      <h3>{{this.slots.length}} links, {{nonOptimalCnt}} non-optimal</h3>
-      <ECharts id="sch-table" autoresize :options="option"/>
-      <!-- <ECharts id="sch-table-bcn" autoresize :options="optionBcn"/> -->
-    </vs-card>
+      <vs-card>
+        <div slot="header"><h4>Partition-based Scheduling</h4></div>
+        <div class="partition-usage">
+          <h3>{{this.slots.length}} links, {{nonOptimalCnt}} non-optimal</h3>
+          <h3>Partition usage:</h3>
+          <vs-row vs-type="flex" vs-justify="center">
+            <vs-col id="part" vs-w="1" v-for="(p,i) in partitions" :key="i">
+              {{p.name}}: <span :class="{overflow:p.used>p.size}">{{p.used}}</span>/{{p.size}}
+            </vs-col>
+          </vs-row>
+        </div>
+        <ECharts id="sch-table" autoresize :options="option"/>
+        <!-- <ECharts id="sch-table-bcn" autoresize :options="optionBcn"/> -->
+      </vs-card>
     </vs-col>
   </vs-row> 
 </template>
@@ -29,6 +37,7 @@ export default {
       SlotFrameLength: 127,
       Channels: [1,3,5,7,9,11,13,15],
       slots: [],
+      partitions: {},
       bcnSubslots: {},
       nonOptimalCnt:0,
       nodes: [],
@@ -71,7 +80,7 @@ export default {
           }
         },
         grid: {
-          top: '12%',
+          // top: 'middle',
           height: '70%',
           left: '4%',
           right: '3%',
@@ -122,6 +131,20 @@ export default {
             start: 0,
             end: 100,
           },
+          {
+            start: 0,
+            end: 100,
+            handleIcon:
+              "M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z",
+            handleSize: "80%",
+            handleStyle: {
+              color: "#fff",
+              shadowBlur: 3,
+              shadowColor: "rgba(0, 0, 0, 0.6)",
+              shadowOffsetX: 2,
+              shadowOffsetY: 2
+            }
+          }
         ],
         visualMap: {
           min: 0,
@@ -131,13 +154,13 @@ export default {
           inRange: {
             color: ['#4575b4', '#d73027']
           },
-          pieces:[{min:0,max:0,label:"optimal"},{min:1,max:1,label:"non-optimal"}],
+          pieces:[{min:0,max:0,label:"Optimal"},{min:1,max:1,label:"Non-Optimal"}],
           textStyle: {
             fontSize:15,
           },
           position: 'top',
           orient: "horizontal",
-          top: -2,
+          top: 3,
           left: 'right',
         },
         series: [{
@@ -289,6 +312,10 @@ export default {
           if(res.data.data[i].range[0]<res.data.data[i].range[1]) {
             var name = res.data.data[i].type[0].toUpperCase()
             if(name!="B") name+=res.data.data[i].layer
+            var range = res.data.data[i].range[1]-res.data.data[i].range[0]
+            if(name=="B") range*=16
+            this.partitions[name] = {name:name, size:range, used:0}
+
             this.option.series[0].markArea.data.push([
               {name:name,xAxis:res.data.data[i].range[0]},
               {
@@ -299,26 +326,46 @@ export default {
             ])
           }
         }
+
+        // make sure partition is loaded
+        this.$api.gateway.getSchedule()
+        .then(res => {
+          this.slots = res.data.data
+          var layer = ""
+
+          for(var i=0;i<res.data.data.length;i++) {
+            var name = res.data.data[i].type[0].toUpperCase()
+            if(res.data.data[i].type == "beacon") {
+              layer = ""
+            } else if(res.data.data[i].sender==1) {
+              layer = 0
+            } else {
+              for(var j=0;j<this.nodes.length;j++) {
+                if(this.nodes[j].sensor_id==this.slots[i].sender) {
+                  layer = (this.slots[i].type=="uplink")?this.nodes[j].hop-1:this.nodes[j].hop
+                }
+              }
+            }
+            name+=layer
+            this.partitions[name].used+=1
+
+            var tag = 0
+            if(!res.data.data[i].is_optimal) {
+              this.nonOptimalCnt++
+              tag = 1
+            }
+
+            if(res.data.data[i].type=="beacon") {
+              this.bcnSubslots[res.data.data[i].slot[0]][res.data.data[i].subslot[0]]=res.data.data[i].sender
+              this.optionBcn.series[0].data.push([res.data.data[i].slot[0]+0.5,res.data.data[i].subslot[0],0.15])
+            }
+
+            this.option.series[0].data.push([res.data.data[i].slot[0]+0.5,Math.floor(res.data.data[i].slot[1]/2),tag])
+          }
+        })
       })
 
-      this.$api.gateway.getSchedule()
-      .then(res => {
-        this.slots = res.data.data
-        for(var i=0;i<res.data.data.length;i++) {
-          var tag = 0
-          if(!res.data.data[i].is_optimal) {
-            this.nonOptimalCnt++
-            tag = 1
-          }
-
-          if(res.data.data[i].type=="beacon") {
-            this.bcnSubslots[res.data.data[i].slot[0]][res.data.data[i].subslot[0]]=res.data.data[i].sender
-            this.optionBcn.series[0].data.push([res.data.data[i].slot[0]+0.5,res.data.data[i].subslot[0],0.15])
-          }
-
-          this.option.series[0].data.push([res.data.data[i].slot[0]+0.5,Math.floor(res.data.data[i].slot[1]/2),tag])
-        }
-      })
+      
     },
     getLayer() {
       this.$api.gateway.getTopology('any', 'hour')
@@ -357,6 +404,13 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+.overflow
+  font-weight 600
+  color red
+.partition-usage
+  font-size 0.9rem
+  #part
+    margin-top 4px
 #sch-table
   width 100%
   height 550px
