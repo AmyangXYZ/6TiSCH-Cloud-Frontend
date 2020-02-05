@@ -12,6 +12,7 @@
             </vs-col>
           </vs-row>
         </div>
+        <vs-divider/>
         <ECharts id="sch-table" autoresize :options="option"/>
         <!-- <ECharts id="sch-table-bcn" autoresize :options="optionBcn"/> -->
       </vs-card>
@@ -80,7 +81,7 @@ export default {
           }
         },
         grid: {
-          // top: 'middle',
+          top: '8%',
           height: '70%',
           left: '4%',
           right: '3%',
@@ -160,8 +161,8 @@ export default {
           },
           position: 'top',
           orient: "horizontal",
-          top: 3,
-          left: 'right',
+          top: -6,
+          right:"1%",
         },
         series: [{
           type: 'heatmap',
