@@ -6,9 +6,10 @@
         <div class="partition-usage">
           <h3>{{this.slots.length}} links, {{nonOptimalCnt}} non-optimal</h3>
           <h3>Partition usage:</h3>
-          <vs-row vs-type="flex" vs-justify="center">
+          <vs-row vs-type="flex" vs-justify="space-around">
             <vs-col id="part" vs-w="1" v-for="(p,i) in partitions" :key="i">
-              {{p.name}}: <span :class="{overflow:p.used>p.size}">{{p.used}}</span>/{{p.size}}
+              <span :class="{overflow:p.used>=p.size}">{{p.name}}:
+              <span >({{p.used}}+{{p.misaligned}})/{{p.size}}</span></span>
             </vs-col>
           </vs-row>
         </div>
@@ -174,6 +175,7 @@ export default {
             formatter: (item) => {
               var layer = ""
               for(var i=0;i<this.slots.length;i++) {
+                // axis ticks offset
                 if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]*2+1)) {
                   if(!this.slots[i].is_optimal){
                     if(this.slots[i].sender==1 || this.slots[i].type == "beacon") {
@@ -311,11 +313,19 @@ export default {
         for(var i=0;i<res.data.data.length;i++) {
           // partition size > 0
           if(res.data.data[i].range[0]<res.data.data[i].range[1]) {
+            // 8 channels
+            var times = 8
+            var range = res.data.data[i].range[1]-res.data.data[i].range[0]
             var name = res.data.data[i].type[0].toUpperCase()
             if(name!="B") name+=res.data.data[i].layer
-            var range = res.data.data[i].range[1]-res.data.data[i].range[0]
-            if(name=="B") range*=16
-            this.partitions[name] = {name:name, size:range, used:0}
+          
+            // root(layer 0) cannot send/recv with multi devices at the same time
+            if(res.data.data[i].layer==0) times = 1
+
+            // beacon has 16 subslots
+            if(name=="B") times=16
+
+            this.partitions[name] = {name:name, start:res.data.data[i].range[0], end:res.data.data[i].range[1], size:range*times, used:0, misaligned:0}
 
             this.option.series[0].markArea.data.push([
               {name:name,xAxis:res.data.data[i].range[0]},
@@ -332,28 +342,24 @@ export default {
         this.$api.gateway.getSchedule()
         .then(res => {
           this.slots = res.data.data
-          var layer = ""
 
           for(var i=0;i<res.data.data.length;i++) {
-            var name = res.data.data[i].type[0].toUpperCase()
-            if(res.data.data[i].type == "beacon") {
-              layer = ""
-            } else if(res.data.data[i].sender==1) {
-              layer = 0
-            } else {
-              for(var j=0;j<this.nodes.length;j++) {
-                if(this.nodes[j].sensor_id==this.slots[i].sender) {
-                  layer = (this.slots[i].type=="uplink")?this.nodes[j].hop-1:this.nodes[j].hop
+            var name = ""
+              for(let p in this.partitions) {
+                if(this.partitions[p].start<=res.data.data[i].slot[0] &&
+                  this.partitions[p].end>res.data.data[i].slot[0]) {
+                  name = p
                 }
               }
-            }
-            name+=layer
-            this.partitions[name].used+=1
+            this.partitions[name].used++
 
             var tag = 0
             if(!res.data.data[i].is_optimal) {
               this.nonOptimalCnt++
               tag = 1
+
+              
+              this.partitions[name].misaligned++
             }
 
             if(res.data.data[i].type=="beacon") {
