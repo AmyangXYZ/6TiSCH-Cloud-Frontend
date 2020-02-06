@@ -81,8 +81,8 @@ export default {
           }
         },
         grid: {
-          top: '8%',
-          height: '70%',
+          top: '10%',
+          height: '78%',
           left: '4%',
           right: '3%',
         },
@@ -161,7 +161,7 @@ export default {
           },
           position: 'top',
           orient: "horizontal",
-          top: -6,
+          top: -3,
           right:"1%",
         },
         series: [{
