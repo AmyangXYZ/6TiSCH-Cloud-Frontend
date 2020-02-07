@@ -9,7 +9,8 @@
           <vs-row vs-type="flex" vs-justify="space-around">
             <vs-col id="part" vs-w="1" v-for="(p,i) in partitions" :key="i">
               <span :class="{overflow:p.used>=p.size}">{{p.name}}:
-              <span >({{p.used}}+{{p.misaligned}})/{{p.size}}</span></span>
+              <span v-if="p.misaligned>0">({{p.used-p.misaligned}}+<span class="overflow">{{p.misaligned}}</span>)/{{p.size}}</span>
+              <span v-else>{{p.used}}/{{p.size}}</span></span>
             </vs-col>
           </vs-row>
         </div>
@@ -356,9 +357,7 @@ export default {
             var tag = 0
             if(!res.data.data[i].is_optimal) {
               this.nonOptimalCnt++
-              tag = 1
-
-              
+              tag = 1           
               this.partitions[name].misaligned++
             }
 
