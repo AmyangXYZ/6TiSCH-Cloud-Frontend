@@ -3,6 +3,7 @@
     <vs-col style="z-index:99" vs-offset="1" vs-w="10.4">  
       <vs-card>
         <div slot="header" style="text-align:center"><h4>Partition-based Scheduling</h4></div>
+        <ECharts id="topo" autoresize :options="optionTopo"/>
         <div class="partition-usage">
           <h3>{{this.slots.length}} links, {{nonOptimalCnt}} non-optimal</h3>
           <vs-row vs-type="flex" vs-justify="center">
@@ -27,6 +28,7 @@ import "echarts/lib/component/tooltip";
 import "echarts/lib/component/title";
 import "echarts/lib/component/markArea";
 import "echarts/lib/component/dataZoom";
+import "echarts/lib/chart/graph"
 
 export default {
   components: {
@@ -188,6 +190,39 @@ export default {
           },
         }]
       },
+      optionTopo: {
+        series: [{
+          type: 'graph',
+          layout: 'force',
+          roam: true,
+          draggable: true,
+          label: {
+            formatter: '{c}'
+          },
+          lineStyle: {
+            width:3
+          },
+          data: [{
+            id:1,
+            value:1,
+            symbolSize:25,
+            label:{
+              normal: {
+                show: true,
+                fontSize:16,
+                color: "white"
+              }
+            },
+            fixed: true,
+            x:800,
+            y:240,
+          }],
+          edges: [],
+          force: {
+            repulsion: 160
+          }
+        }]
+      },
     }
   },
   methods: {
@@ -196,6 +231,7 @@ export default {
 
       this.$api.gateway.getPartition()
       .then(res=> {
+        this.partitions = res.data.data
         var colors = ['#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026','black','black','#a50026']
         for(var i=0;i<res.data.data.length;i++) {
           // init beacon subslots
@@ -210,7 +246,7 @@ export default {
             if(name!="B") name+=res.data.data[i].layer
 
             this.links[name] = {name:name, used:0, non_optimal:0}
-
+            
             this.option.series[0].markArea.data.push([
               {name:name,xAxis:res.data.data[i].range[0]},
               {
@@ -229,7 +265,6 @@ export default {
       this.$api.gateway.getSchedule()
       .then(res => {
         if(!res.data.flag) return
-
         this.slots = res.data.data
         for(var i=0;i<res.data.data.length;i++) {
           var name = res.data.data[i].type[0].toUpperCase()
@@ -238,7 +273,31 @@ export default {
           } 
           name+=res.data.data[i].layer
 
+          if(this.links[name] == null) {
+            this.links[name] = {name:name, used:0, non_optimal:0}
+          }
           this.links[name].used+=1
+          
+          if(name[0]=="U") {
+            var node = {
+              id: res.data.data[i].sender,
+              symbolSize: 20,
+              value: res.data.data[i].sender,
+              label: {
+                normal: {
+                    show: true,
+                    fontSize:14,
+                    color: "white"
+                }
+              },
+            }
+
+            this.optionTopo.series[0].data.push(node)
+            this.optionTopo.series[0].edges.push({
+              source: res.data.data[i].sender.toString(),
+              target: res.data.data[i].receiver.toString(),
+            })
+          }
 
           var tag = 0
           if(!res.data.data[i].is_optimal) {
@@ -263,6 +322,9 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+#topo
+  height 480px
+  width 100%
 .non-optimal
   font-weight 600
   color red
