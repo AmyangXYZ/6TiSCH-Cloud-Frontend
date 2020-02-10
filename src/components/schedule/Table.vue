@@ -50,7 +50,6 @@ export default {
         },
         tooltip: {
           formatter: (item) => {
-            var layer = ""
             for(var i=0;i<this.slots.length;i++) {
               if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]*2+1)) {
                 if(this.slots[i].type == "beacon") {
@@ -64,20 +63,9 @@ export default {
                   }
                   return res
                 }
-                if(this.slots[i].sender==1 || this.slots[i].type == "beacon") {
-                  layer = 0
-                }
-                else {
-                  for(var j=0;j<this.nodes.length;j++) {
-                    if(this.nodes[j].sensor_id==this.slots[i].sender) {
-                      if(this.slots[i].type=="uplink") layer = this.nodes[j].hop-1
-                      else layer = this.nodes[j].hop
-                    }
-                  }
-                }
                 return `[${item.data[0]-0.5}, ${item.data[1]*2+1}]<br/>
                         ${this.slots[i].type.replace(/^\S/, s => s.toUpperCase())}<br/>
-                        Layer ${layer}<br/>
+                        Layer ${this.slots[i].layer}<br/>
                         ${this.slots[i].sender} -> ${this.slots[i].receiver}`
               }
             }
@@ -176,22 +164,10 @@ export default {
             color: 'white',
             fontWeight: 'bold',
             formatter: (item) => {
-              var layer = ""
               for(var i=0;i<this.slots.length;i++) {
                 if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]*2+1)) {
                   if(!this.slots[i].is_optimal){
-                    if(this.slots[i].sender==1 || this.slots[i].type == "beacon") {
-                      layer = 0
-                    }
-                    else {
-                      for(var j=0;j<this.nodes.length;j++) {
-                        if(this.nodes[j].sensor_id==this.slots[i].sender) {
-                          if(this.slots[i].type=="uplink") layer = this.nodes[j].hop-1
-                          else layer = this.nodes[j].hop
-                        }
-                      }
-                    }
-                    return `${this.slots[i].type[0].toUpperCase()}\n${layer}`
+                    return `${this.slots[i].type[0].toUpperCase()}\n${this.slots[i].layer}`
                   }
                 }
               }
@@ -250,21 +226,12 @@ export default {
         this.$api.gateway.getSchedule()
         .then(res => {
           this.slots = res.data.data
-          var layer = ""
           for(var i=0;i<res.data.data.length;i++) {
             var name = res.data.data[i].type[0].toUpperCase()
             if(res.data.data[i].type == "beacon") {
-              layer = ""
-            } else if(res.data.data[i].sender==1) {
-              layer = 0
-            } else {
-              for(var j=0;j<this.nodes.length;j++) {
-                if(this.nodes[j].sensor_id==this.slots[i].sender) {
-                  layer = (this.slots[i].type=="uplink")?this.nodes[j].hop-1:this.nodes[j].hop
-                }
-              }
-            }
-            name+=layer
+              res.data.data[i].layer = ""
+            } 
+            name+=res.data.data[i].layer
 
             this.links[name].used+=1
 
@@ -285,38 +252,11 @@ export default {
       })
       
     },
-    getLayer() {
-      this.$api.gateway.getTopology('any', 'hour')
-      .then(res=>{
-        if(res.data.flag>0) {
-          var nodes = res.data.data
-          for(var n=0;n<nodes.length;n++) {
-            if(nodes[n].sensor_id!=1) {
-              var hop = 1
-              var parent = nodes[n].parent
-              var MaxHop = 10
-              while(parent!=1&&MaxHop>=0) {
-                for(var nn=0;nn<nodes.length;nn++) {
-                  if(nodes[nn].sensor_id == parent) {
-                    parent = nodes[nn].parent
-                    hop++
-                  }
-                }
-                MaxHop--
-              }
-              nodes[n].hop = hop
-            }
-          }
-          this.nodes = nodes
-        }
-        this.draw()
-      })
-      
-    }
+
   },
   mounted() {
-    // draw() is called in getLayer, to make sure layers info is ready
-    this.getLayer()
+    // setInterval(this.draw(),2000)
+    this.draw()
   }
 }
 </script>
