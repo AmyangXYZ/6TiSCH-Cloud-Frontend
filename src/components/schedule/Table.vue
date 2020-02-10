@@ -27,6 +27,7 @@ import "echarts/lib/component/tooltip";
 import "echarts/lib/component/title";
 import "echarts/lib/component/markArea";
 import "echarts/lib/component/dataZoom";
+
 export default {
   components: {
     ECharts
@@ -39,7 +40,6 @@ export default {
       links: {},
       bcnSubslots: {},
       nonOptimalCnt:0,
-      nodes: [],
       option: {
         title: {
           text: "Partition Usage",
@@ -191,10 +191,9 @@ export default {
     }
   },
   methods: {
-    draw() {
+    drawPartition() {
       this.option.yAxis.data = this.Channels
-      
-      
+
       this.$api.gateway.getPartition()
       .then(res=> {
         var colors = ['#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026','black','black','#a50026']
@@ -223,40 +222,42 @@ export default {
           }
         }
         // make sure partition is loaded
-        this.$api.gateway.getSchedule()
-        .then(res => {
-          this.slots = res.data.data
-          for(var i=0;i<res.data.data.length;i++) {
-            var name = res.data.data[i].type[0].toUpperCase()
-            if(res.data.data[i].type == "beacon") {
-              res.data.data[i].layer = ""
-            } 
-            name+=res.data.data[i].layer
-
-            this.links[name].used+=1
-
-            var tag = 0
-            if(!res.data.data[i].is_optimal) {
-              this.nonOptimalCnt++
-              this.links[name].non_optimal+=1
-              tag = 1
-            }
-
-            if(res.data.data[i].type=="beacon") {
-              this.bcnSubslots[res.data.data[i].slot[0]][res.data.data[i].subslot[0]]=res.data.data[i].sender
-            }
-
-            this.option.series[0].data.push([res.data.data[i].slot[0]+0.5,Math.floor(res.data.data[i].slot[1]/2),tag])
-          }
-        })
+        this.drawSchedule()
       })
-      
     },
+    drawSchedule() {
+      this.$api.gateway.getSchedule()
+      .then(res => {
+        if(!res.data.flag) return
 
+        this.slots = res.data.data
+        for(var i=0;i<res.data.data.length;i++) {
+          var name = res.data.data[i].type[0].toUpperCase()
+          if(res.data.data[i].type == "beacon") {
+            res.data.data[i].layer = ""
+          } 
+          name+=res.data.data[i].layer
+
+          this.links[name].used+=1
+
+          var tag = 0
+          if(!res.data.data[i].is_optimal) {
+            this.nonOptimalCnt++
+            this.links[name].non_optimal+=1
+            tag = 1
+          }
+
+          if(res.data.data[i].type=="beacon") {
+            this.bcnSubslots[res.data.data[i].slot[0]][res.data.data[i].subslot[0]]=res.data.data[i].sender
+          }
+
+          this.option.series[0].data.push([res.data.data[i].slot[0]+0.5,Math.floor(res.data.data[i].slot[1]/2),tag])
+        }
+      })
+    }
   },
   mounted() {
-    // setInterval(this.draw(),2000)
-    this.draw()
+    this.drawPartition()
   }
 }
 </script>
