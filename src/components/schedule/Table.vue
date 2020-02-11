@@ -14,7 +14,6 @@
         </div>
         <vs-divider/>
         <ECharts id="sch-table" autoresize :options="option"/>
-        <!-- <ECharts id="sch-table-bcn" autoresize :options="optionBcn"/> -->
       </vs-card>
     </vs-col>
   </vs-row> 
@@ -228,11 +227,10 @@ export default {
   methods: {
     drawPartition() {
       this.option.yAxis.data = this.Channels
-
       this.$api.gateway.getPartition()
       .then(res=> {
         this.partitions = res.data.data
-        var colors = ['#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026','black','black','#a50026']
+        var colors = ['#313695', '#3C57A5', '#4778B6', '#6095C5', '#7AB2D4', '#97C9E0', '#B3DDEB', '#CFEBF3', '#E7F6EC', '#F7FCCE', '#FFF7B3','#FEE79A','#FED081','#FDB668','#FA9656','#F57446','#E85337','#D93328','#BF1927','#A50026']
         for(var i=0;i<res.data.data.length;i++) {
           // init beacon subslots
           if(res.data.data[i].type=="beacon") {
@@ -246,12 +244,11 @@ export default {
             if(name!="B") name+=res.data.data[i].layer
 
             this.links[name] = {name:name, used:0, non_optimal:0}
-            
             this.option.series[0].markArea.data.push([
               {name:name,xAxis:res.data.data[i].range[0]},
               {
                 xAxis:res.data.data[i].range[1], 
-                itemStyle:{color:colors[i+1],opacity:0.5},
+                itemStyle:{color:colors[Math.floor(i/res.data.data.length*colors.length)],opacity:0.5},
                 label:{color:"black",fontWeight:"bold",fontSize:14}
               }
             ])
