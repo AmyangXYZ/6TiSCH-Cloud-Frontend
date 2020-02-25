@@ -3,7 +3,7 @@
     <vs-col style="z-index:99" vs-offset="1" vs-w="10.4">  
       <vs-card>
         <div slot="header" style="text-align:center"><h4>Partition-based Scheduling</h4></div>
-        <ECharts id="topo" autoresize :options="optionTopo"/>
+        <!-- <ECharts id="topo" autoresize :options="optionTopo"/> -->
         <div class="partition-usage">
           <h3>{{this.slots.length}} links, {{nonOptimalCnt}} non-optimal</h3>
           <vs-row vs-type="flex" vs-justify="center">
@@ -230,6 +230,7 @@ export default {
       this.$api.gateway.getPartition()
       .then(res=> {
         this.partitions = res.data.data
+        var markAreaTmp = []
         var colors = ['#313695', '#3C57A5', '#4778B6', '#6095C5', '#7AB2D4', '#97C9E0', '#B3DDEB', '#CFEBF3', '#E7F6EC', '#F7FCCE', '#FFF7B3','#FEE79A','#FED081','#FDB668','#FA9656','#F57446','#E85337','#D93328','#BF1927','#A50026']
         for(var i=0;i<res.data.data.length;i++) {
           // init beacon subslots
@@ -244,7 +245,7 @@ export default {
             if(name!="B") name+=res.data.data[i].layer
 
             this.links[name] = {name:name, used:0, non_optimal:0}
-            this.option.series[0].markArea.data.push([
+            markAreaTmp.push([
               {name:name,xAxis:res.data.data[i].range[0]},
               {
                 xAxis:res.data.data[i].range[1], 
@@ -254,6 +255,8 @@ export default {
             ])
           }
         }
+        this.option.series[0].markArea.data = markAreaTmp
+       
         // make sure partition is loaded
         this.drawSchedule()
       })
@@ -261,6 +264,8 @@ export default {
     drawSchedule() {
       this.$api.gateway.getSchedule()
       .then(res => {
+        this.nonOptimalCnt = 0
+        var cellsTmp = []
         if(!res.data.flag) return
         this.slots = res.data.data
         for(var i=0;i<res.data.data.length;i++) {
@@ -307,13 +312,17 @@ export default {
             this.bcnSubslots[res.data.data[i].slot[0]][res.data.data[i].subslot[0]]=res.data.data[i].sender
           }
 
-          this.option.series[0].data.push([res.data.data[i].slot[0]+0.5,Math.floor(res.data.data[i].slot[1]/2),tag])
+          cellsTmp.push([res.data.data[i].slot[0]+0.5,Math.floor(res.data.data[i].slot[1]/2),tag])
         }
+        this.option.series[0].data = cellsTmp
       })
     }
   },
   mounted() {
     this.drawPartition()
+    setInterval(()=>{
+      this.drawPartition()
+    },1000)
   }
 }
 </script>
