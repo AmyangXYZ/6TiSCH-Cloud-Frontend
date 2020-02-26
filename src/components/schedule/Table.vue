@@ -2,7 +2,15 @@
   <vs-row>
     <vs-col style="z-index:99" vs-offset="1" vs-w="10.4">  
       <vs-card>
-        <div slot="header" style="text-align:center"><h4>Partition-based Scheduling</h4></div>
+        <div slot="header" style="text-align:center">
+          <h4>Partition-based Scheduling
+            <div class="bts">
+              <vs-button color="danger" type="filled" @click="handleShuffleBt">Shuffle</vs-button>
+              <vs-button color="primary" type="filled"  @click="handleDPABt">DPA</vs-button>
+              <vs-button color="grey" type="filled"  @click="handleLoopBt">LOOP</vs-button>
+            </div>
+          </h4>
+        </div>
         <!-- <ECharts id="topo" autoresize :options="optionTopo"/> -->
         <div class="partition-usage">
           <h3>{{this.slots.length}} links, {{nonOptimalCnt}} non-optimal</h3>
@@ -29,12 +37,15 @@ import "echarts/lib/component/markArea";
 import "echarts/lib/component/dataZoom";
 import "echarts/lib/chart/graph"
 
+import {init,shuffle,dpa} from '@/assets/scheduler/schedule-dpa-sim.js'
+
 export default {
   components: {
-    ECharts
+    ECharts,
   },
   data() {
     return {
+      res: {},
       SlotFrameLength: 127,
       Channels: [1,3,5,7,9,11,13,15],
       slots: [],
@@ -227,8 +238,10 @@ export default {
   methods: {
     drawPartition() {
       this.option.yAxis.data = this.Channels
-      this.$api.gateway.getPartition()
-      .then(res=> {
+      // this.$api.gateway.getPartition()
+      // .then(res=> {
+        var res = {data:{data:this.res.partitions}}
+        window.console.log(res)
         this.partitions = res.data.data
         var markAreaTmp = []
         var colors = ['#313695', '#3C57A5', '#4778B6', '#6095C5', '#7AB2D4', '#97C9E0', '#B3DDEB', '#CFEBF3', '#E7F6EC', '#F7FCCE', '#FFF7B3','#FEE79A','#FED081','#FDB668','#FA9656','#F57446','#E85337','#D93328','#BF1927','#A50026']
@@ -259,14 +272,22 @@ export default {
        
         // make sure partition is loaded
         this.drawSchedule()
-      })
+      // })
     },
     drawSchedule() {
-      this.$api.gateway.getSchedule()
-      .then(res => {
+      // this.$api.gateway.getSchedule()
+      // .then(res => {
+        var res = {data:{data:this.res.cells}}
+        for(var x=0;x<res.data.data.length;x++) {
+          res.data.data[x].type = res.data.data[x].cell.type
+          res.data.data[x].layer = res.data.data[x].cell.layer
+          res.data.data[x].sender = res.data.data[x].cell.sender
+          res.data.data[x].receiver = res.data.data[x].cell.receiver
+        }
+
         this.nonOptimalCnt = 0
         var cellsTmp = []
-        if(!res.data.flag) return
+        // if(!res.data.flag) return
         this.slots = res.data.data
         for(var i=0;i<res.data.data.length;i++) {
           var name = res.data.data[i].type[0].toUpperCase()
@@ -315,19 +336,42 @@ export default {
           cellsTmp.push([res.data.data[i].slot[0]+0.5,Math.floor(res.data.data[i].slot[1]/2),tag])
         }
         this.option.series[0].data = cellsTmp
-      })
-    }
+      // })
+    },
+    handleShuffleBt() {
+      this.res = shuffle()
+      this.drawPartition()
+    },
+    handleDPABt() {
+      
+      this.res = dpa()
+      this.drawPartition()
+      window.console.log('dpa',this.res)
+    },
+    handleLoopBt() {
+      var i = 0
+      setInterval(()=>{
+        if(i%2==0) this.res = shuffle()
+        else this.res = dpa()
+        this.drawPartition()
+        i++
+      },1000)
+    },
   },
   mounted() {
+    this.res = init()
     this.drawPartition()
-    setInterval(()=>{
-      this.drawPartition()
-    },1000)
   }
 }
 </script>
 
 <style lang="stylus" scoped>
+.bts
+  float right
+  .vs-button
+    margin-left 10px
+    font-size 0.8rem
+    font-weight 600
 #topo
   height 480px
   width 100%
