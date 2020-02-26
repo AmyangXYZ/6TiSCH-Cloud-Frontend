@@ -45,6 +45,7 @@ export default {
   },
   data() {
     return {
+      loopFlag: 0,
       res: {},
       SlotFrameLength: 127,
       Channels: [1,3,5,7,9,11,13,15],
@@ -349,13 +350,16 @@ export default {
       window.console.log('dpa',this.res)
     },
     handleLoopBt() {
+      this.loopFlag = 1-this.loopFlag
       var i = 0
       setInterval(()=>{
+        if(this.loopFlag==0) return
         if(i%2==0) this.res = shuffle()
         else this.res = dpa()
         this.drawPartition()
         i++
       },1000)
+      
     },
   },
   mounted() {
