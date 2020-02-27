@@ -2,8 +2,8 @@
   <vs-row>
     <vs-col style="z-index:99" vs-offset="1" vs-w="10.4">  
       <vs-card>
-        <div slot="header" style="text-align:center">
-          <h4>Partition-based Scheduling
+        <div slot="header" >
+          <h4>Partition-based Scheduler | Simulation
             <div class="bts">
               <vs-button color="danger" type="filled" @click="handleShuffleBt">Shuffle</vs-button>
               <vs-button color="primary" type="filled"  @click="handleDPABt">DPA</vs-button>
@@ -46,6 +46,7 @@ export default {
   data() {
     return {
       loopFlag: 0,
+      loop: {},
       res: {},
       SlotFrameLength: 127,
       Channels: [1,3,5,7,9,11,13,15],
@@ -242,7 +243,6 @@ export default {
       // this.$api.gateway.getPartition()
       // .then(res=> {
         var res = {data:{data:this.res.partitions}}
-        window.console.log(res)
         this.partitions = res.data.data
         var markAreaTmp = []
         var colors = ['#313695', '#3C57A5', '#4778B6', '#6095C5', '#7AB2D4', '#97C9E0', '#B3DDEB', '#CFEBF3', '#E7F6EC', '#F7FCCE', '#FFF7B3','#FEE79A','#FED081','#FDB668','#FA9656','#F57446','#E85337','#D93328','#BF1927','#A50026']
@@ -302,26 +302,27 @@ export default {
           }
           this.links[name].used+=1
           
-          if(name[0]=="U") {
-            var node = {
-              id: res.data.data[i].sender,
-              symbolSize: 20,
-              value: res.data.data[i].sender,
-              label: {
-                normal: {
-                    show: true,
-                    fontSize:14,
-                    color: "white"
-                }
-              },
-            }
+          // draw topo
+          // if(name[0]=="U") {
+          //   var node = {
+          //     id: res.data.data[i].sender,
+          //     symbolSize: 20,
+          //     value: res.data.data[i].sender,
+          //     label: {
+          //       normal: {
+          //           show: true,
+          //           fontSize:14,
+          //           color: "white"
+          //       }
+          //     },
+          //   }
 
-            this.optionTopo.series[0].data.push(node)
-            this.optionTopo.series[0].edges.push({
-              source: res.data.data[i].sender.toString(),
-              target: res.data.data[i].receiver.toString(),
-            })
-          }
+          //   this.optionTopo.series[0].data.push(node)
+          //   this.optionTopo.series[0].edges.push({
+          //     source: res.data.data[i].sender.toString(),
+          //     target: res.data.data[i].receiver.toString(),
+          //   })
+          // }
 
           var tag = 0
           if(!res.data.data[i].is_optimal) {
@@ -344,22 +345,32 @@ export default {
       this.drawPartition()
     },
     handleDPABt() {
-      
       this.res = dpa()
       this.drawPartition()
-      window.console.log('dpa',this.res)
     },
     handleLoopBt() {
-      this.loopFlag = 1-this.loopFlag
+      if(this.loopFlag==1) {
+        this.loopFlag = 1-this.loopFlag
+        clearInterval(this.loop)
+        return
+      } else {
+        this.loopFlag = 1-this.loopFlag
+      }
+      
       var i = 0
-      setInterval(()=>{
-        if(this.loopFlag==0) return
-        if(i%2==0) this.res = shuffle()
-        else this.res = dpa()
+      this.loop = setInterval(()=>{
+        if(i%2==0) {
+          this.res = shuffle()
+        }
+        else {
+          this.res = dpa()
+          window.console.log("dpa")
+        }
         this.drawPartition()
         i++
-      },1000)
+      },1250)
       
+     
     },
   },
   mounted() {
