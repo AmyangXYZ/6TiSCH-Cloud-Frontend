@@ -12,6 +12,7 @@
           </h4>
         </div>
         <!-- <ECharts id="topo" autoresize :options="optionTopo"/> -->
+        <ECharts id="pChanges" autoresize :options="optionPartitionChanges"/>
         <div class="partition-usage">
           <h3>{{this.slots.length}} links, {{nonOptimalCnt}} non-optimal</h3>
           <vs-row vs-type="flex" vs-justify="center">
@@ -22,6 +23,8 @@
         </div>
         <vs-divider/>
         <ECharts id="sch-table" autoresize :options="option"/>
+        <vs-divider/>
+        
       </vs-card>
     </vs-col>
   </vs-row> 
@@ -31,6 +34,7 @@
 import ECharts from "vue-echarts/components/ECharts";
 import "echarts/lib/chart/heatmap";
 import "echarts/lib/component/visualMap";
+import "echarts/lib/component/legend";
 import "echarts/lib/component/tooltip";
 import "echarts/lib/component/title";
 import "echarts/lib/component/markArea";
@@ -45,6 +49,7 @@ export default {
   },
   data() {
     return {
+      i:0,
       loopFlag: 0,
       loop: {},
       res: {},
@@ -235,6 +240,48 @@ export default {
           }
         }]
       },
+      optionPartitionChanges: {
+        title: {
+          text: 'Partition size changes'
+        },
+        tooltip: {
+          trigger: 'axis'
+        },
+         dataZoom: [
+          {
+            type: 'slider',
+            show: true,
+            yAxisIndex: [0],
+            left: '93%',
+            handleIcon:
+              "M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z",
+            handleSize: "80%",
+            handleStyle: {
+              color: "#fff",
+              shadowBlur: 3,
+              shadowColor: "rgba(0, 0, 0, 0.6)",
+              shadowOffsetX: 2,
+              shadowOffsetY: 2
+            }
+          },
+          {
+            type: 'inside',
+            yAxisIndex: [0],
+          }
+      ],
+        legend: {
+            data: []
+        },
+        xAxis: {
+            type: 'category',
+            data: []
+        },
+        yAxis: {
+            type: 'value'
+        },
+        series: [
+        ]
+      },
     }
   },
   methods: {
@@ -267,8 +314,31 @@ export default {
                 label:{color:"black",fontWeight:"bold",fontSize:14}
               }
             ])
+
+            // draw partition changes chart
+            if(name[0]=="U") {
+              var found = 0
+              for(var p=0;p<this.optionPartitionChanges.series.length;p++) {
+                if(this.optionPartitionChanges.series[p].name==name) {
+                  this.optionPartitionChanges.series[p].data.push(res.data.data[i].range[1]-res.data.data[i].range[0])
+                  found = 1
+                }
+              }
+              if(!found) {
+                this.optionPartitionChanges.legend.data.push(name)
+                this.optionPartitionChanges.series.push({
+                  symbol: 'none',
+                  smooth: true,
+                  name: name,
+                  type: 'line',
+                  data:[res.data.data[i].range[1]-res.data.data[i].range[0]]
+                })
+              }              
+            }
           }
         }
+        this.optionPartitionChanges.xAxis.data.push(this.i++)
+        
         this.option.series[0].markArea.data = markAreaTmp
        
         // make sure partition is loaded
@@ -389,6 +459,10 @@ export default {
     font-weight 600
 #topo
   height 480px
+  width 100%
+
+#pChanges
+  height 300px
   width 100%
 .non-optimal
   font-weight 600
