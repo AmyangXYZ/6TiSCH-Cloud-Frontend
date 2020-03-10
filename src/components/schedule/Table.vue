@@ -3,16 +3,15 @@
     <vs-col style="z-index:99" vs-offset="1" vs-w="10.4">  
       <vs-card>
         <div slot="header" >
-          <h4>Partition-based Scheduler | Simulation
-            <div class="bts">
+          <h4>Partition-based Scheduler | <span style="text-decoration:underline;cursor:pointer;" @click="handleSwitch">{{simOrReal}}</span>
+            <div v-if="simOrReal=='Simulation'" class="bts">
               <vs-button color="danger" type="filled" @click="handleShuffleBt">Shuffle</vs-button>
               <vs-button color="primary" type="filled"  @click="handleDPABt">DPA</vs-button>
               <vs-button color="grey" type="filled"  @click="handleLoopBt">LOOP</vs-button>
             </div>
           </h4>
         </div>
-        <!-- <ECharts id="topo" autoresize :options="optionTopo"/> -->
-        <ECharts id="pChanges" autoresize :options="optionPartitionChanges"/>
+        <ECharts v-if="simOrReal=='Simulation'" id="pChanges" autoresize :options="optionPartitionChanges"/>
         <div class="partition-usage">
           <h3>{{this.slots.length}} links, {{nonOptimalCnt}} non-optimal</h3>
           <vs-row vs-type="flex" vs-justify="center">
@@ -51,6 +50,7 @@ export default {
     return {
       i:0,
       loopFlag: 0,
+      simOrReal: "Simulation",
       loop: {},
       res: {},
       SlotFrameLength: 127,
@@ -207,39 +207,6 @@ export default {
           },
         }]
       },
-      optionTopo: {
-        series: [{
-          type: 'graph',
-          layout: 'force',
-          roam: true,
-          draggable: true,
-          label: {
-            formatter: '{c}'
-          },
-          lineStyle: {
-            width:3
-          },
-          data: [{
-            id:1,
-            value:1,
-            symbolSize:25,
-            label:{
-              normal: {
-                show: true,
-                fontSize:16,
-                color: "white"
-              }
-            },
-            fixed: true,
-            x:800,
-            y:240,
-          }],
-          edges: [],
-          force: {
-            repulsion: 160
-          }
-        }]
-      },
       optionPartitionChanges: {
         title: {
           text: 'Partition size changes'
@@ -247,7 +214,7 @@ export default {
         tooltip: {
           trigger: 'axis'
         },
-         dataZoom: [
+        dataZoom: [
           {
             type: 'slider',
             show: true,
@@ -268,16 +235,16 @@ export default {
             type: 'inside',
             yAxisIndex: [0],
           }
-      ],
+        ],
         legend: {
-            data: []
+          data: []
         },
         xAxis: {
-            type: 'category',
-            data: []
+          type: 'category',
+          data: []
         },
         yAxis: {
-            type: 'value'
+          type: 'value'
         },
         series: [
         ]
@@ -287,9 +254,12 @@ export default {
   methods: {
     drawPartition() {
       this.option.yAxis.data = this.Channels
-      // this.$api.gateway.getPartition()
-      // .then(res=> {
-        var res = {data:{data:this.res.partitions}}
+      this.$api.gateway.getPartition()
+      .then(res=> {
+        if(this.simOrReal=="Simulation") {
+          res = {data:{data:this.res.partitions}}
+        }
+
         this.partitions = res.data.data
         var markAreaTmp = []
         var colors = ['#313695', '#3C57A5', '#4778B6', '#6095C5', '#7AB2D4', '#97C9E0', '#B3DDEB', '#CFEBF3', '#E7F6EC', '#F7FCCE', '#FFF7B3','#FEE79A','#FED081','#FDB668','#FA9656','#F57446','#E85337','#D93328','#BF1927','#A50026']
@@ -314,7 +284,7 @@ export default {
                 label:{color:"black",fontWeight:"bold",fontSize:14}
               }
             ])
-
+            
             // draw partition changes chart
             if(name[0]=="U") {
               var found = 0
@@ -343,18 +313,21 @@ export default {
        
         // make sure partition is loaded
         this.drawSchedule()
-      // })
+      })
     },
     drawSchedule() {
-      // this.$api.gateway.getSchedule()
-      // .then(res => {
-        var res = {data:{data:this.res.cells}}
-        for(var x=0;x<res.data.data.length;x++) {
-          res.data.data[x].type = res.data.data[x].cell.type
-          res.data.data[x].layer = res.data.data[x].cell.layer
-          res.data.data[x].sender = res.data.data[x].cell.sender
-          res.data.data[x].receiver = res.data.data[x].cell.receiver
+      this.$api.gateway.getSchedule()
+      .then(res => {
+        if(this.simOrReal=="Simulation") {
+          res = {data:{data:this.res.cells}}
+          for(var x=0;x<res.data.data.length;x++) {
+            res.data.data[x].type = res.data.data[x].cell.type
+            res.data.data[x].layer = res.data.data[x].cell.layer
+            res.data.data[x].sender = res.data.data[x].cell.sender
+            res.data.data[x].receiver = res.data.data[x].cell.receiver
+          }
         }
+        
 
         this.nonOptimalCnt = 0
         var cellsTmp = []
@@ -371,28 +344,6 @@ export default {
             this.links[name] = {name:name, used:0, non_optimal:0}
           }
           this.links[name].used+=1
-          
-          // draw topo
-          // if(name[0]=="U") {
-          //   var node = {
-          //     id: res.data.data[i].sender,
-          //     symbolSize: 20,
-          //     value: res.data.data[i].sender,
-          //     label: {
-          //       normal: {
-          //           show: true,
-          //           fontSize:14,
-          //           color: "white"
-          //       }
-          //     },
-          //   }
-
-          //   this.optionTopo.series[0].data.push(node)
-          //   this.optionTopo.series[0].edges.push({
-          //     source: res.data.data[i].sender.toString(),
-          //     target: res.data.data[i].receiver.toString(),
-          //   })
-          // }
 
           var tag = 0
           if(!res.data.data[i].is_optimal) {
@@ -408,7 +359,7 @@ export default {
           cellsTmp.push([res.data.data[i].slot[0]+0.5,Math.floor(res.data.data[i].slot[1]/2),tag])
         }
         this.option.series[0].data = cellsTmp
-      // })
+      })
     },
     handleShuffleBt() {
       this.res = shuffle()
@@ -441,6 +392,10 @@ export default {
       },1250)
       
      
+    },
+    handleSwitch() {
+      this.simOrReal = (this.simOrReal=="Simulation")?"Real":"Simulation"
+      this.drawPartition()
     },
   },
   mounted() {
