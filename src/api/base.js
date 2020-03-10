@@ -2,7 +2,7 @@ import axios from 'axios'
 
 var instance = axios.create()
 
-instance.defaults.baseURL = 'http://127.0.0.1:8888'
+instance.defaults.baseURL = 'https://6tisch.amyang.xyz/'
 instance.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 
 instance.interceptors.response.use(function (response) {
