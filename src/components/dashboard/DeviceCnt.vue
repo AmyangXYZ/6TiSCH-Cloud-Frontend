@@ -8,7 +8,7 @@
             </vs-col>
             <vs-col class="cnt" vs-offset="4" vs-w="5">
               <h5>Gateways</h5>
-              <h3>{{gateways.length-1}}</h3>
+              <h3>{{gateways.length}}</h3>
             </vs-col>
           </vs-row>
       </vs-card>
@@ -43,7 +43,8 @@ export default {
         getGateway() {
             this.$api.gateway.getGateway()
             .then(res=> {
-                this.gateways = res.data.data
+                // this.gateways = res.data.data
+                this.gateways = ['UCONN_GW']
                 this.$EventBus.$emit('gateways',res.data.data)
             })
         },

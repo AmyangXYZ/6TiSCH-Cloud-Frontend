@@ -45,7 +45,7 @@ export default {
       powerLayerFlag: 0,
       label: {},
       infoWindowActive:false,
-      infoWindowPos: {},
+      infoWindowPos: {lat:0,lng:0},
       infoWindowOpt: {},
       zoom: 21,
       center: {lat:41.806611, lng:-72.252733}, // ITEB
@@ -95,17 +95,25 @@ export default {
             return a.sensor_id - b.sensor_id
           });
           this.markers = this.sensors
-          var icon = {
-            path: window.google.maps.SymbolPath.CIRCLE,
-            scale: 7,
-            fillColor: "#58B2EC",
-            fillOpacity: 1,
-            strokeColor: "#58B2EC",
-          }
+         
           
-          for(var k=0;k<this.markers.length;k++) {
+          for(var k=0;k<this.markers.length;k++) {            
+             var icon = {
+              path: window.google.maps.SymbolPath.CIRCLE,
+              scale: 7,
+              fillColor: "#58B2EC",
+              fillOpacity: 1,
+              strokeColor: "#58B2EC",
+            }
+            var text = ""
+            if(this.markers[k].sensor_id==1) {
+              text = 'GW'
+              icon.scale = 8
+            } else {
+              text = this.markers[k].sensor_id.toString()
+            }
             this.$set(this.markers[k],'icon', icon)
-            this.$set(this.markers[k],'label', {text:this.markers[k].sensor_id.toString(), color:'#2c3e50', fontSize:"10pt"})
+            this.$set(this.markers[k],'label', {text:text, color:'#2c3e50', fontSize:"10pt"})
           }
         })
       })
