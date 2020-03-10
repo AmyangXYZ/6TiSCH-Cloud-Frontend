@@ -82,12 +82,12 @@ function change_topo() {
       while(thenode!=1) {
         thenode = topo[thenode]
         layer++
-        if(layer>=10) {
+        if(layer>=8) {
           pass = 0
           break
         }
       }
-      if(layer<10) pass=1
+      if(layer<8) pass=1
     }
 
     // rm old up/downlink

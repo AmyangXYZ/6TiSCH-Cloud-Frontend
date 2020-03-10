@@ -591,13 +591,7 @@ Cell = {type, sender, receiver}
   this.dynamic_partition_adjustment=function() {
     // highest layer of non-optmial cells
     var highest_layer = Object.keys(this.partition['uplink']).length-1
-    // var highest_layer = 7
-    // for(var i=0;i<this.used_subslot.length;i++) {
-    //   if(!this.used_subslot[i].is_optimal) {
-    //     if(highest_layer<=this.used_subslot[i].cell.layer)
-    //       highest_layer = this.used_subslot[i].cell.layer
-    //   }
-    // }
+    
     // exec twice, 1 for non-optimals, 1 for gap adjustment
     this.adjust('uplink',highest_layer); this.adjust('downlink',highest_layer)
     this.adjust('uplink',highest_layer); this.adjust('downlink',highest_layer)
