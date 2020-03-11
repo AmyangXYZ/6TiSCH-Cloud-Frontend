@@ -13,7 +13,7 @@
         </div>
         <ECharts v-if="simOrReal=='Simulation'" id="pChanges" autoresize :options="optionPartitionChanges"/>
         <div class="partition-usage">
-          <h3>{{this.slots.length}} links, {{nonOptimalCnt}} non-optimal</h3>
+          <h3>{{this.slots.length}} links, {{nonOptimalCnt}} non-aligned</h3>
           <vs-row vs-type="flex" vs-justify="center">
             <vs-col id="part" vs-w="1" v-for="(l,i) in links" :key="i">
               {{l.name}}: {{l.used-l.non_optimal}}<span class="non-optimal" v-if="l.non_optimal>0">+{{l.non_optimal}}</span>
@@ -166,7 +166,7 @@ export default {
           inRange: {
             color: ['#4575b4', '#d73027']
           },
-          pieces:[{min:0,max:0,label:"Optimal"},{min:1,max:1,label:"Non-Optimal"}],
+          pieces:[{min:0,max:0,label:"Aligned"},{min:1,max:1,label:"Non-Aligned"}],
           textStyle: {
             fontSize:15,
           },
