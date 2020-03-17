@@ -7,11 +7,10 @@
             <div v-if="simOrReal=='Simulation'" class="bts">
               <vs-button color="danger" type="filled" @click="handleShuffleBt">Shuffle</vs-button>
               <vs-button color="primary" type="filled"  @click="handleDPABt">DPA</vs-button>
-              <vs-button color="grey" type="filled"  @click="handleLoopBt">LOOP</vs-button>
+              <vs-button color="grey" type="filled"  @click="handleAutoBt">AUTO</vs-button>
             </div>
           </h4>
         </div>
-        <ECharts v-if="simOrReal=='Simulation'" id="pChanges" autoresize :options="optionPartitionChanges"/>
         <div class="partition-usage">
           <h3>{{this.slots.length}} links, {{nonOptimalCnt}} non-aligned</h3>
           <vs-row vs-type="flex" vs-justify="center">
@@ -40,7 +39,7 @@ import "echarts/lib/component/markArea";
 import "echarts/lib/component/dataZoom";
 import "echarts/lib/chart/graph"
 
-import {init,shuffle,dpa} from '@/assets/scheduler/schedule-dpa-sim.js'
+import {init,shuffle,dpa,get_sch} from '@/assets/scheduler/schedule-dpa-sim.js'
 
 export default {
   components: {
@@ -49,9 +48,9 @@ export default {
   data() {
     return {
       i:0,
-      loopFlag: 0,
+      autoFlag: 0,
       simOrReal: "Simulation",
-      loop: {},
+      auto: {},
       res: {},
       SlotFrameLength: 127,
       Channels: [1,3,5,7,9,11,13,15],
@@ -207,48 +206,6 @@ export default {
           },
         }]
       },
-      optionPartitionChanges: {
-        title: {
-          text: 'Partition size changes'
-        },
-        tooltip: {
-          trigger: 'axis'
-        },
-        dataZoom: [
-          {
-            type: 'slider',
-            show: true,
-            yAxisIndex: [0],
-            left: '93%',
-            handleIcon:
-              "M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z",
-            handleSize: "80%",
-            handleStyle: {
-              color: "#fff",
-              shadowBlur: 3,
-              shadowColor: "rgba(0, 0, 0, 0.6)",
-              shadowOffsetX: 2,
-              shadowOffsetY: 2
-            }
-          },
-          {
-            type: 'inside',
-            yAxisIndex: [0],
-          }
-        ],
-        legend: {
-          data: []
-        },
-        xAxis: {
-          type: 'category',
-          data: []
-        },
-        yAxis: {
-          type: 'value'
-        },
-        series: [
-        ]
-      },
     }
   },
   methods: {
@@ -284,30 +241,8 @@ export default {
                 label:{color:"black",fontWeight:"bold",fontSize:14}
               }
             ])
-            
-            // draw partition changes chart
-            if(name[0]=="U") {
-              var found = 0
-              for(var p=0;p<this.optionPartitionChanges.series.length;p++) {
-                if(this.optionPartitionChanges.series[p].name==name) {
-                  this.optionPartitionChanges.series[p].data.push(res.data.data[i].range[1]-res.data.data[i].range[0])
-                  found = 1
-                }
-              }
-              if(!found) {
-                this.optionPartitionChanges.legend.data.push(name)
-                this.optionPartitionChanges.series.push({
-                  symbol: 'none',
-                  smooth: true,
-                  name: name,
-                  type: 'line',
-                  data:[res.data.data[i].range[1]-res.data.data[i].range[0]]
-                })
-              }              
-            }
           }
         }
-        this.optionPartitionChanges.xAxis.data.push(this.i++)
         
         this.option.series[0].markArea.data = markAreaTmp
        
@@ -362,34 +297,25 @@ export default {
       })
     },
     handleShuffleBt() {
-      this.res = shuffle()
-      this.drawPartition()
+      shuffle()
     },
     handleDPABt() {
-      this.res = dpa()
-      this.drawPartition()
+      dpa()
     },
-    handleLoopBt() {
-      if(this.loopFlag==1) {
-        this.loopFlag = 1-this.loopFlag
-        clearInterval(this.loop)
+    handleAutoBt() {
+      if(this.autoFlag==1) {
+        this.autoFlag = 1-this.autoFlag
+        clearInterval(this.auto)
         return
       } else {
-        this.loopFlag = 1-this.loopFlag
+        this.autoFlag = 1-this.autoFlag
       }
       
-      var i = 0
-      this.loop = setInterval(()=>{
-        if(i%2==0) {
-          this.res = shuffle()
-        }
-        else {
-          this.res = dpa()
-          window.console.log("dpa")
-        }
+      this.auto = setInterval(()=>{
+        
+        this.res = dpa()
         this.drawPartition()
-        i++
-      },1250)
+      },5000)
       
      
     },
@@ -401,6 +327,13 @@ export default {
   mounted() {
     this.res = init()
     this.drawPartition()
+   
+  },
+  created() {
+     setInterval(()=>{
+      this.res = get_sch()
+      this.drawPartition()
+    },1000)
   }
 }
 </script>

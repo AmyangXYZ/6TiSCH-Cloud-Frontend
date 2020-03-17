@@ -60,72 +60,126 @@ function static_schedule() {
 
 // sch.dynamic_partition_adjustment()
 
-var new_parents = [2, 2, 6, 5, 8, 5, 5, 4, 4, 2, 8, 7, 7, 4, 5, 5, 2, 2, 3, 8]
+
+// rm old links, add new links
+function dynamic_schedule(node, parent, layer) {
+  console.log('re-schedule',node,parent,layer)
+  var used_subslot = JSON.parse(JSON.stringify(sch.used_subslot));
+  // console.log(used_subslot.length)
+  // rm old up/downlink
+  for(var j=0;j<used_subslot.length;j++) {
+    if((used_subslot[j].cell.type=="uplink"&&used_subslot[j].cell.sender==node) ||
+      (used_subslot[j].cell.type=="downlink"&&used_subslot[j].cell.receiver==node)) {
+      sch.remove_slot({slot_offset:used_subslot[j].slot[0],channel_offset:used_subslot[j].slot[1]})
+    }
+  }
+  // add new up/downlink
+  var ret=sch.find_empty_subslot([node,parent],1,{type:"uplink",layer:layer});
+  sch.add_subslot(ret.slot, ret.subslot, {type:"uplink",layer:layer,sender:node,receiver:parent}, ret.is_optimal);
+
+  ret=sch.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer});
+  sch.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer,sender:parent,receiver:node}, ret.is_optimal);
+
+  
+}
 
 // random change topo
-function change_topo() {
+// noise: some random nodes change parents
+// orphan: parent lost, all its children seek new parents
+function change_topo(reason) {
   var used_subslot = JSON.parse(JSON.stringify(sch.used_subslot));
-  var start = Math.round((70)*Math.random()+2)
-  var end = Math.round((40)*Math.random()+start)
-  console.log("change topo of node",start,"~",end)
-  for(var i=start;i<end;i++) {
-    node = i
-    var pass = 0
-    while(!pass) {
-      var parent = Math.round((i)*Math.random())
-      while(node==parent||parent<=0) {
-        parent = Math.round(i*Math.random())
-      }
-    
-      topo[i] = parent
-      var layer = 0; thenode = parent
-      while(thenode!=1) {
-        thenode = topo[thenode]
-        layer++
-        if(layer>=8) {
-          pass = 0
-          break
+  var layer = 0
+  if(reason=="noise") {
+    var start = Math.round((70)*Math.random()+2)
+    var end = Math.round((40)*Math.random()+start)
+    console.log(end-start,"nodes need to be re-scheduled")
+    for(var i=start;i<end;i++) {
+
+      var node = i
+      var pass = 0
+      while(!pass) {
+        var parent = Math.round((i)*Math.random())
+        while(node==parent||parent<=0) {
+          parent = Math.round(i*Math.random())
         }
+        layer = 0
+        topo[i] = parent
+        var thenode = parent
+        while(thenode!=1) {
+          thenode = topo[thenode]
+          layer++
+          if(layer>=8) {
+            pass = 0
+            break
+          }
+        }
+        if(layer<8) pass=1
       }
-      if(layer<8) pass=1
+      
+      setTimeout((n,p,l)=>{
+        dynamic_schedule(n,p,l)
+        },1000*(i-start),node,parent,layer)
     }
-
-    // rm old up/downlink
-    for(var j=0;j<used_subslot.length;j++) {
-      if((used_subslot[j].cell.type=="uplink"&&used_subslot[j].cell.sender==i) ||
-        (used_subslot[j].cell.type=="downlink"&&used_subslot[j].cell.receiver==i)) {
-        sch.remove_slot({slot_offset:used_subslot[j].slot[0],channel_offset:used_subslot[j].slot[1]})
-      }
-    }
-    // add new up/downlink
-    var ret=sch.find_empty_subslot([node,parent],1,{type:"uplink",layer:layer});
-    sch.add_subslot(ret.slot, ret.subslot, {type:"uplink",layer:layer,sender:node,receiver:parent}, ret.is_optimal);
-
-    ret=sch.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer});
-    sch.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer,sender:parent,receiver:node}, ret.is_optimal);
   }
+
+  if(reason=="orphan") {
+    var old_parent = Math.round((100)*Math.random()+2)
+    
+    for(var i=2;i<Object.keys(topo).length;i++) {
+      if(topo[i]==old_parent) {
+        var node = i
+        var pass = 0
+        while(!pass) {
+          var parent = Math.round(i*Math.random())
+          while(node==parent||parent<=0||parent==old_parent) {
+            parent = Math.round(i*Math.random())
+          }
+        
+          topo[i] = parent
+          layer = 0
+          var thenode = parent
+          while(thenode!=1) {
+            thenode = topo[thenode]
+            layer++
+            if(layer>=8) {
+              pass = 0
+              break
+            }
+          }
+          if(layer<8) pass=1
+        }
+        dynamic_schedule(node,parent,layer)
+      }
+    }
+  }    
 }
+
 function init() {
   sch = scheduler.create_scheduler(127,[1,3,5,7,9,11,13,15])
   gen_topo()
   static_schedule()
+  sch.dynamic_partition_adjustment()
   return {cells:sch.used_subslot, partitions: get_partition()}
 }
 
 function shuffle() {
-  change_topo()
+  change_topo('noise')
+  // return {cells:sch.used_subslot, partitions: get_partition()}
+}
+
+function get_sch() {
   return {cells:sch.used_subslot, partitions: get_partition()}
 }
 
 function dpa() { 
   sch.dynamic_partition_adjustment()
-  return {cells:sch.used_subslot, partitions: get_partition()}
 }
 
 module.exports={
   init: init,
   dpa: dpa,
-  shuffle: shuffle
+  shuffle: shuffle,
+  get_sch: get_sch,
 };
 
 // var i = 0

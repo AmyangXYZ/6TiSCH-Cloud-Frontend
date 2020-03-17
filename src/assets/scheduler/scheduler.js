@@ -460,7 +460,7 @@ Cell = {type, sender, receiver}
       }
     }
 
-    var diff
+    var diff = 0
     // [start, end)
     var original_size = [this.partition[type][layer].start,this.partition[type][layer].end]
     var max = original_size[0]
@@ -552,6 +552,11 @@ Cell = {type, sender, receiver}
     }
   }
 
+  this.get_reserved_gap=function(type, layer) {
+    
+    return 1
+  }
+
   this.adjustment_summary = {}
   this.adjust=function(type, layer) {
     if(layer==0) return
@@ -560,7 +565,7 @@ Cell = {type, sender, receiver}
     var sign = (type=="uplink")?1:-1
     // console.log("[*] adjusting",type,layer,'...')
 
-    var gap = 1
+    var gap = this.get_reserved_gap(type,layer)
     var needed_size = this.calc_needed_slots(type,layer) + gap // leave some space
     // console.log('   ',type,layer,"needs", needed_size)
 
