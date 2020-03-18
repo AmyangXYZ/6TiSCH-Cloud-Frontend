@@ -164,6 +164,14 @@ Cell = {type, sender, receiver}
 
   //initialize partition
   this.partition = partition_init(sf);
+  this.init_finished = 0
+  // partition changes stat
+  this.partition_changes = {}
+  for(var p in this.partition.uplink) {
+    this.partition_changes['u'+p] = {count:0,name:'u'+p,has_idle:0}
+    this.partition_changes['d'+p] = {count:0,name:'d'+p,has_idle:0}
+  }
+  
   this.add_slot=function(slot,cell){
     this.add_subslot(slot, {offset:0, period:1}, cell);
   }
@@ -173,6 +181,9 @@ Cell = {type, sender, receiver}
     var sub_end = (subslot.offset+1) * SUBSLOTS/subslot.period;
   
     this.used_subslot.push({slot:[slot.slot_offset, slot.channel_offset],subslot:[subslot.offset,subslot.period],cell:cell,is_optimal:  is_optimal})
+
+    if(cell.type!="beacon"&&this.init_finished)
+      this.partition_changes[cell.type[0]+cell.layer].count++
 
     for(var sub = sub_start; sub < sub_end; ++sub){
       this.schedule[slot.slot_offset][slot.channel_offset][sub]={
@@ -195,11 +206,14 @@ Cell = {type, sender, receiver}
     for(var sub = sub_start; sub < sub_end; ++sub){
       this.schedule[slot.slot_offset][slot.channel_offset][sub] = null;
     }
+
     for(var i=0;i<this.used_subslot.length;i++) {
       if(this.used_subslot[i].slot[0]==slot.slot_offset &&
           this.used_subslot[i].slot[1]==slot.channel_offset &&
           this.used_subslot[i].subslot[0]==subslot.offset && 
           this.used_subslot[i].subslot[1]==subslot.period) {
+        if(this.used_subslot[i].cell.type!="beacon" && this.init_finished) 
+          this.partition_changes[this.used_subslot[i].cell.type[0]+this.used_subslot[i].cell.layer].count--
         this.used_subslot.splice(i,1)
         i--
       }
@@ -476,6 +490,16 @@ Cell = {type, sender, receiver}
     } else {
       diff = original_size[0]-min
     }
+    if(diff <-1) {
+      this.partition_changes[type[0]+layer].has_idle++
+      // is idle for 3 DPA rounds, revoke
+      if(this.partition_changes[type[0]+layer].has_idle<3) {
+        diff = -1
+      } else {
+        this.partition_changes[type[0]+layer].has_idle = 0
+      }
+    }
+    
     return diff
   }
 
@@ -552,12 +576,25 @@ Cell = {type, sender, receiver}
     }
   }
 
-  this.get_reserved_gap=function(type, layer) {
-    
-    return 1
+  this.get_gap=function(type, layer) {
+    if(this.partition_changes[type[0]+layer].count<4) 
+      return 1
+    if(this.partition_changes[type[0]+layer].count<7)
+      return 2
+    // >= 7
+    // if(this.partition_changes[type[0]+layer].count>=7)
+    return 3
+  }
+  
+  this.reset_partition_changes = function() {
+    // reset partition_changes
+    for(var p in this.partition_changes) {
+      this.partition_changes[p].count = 0
+    }
   }
 
   this.adjustment_summary = {}
+  // adjust partition boundary
   this.adjust=function(type, layer) {
     if(layer==0) return
     sides = ['right','left']
@@ -565,9 +602,8 @@ Cell = {type, sender, receiver}
     var sign = (type=="uplink")?1:-1
     // console.log("[*] adjusting",type,layer,'...')
 
-    var gap = this.get_reserved_gap(type,layer)
+    var gap = this.get_gap(type,layer)
     var needed_size = this.calc_needed_slots(type,layer) + gap // leave some space
-    // console.log('   ',type,layer,"needs", needed_size)
 
     // expand, low layers first
     if(needed_size>0) {
@@ -596,16 +632,18 @@ Cell = {type, sender, receiver}
   this.dynamic_partition_adjustment=function() {
     // highest layer of non-optmial cells
     var highest_layer = Object.keys(this.partition['uplink']).length-1
+     
+    this.adjust('uplink',highest_layer); this.adjust('downlink',highest_layer)
     
-    // exec twice, 1 for non-optimals, 1 for gap adjustment
-    this.adjust('uplink',highest_layer); this.adjust('downlink',highest_layer)
-    this.adjust('uplink',highest_layer); this.adjust('downlink',highest_layer)
+    this.reset_partition_changes()
 
     // console.log('Partitions offset adjustment summary:',this.adjustment_summary)
+    
     
     // make a real/deep copy! add or remove will change sch.used_subslot length
     var used_subslot = JSON.parse(JSON.stringify(this.used_subslot));
     var cnt = 0
+    // put unaligned links back
     for(var j=0;j<used_subslot.length;j++) {
       if(!used_subslot[j].is_optimal) {
         var old = used_subslot[j]

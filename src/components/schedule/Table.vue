@@ -20,6 +20,15 @@
           </vs-row>
         </div>
         <vs-divider/>
+        <div class="partition-usage">
+          <h3>Partition Changes</h3>
+          <vs-row vs-type="flex" vs-justify="center">
+            <vs-col id="part" vs-w="1" v-for="(p,i) in partition_changes" :key="i">
+              {{p.name}}: {{p.count}}
+            </vs-col>
+          </vs-row>
+        </div>
+        <vs-divider/>
         <ECharts id="sch-table" autoresize :options="option"/>
         <vs-divider/>
         
@@ -39,7 +48,7 @@ import "echarts/lib/component/markArea";
 import "echarts/lib/component/dataZoom";
 import "echarts/lib/chart/graph"
 
-import {init,shuffle,dpa,get_sch} from '@/assets/scheduler/schedule-dpa-sim.js'
+import {init,shuffle,dpa,get_sch,get_partition_changes} from '@/assets/scheduler/schedule-dpa-sim.js'
 
 export default {
   components: {
@@ -50,6 +59,7 @@ export default {
       i:0,
       autoFlag: 0,
       simOrReal: "Simulation",
+      partition_changes: {},
       auto: {},
       res: {},
       SlotFrameLength: 127,
@@ -312,9 +322,7 @@ export default {
       }
       
       this.auto = setInterval(()=>{
-        
         this.res = dpa()
-        this.drawPartition()
       },5000)
       
      
@@ -327,14 +335,12 @@ export default {
   mounted() {
     this.res = init()
     this.drawPartition()
-   
-  },
-  created() {
-     setInterval(()=>{
+    setInterval(()=>{
       this.res = get_sch()
+      this.partition_changes = get_partition_changes()
       this.drawPartition()
     },1000)
-  }
+  },
 }
 </script>
 
@@ -348,10 +354,7 @@ export default {
 #topo
   height 480px
   width 100%
-
-#pChanges
-  height 300px
-  width 100%
+  
 .non-optimal
   font-weight 600
   color red
@@ -362,8 +365,4 @@ export default {
 #sch-table
   width 100%
   height 550px
-#sch-table-bcn
-  margin-top -45px
-  width 20%
-  height 420px
 </style>
