@@ -73,10 +73,20 @@ export default {
           type: 'effectScatter',
           symbolSize: 10,
           rippleEffect: {
-            scale: 20
+            scale: 15
           },
           data: []
-        }]
+        },
+        {
+          type: 'scatter',
+          data: [1,1],
+          itemStyle: {
+            color: 'blue',
+            opacity:0.15,
+          },
+          symbolSize:30,
+          hoverAnimation: false
+        },]
       }
     }
   },
@@ -94,7 +104,7 @@ export default {
       // gen nodes
       this.nodes = {0:{parent:-1,position:[1,1]}}
 
-      for(var i=1;i<50;i++) {
+      for(var i=1;i<100;i++) {
         var x=Math.round((18)*Math.random()+1)
         var y=Math.round((18)*Math.random()+1)
         this.nodes[i]={parent:-1,position:[x,y]}
@@ -134,11 +144,9 @@ export default {
         cur_layer++
       }
         
-      var tmpNodes = []
       for(var nn=0;nn<Object.keys(this.nodes).length;nn++) {
-        tmpNodes.push(this.nodes[nn].position)
+        this.option.series[0].data.push(this.nodes[nn].position)
       }
-      this.option.series[0].data = tmpNodes
     },
     addNoise(param) {
       if(this.noisePos[0]==param.value[0] && this.noisePos[1]==param.value[1]) {
@@ -147,10 +155,22 @@ export default {
       } else {
         this.noisePos = param.value
         this.option.series[2].data = [param.value]
+        this.respondToNoise()
       }
     },
-    changeParents() {
+    respondToNoise() {
+      var affected = []
+      for(var i=0;i<Object.keys(this.nodes).length;i++) {
+        var distance = Math.pow(this.nodes[i].position[0]-this.noisePos[0], 2) + Math.pow(this.nodes[i].position[1]-this.noisePos[1], 2)
+        if(distance<=7)
+          affected.push(i)
+      }
       
+      // find new parents
+      // for(var j=0;j<Object.keys(this.nodes).length;j++) {
+      //   affected[j]
+      // }
+
     }
   },
   mounted() {
