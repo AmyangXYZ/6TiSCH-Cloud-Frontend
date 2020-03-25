@@ -17,13 +17,16 @@
         <vs-sidebar-item to="/schedule" index="3" icon="schedule" >
           Schedule
         </vs-sidebar-item>
+        <vs-sidebar-item to="/disturbance" index="4" icon="gps_fixed" >
+          Disturbance<br/>simulation
+        </vs-sidebar-item>
       </vs-sidebar-group>
 
       <vs-divider icon="person" position="left" >
         User
       </vs-divider>
 
-      <vs-sidebar-item index="4" icon="account_box" >
+      <vs-sidebar-item index="5" icon="account_box" >
         Profile
       </vs-sidebar-item>
 

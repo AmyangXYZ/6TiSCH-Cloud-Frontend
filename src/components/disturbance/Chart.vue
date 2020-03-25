@@ -2,7 +2,7 @@
     <vs-row vs-align="flex-start" vs-w="12">
       <vs-col style="z-index:99" vs-offset="2" vs-w="8">  
         <vs-card>
-          <ECharts id="chart" autoresize :options="option" />
+          <ECharts ref="chart" @click="addNoise" id="chart" autoresize :options="option" />
         </vs-card>
       </vs-col>
     </vs-row> 
@@ -11,6 +11,7 @@
 <script>
 import ECharts from "vue-echarts/components/ECharts"
 import "echarts/lib/chart/scatter"
+import "echarts/lib/chart/effectScatter"
 import "echarts/lib/component/markLine";
 
 export default {
@@ -20,6 +21,7 @@ export default {
   data() {
     return {
       nodes: [],
+      noisePos: [],
       option: {
         grid: {
           top: '5%',
@@ -36,19 +38,9 @@ export default {
           max:20,
           interval:1,
         },
-        series: [{
-          symbolSize: 15,
-          label: {
-            show: true,
-            color: 'black',
-            fontSize:30,
-            formatter: (item) => {
-              for(var i=0;i<Object.keys(this.nodes).length;i++) {
-                if(this.nodes[i].position[0] == item.data[0] && this.nodes[i].position[1] == item.data[1])
-                  return i
-              }
-            }
-          },
+        series: [
+        {
+          symbolSize: 20,
           itemStyle: {
             color: 'deepskyblue',
           },
@@ -56,16 +48,34 @@ export default {
 
           markLine: {
             animation: false,
-            symbolSize: 8,
+            // symbolSize: 8,
             lineStyle:{
               type: 'solid',
               width: 2.5,
-              opacity:0.5,
+              opacity: 0.8,
               color: 'grey',
             },
             data:[]
           },
           type: 'scatter'
+        },
+        {
+          type: 'scatter',
+          data: [],
+          itemStyle: {
+            color: 'white',
+            opacity:0,
+          },
+          symbolSize:20,
+          hoverAnimation: false
+        },
+        {
+          type: 'effectScatter',
+          symbolSize: 10,
+          rippleEffect: {
+            scale: 20
+          },
+          data: []
         }]
       }
     }
@@ -74,8 +84,16 @@ export default {
     draw() {    
       this.option.series[0].data = []
       this.option.series[0].markLine.data = []
+      
+      // gen invisible node for click event
+      for(var a=0;a<=20;a++) {
+        for(var b=0;b<=20;b++) {
+          this.option.series[1].data.push([a,b])
+        }
+      }
       // gen nodes
       this.nodes = {0:{parent:-1,position:[1,1]}}
+
       for(var i=1;i<50;i++) {
         var x=Math.round((18)*Math.random()+1)
         var y=Math.round((18)*Math.random()+1)
@@ -115,31 +133,24 @@ export default {
         }
         cur_layer++
       }
-
-   
-
-      // find parents
-      // for(var j=0;j<Object.keys(this.nodes).length;j++) {
-      //   var min=400, parent=0
-      //   for(var k=0;k<Object.keys(this.nodes).length;k++) {
-      //     if(k==j||this.nodes[k].parent==j) continue
-      //     var distance = Math.pow(this.nodes[k].position[0]-this.nodes[j].position[0], 2) + Math.pow(this.nodes[k].position[1]-this.nodes[j].position[1], 2)
-      //     if(distance<=min) {            
-      //       min = distance
-      //       parent = k
-      //     }
-      //   }
-      //   this.nodes[j].parent = parent
-      //   window.console.log(j,'->',parent)
-      //   this.option.series[0].markLine.data.push([{coord:this.nodes[j].position},{coord:this.nodes[parent].position}])
-      // }
         
-
       var tmpNodes = []
       for(var nn=0;nn<Object.keys(this.nodes).length;nn++) {
         tmpNodes.push(this.nodes[nn].position)
       }
       this.option.series[0].data = tmpNodes
+    },
+    addNoise(param) {
+      if(this.noisePos[0]==param.value[0] && this.noisePos[1]==param.value[1]) {
+        this.noisePos = []
+        this.option.series[2].data = []
+      } else {
+        this.noisePos = param.value
+        this.option.series[2].data = [param.value]
+      }
+    },
+    changeParents() {
+      
     }
   },
   mounted() {
