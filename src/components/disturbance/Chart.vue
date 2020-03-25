@@ -22,6 +22,7 @@ export default {
     return {
       nodes: [],
       noisePos: [],
+      blacklist: [],
       option: {
         grid: {
           top: '5%',
@@ -110,7 +111,16 @@ export default {
         this.nodes[i]={parent:-1,position:[x,y]}
       }
       
-      // find parents
+      this.findParents()
+    },
+    findParents() {
+      this.option.series[0].data = []
+      this.option.series[0].markLine.data = []
+      // reset
+      for(var c=0;c<Object.keys(this.nodes).length;c++) {
+        this.nodes[c].parent = -1
+      }
+
       var layers = {0:[0]}
       var cur_layer = 1
       var cnt = 1
@@ -119,12 +129,22 @@ export default {
         layers[cur_layer] = []
         while(layers[cur_layer].length<1) {
           for(var j=1;j<Object.keys(this.nodes).length;j++) {
+            // has parent
             if(this.nodes[j].parent!=-1) continue
-            
+
             // distance to possible parents
             var distance_list = []
             for(var p=0;p<layers[cur_layer-1].length;p++) {
               var pp = layers[cur_layer-1][p]
+              var flag = 0
+              // not in blacklist
+              for(var l=0;l<this.blacklist.length;l++) {
+                if(this.blacklist[l]==pp) {
+                  window.console.log(pp)
+                  flag = 1
+                }
+              }
+              if(flag) continue
               var distance = Math.pow(this.nodes[j].position[0]-this.nodes[pp].position[0], 2) + Math.pow(this.nodes[j].position[1]-this.nodes[pp].position[1], 2)
               distance_list.push({id:pp,d:distance})
             }
@@ -162,10 +182,12 @@ export default {
       var affected = []
       for(var i=0;i<Object.keys(this.nodes).length;i++) {
         var distance = Math.pow(this.nodes[i].position[0]-this.noisePos[0], 2) + Math.pow(this.nodes[i].position[1]-this.noisePos[1], 2)
-        if(distance<=7)
+        if(distance<=5)
           affected.push(i)
       }
-      
+      this.blacklist = affected
+      window.console.log(this.blacklist)
+      this.findParents()
       // find new parents
       // for(var j=0;j<Object.keys(this.nodes).length;j++) {
       //   affected[j]
