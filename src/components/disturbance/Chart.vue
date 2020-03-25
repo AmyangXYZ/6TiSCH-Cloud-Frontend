@@ -1,7 +1,13 @@
 <template>
     <vs-row vs-align="flex-start" vs-w="12">
-      <vs-col style="z-index:99" vs-offset="2" vs-w="8">  
+      <vs-col style="z-index:99" vs-offset="3.5" vs-w="6.25">  
         <vs-card>
+          <div slot='header'>
+            <h4>Disturbance Simluator</h4>
+          </div>
+          Click grid to add disturbance, or click the buttons to add a random disturbance<br>
+          <vs-button color="danger" type="filled" @click="addNoiseRand">Add</vs-button>
+          <vs-button color="primary" type="filled" @click="clearNoise">Clear</vs-button>
           <ECharts ref="chart" @click="addNoiseByClick" id="chart" autoresize :options="option" />
         </vs-card>
       </vs-col>
@@ -26,8 +32,8 @@ export default {
       option: {
         grid: {
           top: '5%',
-          left: '8%',
-          right: '8%',
+          left: '10%',
+          right: '10%',
         },
         xAxis: {
           min:0,
@@ -40,65 +46,66 @@ export default {
           interval:1,
         },
         series: [
-        {
-          symbolSize: 20,
-          itemStyle: {
-            color: 'deepskyblue',
-          },
-          data: [],
-
-          markLine: {
-            animation: false,
-            silent:true,
-            // symbolSize: 8,
-            lineStyle:{
-              type: 'solid',
-              width: 2.5,
-              opacity: 0.8,
-              color: 'grey',
+          {
+            symbolSize: 20,
+            itemStyle: {
+              color: 'deepskyblue',
             },
-            data:[]
+            data: [],
+
+            markLine: {
+              animation: false,
+              silent:true,
+              // symbolSize: 8,
+              lineStyle:{
+                type: 'solid',
+                width: 2.5,
+                opacity: 0.8,
+                color: 'grey',
+              },
+              data:[]
+            },
+            type: 'scatter'
           },
-          type: 'scatter'
-        },
-        {
-          type: 'scatter',
-          data: [],
-          itemStyle: {
-            color: 'white',
-            opacity:0,
+          {
+            type: 'scatter',
+            data: [],
+            itemStyle: {
+              color: 'white',
+              opacity:0,
+            },
+            symbolSize:20,
+            // hoverAnimation: false
           },
-          symbolSize:20,
-          // hoverAnimation: false
-        },
-        {
-          type: 'effectScatter',
-          symbolSize: 10,
-          rippleEffect: {
-            scale: 15
+          {
+            type: 'effectScatter',
+            symbolSize: 10,
+            rippleEffect: {
+              scale: 15
+            },
+            data: []
           },
-          data: []
-        },
-        {
-          type: 'scatter',
-          data: [1,1],
-          itemStyle: {
-            color: 'blue',
-            opacity:0.15,
+          {
+            type: 'scatter',
+            data: [1,1],
+            itemStyle: {
+              color: 'blue',
+              opacity:0.15,
+            },
+            symbolSize:30,
+            hoverAnimation: false
           },
-          symbolSize:30,
-          hoverAnimation: false
-        },
-        {
-          type: 'scatter',
-          data: [],
-          itemStyle: {
-            color: 'red',
-            opacity:0.4,
-          },
-          symbolSize:30,
-          hoverAnimation: false
-        }]
+          {
+            type: 'scatter',
+            data: [],
+            itemStyle: {
+              color: 'red',
+              opacity:0.4,
+            },
+            symbolSize:30,
+            hoverAnimation: false
+          }
+        ]
       }
     }
   },
@@ -187,6 +194,8 @@ export default {
               if(this.blacklist.findIndex(node=>node.id===j)!=-1||k==j) continue
               // higher layer, pass
               if(this.nodes[j].layer>=this.nodes[k].layer) continue
+              // old parent, pass
+              if(this.nodes[k].parent==j) continue
 
               var distance = Math.pow(this.nodes[j].position[0]-this.nodes[k].position[0], 2) + Math.pow(this.nodes[j].position[1]-this.nodes[k].position[1], 2)
               distance_list.push({id:j,d:distance})
@@ -217,24 +226,34 @@ export default {
     },
     addNoiseByClick(param) {
       if(this.noisePos[0]==param.value[0] && this.noisePos[1]==param.value[1]) {
-        this.noisePos = []
-        this.option.series[2].data = []
-        this.findParents()
-        this.blacklist = []
-        this.option.series[4].data = []
+        
+        this.clearNoise()
       } else {
         this.noisePos = param.value
         this.option.series[2].data = [param.value]
         this.respondToNoise()
       }
-      
     },
     addNoiseRand() {
-
+      var x = Math.round((20)*Math.random())
+      var y = Math.round((20)*Math.random())
+      this.noisePos = [x, y]
+      this.option.series[2].data = [[x, y]]
+      this.respondToNoise()
+    },
+    clearNoise() {
+      this.noisePos = []
+      this.option.series[2].data = []
+      this.blacklist = []
+      this.option.series[4].data = []
+      this.findParents()
+      
     },
     respondToNoise() {
-      var affected = []
       this.option.series[4].data = []
+      // distance between node/link to noise center  < sqrt(5)
+      var affected = []
+
       for(var i=0;i<Object.keys(this.nodes).length;i++) {
         var distance = Math.pow(this.nodes[i].position[0]-this.noisePos[0], 2) + Math.pow(this.nodes[i].position[1]-this.noisePos[1], 2)
         if(distance<=5&&i!=0) {
