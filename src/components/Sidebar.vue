@@ -11,9 +11,6 @@
         <vs-sidebar-item to="/dashboard" index="1" icon="dashboard">
           Dashboard
         </vs-sidebar-item>
-        <vs-sidebar-item to="/analysis" index="2" icon="bar_chart" >
-          Analysis
-        </vs-sidebar-item>
         <vs-sidebar-item to="/schedule" index="3" icon="schedule" >
           Schedule
         </vs-sidebar-item>
