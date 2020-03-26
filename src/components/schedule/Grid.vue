@@ -278,8 +278,8 @@ export default {
       }
     },
     addNoiseRand() {
-      var x = Math.round((25)*Math.random())
-      var y = Math.round((25)*Math.random())
+      var x = Math.round((18)*Math.random())
+      var y = Math.round((18)*Math.random())
       this.noisePos = [x, y]
       this.option.series[2].data = [[x, y]]
       this.respondToNoise()

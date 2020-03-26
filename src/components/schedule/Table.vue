@@ -24,13 +24,14 @@
         </div>
         <vs-divider/>
         <!-- <div class="partition-usage">
-          <h3>Partition Changes</h3>
+          <hPartition Changes</h4>
           <vs-row vs-type="flex" vs-justify="center">
             <vs-col id="part" vs-w="1" v-for="(p,i) in partition_changes" :key="i">
               {{p.name}}: {{p.count}}
             </vs-col>
           </vs-row>
-        </div> -->
+        </div>
+        <vs-divider/> -->
         <ECharts id="sch-table" autoresize :options="option"/>        
       </vs-card>
     </vs-col>
@@ -102,9 +103,10 @@ export default {
         },
         grid: {
           top: '20%',
-          height: '78%',
+          // height: '78%',
           left: '4%',
           right: '3%',
+          bottom: "8%",
         },
         xAxis: {
           min:0,
