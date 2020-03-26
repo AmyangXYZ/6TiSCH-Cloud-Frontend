@@ -1,11 +1,14 @@
 <template>
     <vs-row vs-align="flex-start" vs-w="12">
-      <vs-col style="z-index:99" vs-offset="3.5" vs-w="5">  
+      <vs-col style="z-index:99" vs-offset="4" vs-w="4">  
         <vs-card>
           <ECharts ref="chart" @click="addNoiseByClick" id="chart" autoresize :options="option" />
-          <div style="float:right">
-            <vs-button color="danger" type="filled" @click="addNoiseRand">Add</vs-button>
-            <vs-button color="primary" type="filled" @click="clearNoise">Clear</vs-button>
+          <div slot="footer">
+            <vs-row vs-justify="flex-end">
+              <vs-button color="danger" type="filled" @click="addNoiseRand">Add</vs-button>
+              <vs-button color="primary" type="filled" @click="clearNoise">Clear</vs-button>
+            </vs-row>
+            
           </div>
           
         </vs-card>
@@ -25,6 +28,7 @@ export default {
   },
   data() {
     return {
+      gwPos: [],
       nodesNumber:100,
       nodes: [],
       last_nodes:[],
@@ -34,8 +38,8 @@ export default {
         grid: {
           top: '5%',
           left: '5%',
-          right: '0%',
-          bottom: '6%'
+          right: '5%',
+          bottom: '5%'
         },
         xAxis: {
           min:0,
@@ -46,6 +50,9 @@ export default {
           min:0,
           max:20,
           interval:1,
+        },
+        markLine: {
+          z: -1
         },
         series: [
           {
@@ -58,11 +65,11 @@ export default {
             markLine: {
               animation: false,
               silent:true,
-              // symbolSize: 8,
+              symbolSize:10,
               lineStyle:{
                 type: 'solid',
                 width: 2.5,
-                opacity: 0.8,
+                opacity: 0.7,
                 color: 'grey',
               },
               data:[]
@@ -81,20 +88,20 @@ export default {
           },
           {
             type: 'effectScatter',
-            symbolSize: 10,
+            symbolSize: 11,
             rippleEffect: {
-              scale: 15
+              scale: 12
             },
             data: []
           },
           {
             type: 'scatter',
-            data: [1,1],
+            data: [],
             itemStyle: {
-              color: 'blue',
-              opacity:0.15,
+              color: 'purple',
+              opacity:0.85,
             },
-            symbolSize:30,
+            symbolSize: 21,
             hoverAnimation: false
           },
           {
@@ -104,7 +111,7 @@ export default {
               color: 'red',
               opacity:0.4,
             },
-            symbolSize:30,
+            symbolSize:25,
             hoverAnimation: false
           }
         ]
@@ -122,9 +129,15 @@ export default {
         }
       }
 
-      // gen nodes
-      this.nodes = {0:{parent:-1,position:[1,1],layer:-1}}
-      var pos_list = {'1-1':1}
+      // gen gateway and nodes
+      var xx=Math.round((18)*Math.random()+1)
+      var yy=Math.round((18)*Math.random()+1)
+      this.gwPos = [xx,yy]
+      this.nodes = {0:{parent:-1,position:this.gwPos,layer:-1}}
+      this.option.series[3].data = [this.gwPos]
+
+      var pos_list = {}
+      pos_list[this.gwPos[0]+'-'+this.gwPos[1]] = 1
       for(var i=1;i<this.nodesNumber;i++) {
         var x=Math.round((18)*Math.random()+1)
         var y=Math.round((18)*Math.random()+1)
@@ -156,7 +169,7 @@ export default {
       var cur_layer = 0
       var cnt = 1
       while(cnt<Object.keys(this.nodes).length) {
-        var threshold = 25
+        var threshold = 20
         layers[cur_layer] = []
         while(layers[cur_layer].length<1) {
           for(var j=1;j<Object.keys(this.nodes).length;j++) {
@@ -183,7 +196,7 @@ export default {
           }
         
           // not found, increase threshold
-          threshold+=25
+          threshold+=20
         }
         cur_layer++
       }
@@ -192,7 +205,7 @@ export default {
       if(this.last_nodes.length<1) {
         this.last_nodes = JSON.parse(JSON.stringify(this.nodes))
       } else {
-        // find different
+        // find difference
         for(var nn=0;nn<Object.keys(this.nodes).length;nn++) {
           if(this.nodes[nn].parent!=this.last_nodes[nn].parent) {
             changed.push({id:nn,parent:this.nodes[nn].parent,layer:this.nodes[nn].layer})
@@ -265,8 +278,8 @@ export default {
       }
     },
     addNoiseRand() {
-      var x = Math.round((20)*Math.random())
-      var y = Math.round((20)*Math.random())
+      var x = Math.round((25)*Math.random())
+      var y = Math.round((25)*Math.random())
       this.noisePos = [x, y]
       this.option.series[2].data = [[x, y]]
       this.respondToNoise()
@@ -307,6 +320,6 @@ export default {
 
 <style lang="stylus" scoped>
 #chart
-  width: 80%
+  width: 90%
   height 500px
 </style>

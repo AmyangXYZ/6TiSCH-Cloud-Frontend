@@ -1,6 +1,6 @@
 <template>
   <vs-row>
-    <vs-col style="z-index:99" vs-offset="1" vs-w="10.4">  
+    <vs-col style="z-index:99" vs-offset="0.6" vs-w="11.1">  
       <vs-card>
         <div slot="header" >
           <h4>Partition-based Scheduler | <span style="text-decoration:underline;cursor:pointer;" @click="handleSwitch">{{simOrReal}}</span>
@@ -12,9 +12,12 @@
           </h4>
         </div>
         <div class="partition-usage">
-          <h3>{{this.slots.length}} links, {{nonOptimalCnt}} non-aligned</h3>
-          <vs-row vs-type="flex" vs-justify="center">
-            <vs-col id="part" vs-w="1" v-for="(l,i) in links" :key="i">
+          
+          <vs-row vs-type="flex" vs-justify="space-around" vs-w="12">
+            <vs-col vs-w="2">
+              <h3>{{this.slots.length}} links, {{nonOptimalCnt}} non-aligned</h3>
+            </vs-col>
+            <vs-col id="part" vs-w="0.5" v-for="(l,i) in links" :key="i">
               {{l.name}}: {{l.used-l.non_optimal}}<span class="non-optimal" v-if="l.non_optimal>0">+{{l.non_optimal}}</span>
             </vs-col>
           </vs-row>
@@ -28,9 +31,7 @@
             </vs-col>
           </vs-row>
         </div> -->
-        <ECharts id="sch-table" autoresize :options="option"/>
-        <vs-divider/>
-        
+        <ECharts id="sch-table" autoresize :options="option"/>        
       </vs-card>
     </vs-col>
   </vs-row> 
@@ -100,7 +101,7 @@ export default {
           }
         },
         grid: {
-          top: '10%',
+          top: '20%',
           height: '78%',
           left: '4%',
           right: '3%',
@@ -370,5 +371,5 @@ export default {
     margin-top 4px
 #sch-table
   width 100%
-  height 550px
+  height 250px
 </style>
