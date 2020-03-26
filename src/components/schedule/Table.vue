@@ -5,7 +5,7 @@
         <div slot="header" >
           <h4>Partition-based Scheduler | <span style="text-decoration:underline;cursor:pointer;" @click="handleSwitch">{{simOrReal}}</span>
             <div v-if="simOrReal=='Simulation'" class="bts">
-              <vs-button color="danger" type="filled" @click="handleShuffleBt">Shuffle</vs-button>
+              <!-- <vs-button color="danger" type="filled" @click="handleShuffleBt">Shuffle</vs-button> -->
               <vs-button color="primary" type="filled"  @click="handleDPABt">DPA</vs-button>
               <vs-button color="grey" type="filled"  @click="handleAutoBt">AUTO</vs-button>
             </div>
@@ -20,15 +20,14 @@
           </vs-row>
         </div>
         <vs-divider/>
-        <div class="partition-usage">
+        <!-- <div class="partition-usage">
           <h3>Partition Changes</h3>
           <vs-row vs-type="flex" vs-justify="center">
             <vs-col id="part" vs-w="1" v-for="(p,i) in partition_changes" :key="i">
               {{p.name}}: {{p.count}}
             </vs-col>
           </vs-row>
-        </div>
-        <vs-divider/>
+        </div> -->
         <ECharts id="sch-table" autoresize :options="option"/>
         <vs-divider/>
         
@@ -48,7 +47,7 @@ import "echarts/lib/component/markArea";
 import "echarts/lib/component/dataZoom";
 import "echarts/lib/chart/graph"
 
-import {init,shuffle,dpa,get_sch,get_partition_changes} from '@/assets/scheduler/schedule-dpa-sim.js'
+import {init,dpa,change_topo,get_sch} from '@/assets/scheduler/schedule-dpa-sim.js'
 
 export default {
   components: {
@@ -146,27 +145,27 @@ export default {
             show: true
           }
         },
-        dataZoom: [
-          {
-            type: "inside",
-            start: 0,
-            end: 100,
-          },
-          {
-            start: 0,
-            end: 100,
-            handleIcon:
-              "M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z",
-            handleSize: "80%",
-            handleStyle: {
-              color: "#fff",
-              shadowBlur: 3,
-              shadowColor: "rgba(0, 0, 0, 0.6)",
-              shadowOffsetX: 2,
-              shadowOffsetY: 2
-            }
-          }
-        ],
+        // dataZoom: [
+        //   {
+        //     type: "inside",
+        //     start: 0,
+        //     end: 100,
+        //   },
+        //   {
+        //     start: 0,
+        //     end: 100,
+        //     handleIcon:
+        //       "M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z",
+        //     handleSize: "80%",
+        //     handleStyle: {
+        //       color: "#fff",
+        //       shadowBlur: 3,
+        //       shadowColor: "rgba(0, 0, 0, 0.6)",
+        //       shadowOffsetX: 2,
+        //       shadowOffsetY: 2
+        //     }
+        //   }
+        // ],
         visualMap: {
           min: 0,
           max: 1,
@@ -306,11 +305,9 @@ export default {
         this.option.series[0].data = cellsTmp
       })
     },
-    handleShuffleBt() {
-      shuffle()
-    },
     handleDPABt() {
-      dpa()
+      this.res = dpa()
+      this.drawPartition()
     },
     handleAutoBt() {
       if(this.autoFlag==1) {
@@ -333,13 +330,22 @@ export default {
     },
   },
   mounted() {
-    this.res = init()
-    this.drawPartition()
-    setInterval(()=>{
-      this.res = get_sch()
-      this.partition_changes = get_partition_changes()
+    this.$EventBus.$once("topo", (topo) => {
+      this.res = init(topo)
       this.drawPartition()
-    },1000)
+    });
+    
+    this.$EventBus.$on("changed", (nodes) => {
+      // window.console.log(nodes.length)
+      change_topo(nodes)
+      this.res = get_sch()
+      this.drawPartition()
+    });
+    // setTimeout(()=>{
+    //   this.res = get_sch()
+    //   this.partition_changes = get_partition_changes()
+    //   this.drawPartition()
+    // },100000)
   },
 }
 </script>

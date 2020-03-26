@@ -187,7 +187,7 @@ Cell = {type, sender, receiver}
 
     for(var sub = sub_start; sub < sub_end; ++sub){
       this.schedule[slot.slot_offset][slot.channel_offset][sub]={
-        type:cell.type,
+        type: cell.type,
         layer: cell.layer,
         sender:cell.sender,
         receiver:cell.receiver,
@@ -490,15 +490,15 @@ Cell = {type, sender, receiver}
     } else {
       diff = original_size[0]-min
     }
-    if(diff <-1) {
-      this.partition_changes[type[0]+layer].has_idle++
-      // is idle for 3 DPA rounds, revoke
-      if(this.partition_changes[type[0]+layer].has_idle<3) {
-        diff = -1
-      } else {
-        this.partition_changes[type[0]+layer].has_idle = 0
-      }
-    }
+    // if(diff <-1) {
+    //   this.partition_changes[type[0]+layer].has_idle++
+    //   // is idle for 3 DPA rounds, revoke
+    //   if(this.partition_changes[type[0]+layer].has_idle<3) {
+    //     diff = -1
+    //   } else {
+    //     this.partition_changes[type[0]+layer].has_idle = 0
+    //   }
+    // }
     
     return diff
   }
@@ -577,13 +577,7 @@ Cell = {type, sender, receiver}
   }
 
   this.get_gap=function(type, layer) {
-    if(this.partition_changes[type[0]+layer].count<4) 
-      return 1
-    if(this.partition_changes[type[0]+layer].count<7)
-      return 2
-    // >= 7
-    // if(this.partition_changes[type[0]+layer].count>=7)
-    return 3
+    return 1
   }
   
   this.reset_partition_changes = function() {
@@ -633,6 +627,7 @@ Cell = {type, sender, receiver}
     // highest layer of non-optmial cells
     var highest_layer = Object.keys(this.partition['uplink']).length-1
      
+    this.adjust('uplink',highest_layer); this.adjust('downlink',highest_layer)
     this.adjust('uplink',highest_layer); this.adjust('downlink',highest_layer)
     
     this.reset_partition_changes()

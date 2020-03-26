@@ -1,14 +1,13 @@
 <template>
     <vs-row vs-align="flex-start" vs-w="12">
-      <vs-col style="z-index:99" vs-offset="3.5" vs-w="6.25">  
+      <vs-col style="z-index:99" vs-offset="3.5" vs-w="5">  
         <vs-card>
-          <div slot='header'>
-            <h4>Disturbance Simluator</h4>
-          </div>
-          Click grid to add disturbance, or click the buttons to add a random disturbance<br>
-          <vs-button color="danger" type="filled" @click="addNoiseRand">Add</vs-button>
-          <vs-button color="primary" type="filled" @click="clearNoise">Clear</vs-button>
           <ECharts ref="chart" @click="addNoiseByClick" id="chart" autoresize :options="option" />
+          <div style="float:right">
+            <vs-button color="danger" type="filled" @click="addNoiseRand">Add</vs-button>
+            <vs-button color="primary" type="filled" @click="clearNoise">Clear</vs-button>
+          </div>
+          
         </vs-card>
       </vs-col>
     </vs-row> 
@@ -26,14 +25,17 @@ export default {
   },
   data() {
     return {
+      nodesNumber:100,
       nodes: [],
+      last_nodes:[],
       noisePos: [],
       blacklist: [],
       option: {
         grid: {
           top: '5%',
-          left: '10%',
-          right: '10%',
+          left: '5%',
+          right: '0%',
+          bottom: '6%'
         },
         xAxis: {
           min:0,
@@ -47,7 +49,7 @@ export default {
         },
         series: [
           {
-            symbolSize: 20,
+            symbolSize: 18,
             itemStyle: {
               color: 'deepskyblue',
             },
@@ -123,7 +125,7 @@ export default {
       // gen nodes
       this.nodes = {0:{parent:-1,position:[1,1],layer:-1}}
       var pos_list = {'1-1':1}
-      for(var i=1;i<100;i++) {
+      for(var i=1;i<this.nodesNumber;i++) {
         var x=Math.round((18)*Math.random()+1)
         var y=Math.round((18)*Math.random()+1)
         while(pos_list[x+'-'+y]!=null) {
@@ -133,10 +135,13 @@ export default {
         pos_list[x+'-'+y] = 1
         this.nodes[i]={parent:-1,position:[x,y],layer:-1}
       }
+      
+      setTimeout(()=>{this.$EventBus.$emit('topo', this.nodes)},100)
+      
       for(var nn=0;nn<Object.keys(this.nodes).length;nn++) {
         this.option.series[0].data.push(this.nodes[nn].position)
       }
-
+      
       // find parents
       this.findParents()
     },
@@ -182,8 +187,22 @@ export default {
         }
         cur_layer++
       }
+
+      var changed = []
+      if(this.last_nodes.length<1) {
+        this.last_nodes = JSON.parse(JSON.stringify(this.nodes))
+      } else {
+        // find different
+        for(var nn=0;nn<Object.keys(this.nodes).length;nn++) {
+          if(this.nodes[nn].parent!=this.last_nodes[nn].parent) {
+            changed.push({id:nn,parent:this.nodes[nn].parent,layer:this.nodes[nn].layer})
+          }
+        }
+        this.$EventBus.$emit("changed",changed)
+      }
     },
     changeParents() {
+      var changed = []
       for(var i=0;i<Object.keys(this.blacklist).length;i++) {
         for(var k=0;k<Object.keys(this.nodes).length;k++) {
           if(k==this.blacklist[i].id || this.nodes[k].parent==this.blacklist[i].id) {
@@ -200,17 +219,26 @@ export default {
               var distance = Math.pow(this.nodes[j].position[0]-this.nodes[k].position[0], 2) + Math.pow(this.nodes[j].position[1]-this.nodes[k].position[1], 2)
               distance_list.push({id:j,d:distance})
             }
-            var nearest_parent = distance_list.sort((a, b)=>(a.d>b.d)?1:-1)[0]
+            // cannot find, don't change
+            var nearest_parent = 0
+            if(distance_list.length<1) {
+              nearest_parent = {id:this.nodes[k].parent,d:1}
+            } else {
+              nearest_parent = distance_list.sort((a, b)=>(a.d>b.d)?1:-1)[0]
+            }
             
             this.eraseLine(k,this.nodes[k].parent)
             this.nodes[k].parent = nearest_parent.id
             this.nodes[k].layer = this.nodes[nearest_parent.id].layer+1
             
-            this.drawLine(k,nearest_parent.id)
-            
+            changed.push({id:k, parent:this.nodes[k].parent, layer:this.nodes[k].layer})
+            this.drawLine(k,nearest_parent.id)        
           }
         }
       }
+      this.last_nodes = JSON.parse(JSON.stringify(this.nodes))
+
+      this.$EventBus.$emit('changed',changed)
     },
     drawLine(start,end) {
       this.option.series[0].markLine.data.push([{coord:this.nodes[start].position},{coord:this.nodes[end].position}])
@@ -225,6 +253,7 @@ export default {
       }
     },
     addNoiseByClick(param) {
+      this.$EventBus.$emit('topo', this.nodes)
       if(this.noisePos[0]==param.value[0] && this.noisePos[1]==param.value[1]) {
         
         this.clearNoise()
@@ -277,6 +306,6 @@ export default {
 
 <style lang="stylus" scoped>
 #chart
-  width: 100%
-  height 800px
+  width: 80%
+  height 500px
 </style>

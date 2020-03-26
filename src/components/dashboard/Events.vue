@@ -75,6 +75,7 @@ export default {
     getTopoHistory() {
       this.$api.gateway.getTopoHistory()
       .then(res => {
+        if(res.data.flag!=1) return
         var tmp = []
         var now = Date.now()
         var nodeList = {}

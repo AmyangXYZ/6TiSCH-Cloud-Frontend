@@ -1,13 +1,13 @@
 <template>
-    <Chart/>
+    <Grid/>
 </template>
 
 <script>
-import Chart from '../components/disturbance/Chart'
+import Grid from '../components/disturbance/Grid'
 
 export default {
     components: {
-      Chart,
+      Grid,
     }
 }
 </script>
