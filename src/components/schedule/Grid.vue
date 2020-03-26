@@ -199,6 +199,7 @@ export default {
           }
         }
         this.$EventBus.$emit("changed",changed)
+        this.last_nodes = JSON.parse(JSON.stringify(this.nodes))
       }
     },
     changeParents() {
