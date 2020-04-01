@@ -5,7 +5,7 @@
           <ECharts ref="chart" @click="addNoiseByClick" id="chart" autoresize :options="option" />
           <div slot="footer">
             <vs-row vs-justify="flex-end">
-              <vs-button color="danger" type="filled" @click="addNoiseRand">Add</vs-button>
+              <vs-button color="danger" type="filled" @click="addNoiseCircleRand">Add</vs-button>
               <vs-button color="primary" type="filled" @click="clearNoise">Clear</vs-button>
             </vs-row>
             
@@ -29,8 +29,9 @@ export default {
   data() {
     return {
       gwPos: [],
-      nodesNumber:100,
+      nodesNumber:140,
       nodes: [],
+      change_log: [],
       last_nodes:[],
       noisePos: [],
       blacklist: [],
@@ -113,7 +114,21 @@ export default {
             },
             symbolSize:25,
             hoverAnimation: false
-          }
+          },
+          {
+            type: 'effectScatter',
+            symbolSize: 10,
+            rippleEffect: {
+              color: "red",
+              scale: 4,
+            },
+            itemStyle: {
+              color: "red"
+            },
+            symbol: 'rect',
+            animation: false,
+            data: []
+          },
         ]
       }
     }
@@ -133,6 +148,7 @@ export default {
       var xx=Math.round((18)*Math.random()+1)
       var yy=Math.round((18)*Math.random()+1)
       this.gwPos = [xx,yy]
+      // this.gwPos = [1,1]
       this.nodes = {0:{parent:-1,position:this.gwPos,layer:-1}}
       this.option.series[3].data = [this.gwPos]
 
@@ -217,7 +233,7 @@ export default {
     },
     changeParents() {
       var changed = []
-      for(var i=0;i<Object.keys(this.blacklist).length;i++) {
+      for(var i=0;i<this.blacklist.length;i++) {
         for(var k=0;k<Object.keys(this.nodes).length;k++) {
           if(k==this.blacklist[i].id || this.nodes[k].parent==this.blacklist[i].id) {
             // find new parent, nearest and low layer
@@ -269,46 +285,76 @@ export default {
     addNoiseByClick(param) {
       this.$EventBus.$emit('topo', this.nodes)
       if(this.noisePos[0]==param.value[0] && this.noisePos[1]==param.value[1]) {
-        
         this.clearNoise()
       } else {
         this.noisePos = param.value
         this.option.series[2].data = [param.value]
-        this.respondToNoise()
+        this.respondToNoise('circle')
       }
     },
-    addNoiseRand() {
-      var x = Math.round((18)*Math.random())
-      var y = Math.round((18)*Math.random())
+    addNoiseCircleRand() {
+      var x = Math.round((20)*Math.random())
+      var y = Math.round((20)*Math.random())
       this.noisePos = [x, y]
       this.option.series[2].data = [[x, y]]
-      this.respondToNoise()
+      this.respondToNoise('circle')
+    },
+    addNoiseRectRand() {
+      this.option.series[5].data = []
+      var x = Math.round((20)*Math.random())
+      var y = Math.round((20)*Math.random())
+      var length = Math.round((3)*Math.random()+2)
+      var direction = Math.round(1*Math.random())
+      if(direction) {
+        for(var i=0;i<length;i++) {
+          this.option.series[5].data.push([x+i+0.5,y+0.5])
+        }
+      } else {
+        for(var j=0;j<length;j++) {
+          this.option.series[5].data.push([x+0.5,y+j+0.5])
+        }
+      }
+      this.respondToNoise('rect')
     },
     clearNoise() {
       this.noisePos = []
       this.option.series[2].data = []
       this.blacklist = []
       this.option.series[4].data = []
+      this.option.series[5].data = []
       this.findParents()
       
     },
-    respondToNoise() {
+    // respondToNoise() {
+    respondToNoise(type) {
       this.option.series[4].data = []
-      // distance between node/link to noise center  < sqrt(5)
       var affected = []
-
-      for(var i=0;i<Object.keys(this.nodes).length;i++) {
-        var distance = Math.pow(this.nodes[i].position[0]-this.noisePos[0], 2) + Math.pow(this.nodes[i].position[1]-this.noisePos[1], 2)
-        if(distance<=5&&i!=0) {
-          var lv = 3
-          if(distance<=4) lv = 2
-          if(distance<=1) lv = 1
-          affected.push({id:i,lv:lv})
-          this.option.series[4].data.push(this.nodes[i].position)
+      if(type=="circle") {
+        for(var i=0;i<Object.keys(this.nodes).length;i++) {
+          var distance = Math.pow(this.nodes[i].position[0]-this.noisePos[0], 2) + Math.pow(this.nodes[i].position[1]-this.noisePos[1], 2)
+          if(distance<=5&&i!=0) {
+            var lv = 3
+            if(distance<=4) lv = 2
+            if(distance<=1) lv = 1
+            affected.push({id:i,lv:lv})
+            this.option.series[4].data.push(this.nodes[i].position)
+          }
+        }
+      }
+      if(type=="rect") {
+        for(var j=0;j<Object.keys(this.nodes).length;j++) {
+          for(var k=0;k<this.option.series[5].data.length;k++) {
+            if(Math.abs(this.nodes[j].position[0]-this.option.series[5].data[k][0])<1 &&
+              Math.abs(this.nodes[j].position[1]-this.option.series[5].data[k][1])<1) {
+              affected.push({id:j,lv:1})
+              this.option.series[4].data.push(this.nodes[j].position)
+              break
+            }
+          }
         }
       }
       this.option.series[4].data = Array.from(new Set(this.option.series[4].data))
-      this.blacklist = affected
+      this.blacklist = affected.sort((a, b)=>(a.lv>=b.lv)?1:-1)
       this.changeParents()
     }
   },

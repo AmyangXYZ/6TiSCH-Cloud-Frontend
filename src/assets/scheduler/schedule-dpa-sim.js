@@ -1,5 +1,5 @@
 /*eslint-disable*/
-var scheduler = require('./scheduler')
+var scheduler = require('./scheduler-2rows')
 
 function get_partition() {
   var p = []

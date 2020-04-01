@@ -148,27 +148,13 @@ export default {
             show: true
           }
         },
-        // dataZoom: [
-        //   {
-        //     type: "inside",
-        //     start: 0,
-        //     end: 100,
-        //   },
-        //   {
-        //     start: 0,
-        //     end: 100,
-        //     handleIcon:
-        //       "M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z",
-        //     handleSize: "80%",
-        //     handleStyle: {
-        //       color: "#fff",
-        //       shadowBlur: 3,
-        //       shadowColor: "rgba(0, 0, 0, 0.6)",
-        //       shadowOffsetX: 2,
-        //       shadowOffsetY: 2
-        //     }
-        //   }
-        // ],
+        dataZoom: [
+          {
+            type: "inside",
+            start: 0,
+            end: 100,
+          },
+        ],
         visualMap: {
           min: 0,
           max: 1,
@@ -193,6 +179,7 @@ export default {
             show: true,
             color: 'white',
             fontWeight: 'bold',
+            fontSize: 9.5,
             formatter: (item) => {
               for(var i=0;i<this.slots.length;i++) {
                 if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]*2+1)) {
@@ -243,14 +230,27 @@ export default {
           if(res.data.data[i].range[0]<res.data.data[i].range[1]) {
             var name = res.data.data[i].type[0].toUpperCase()
             if(name!="B") name+=res.data.data[i].layer
-
+            
+            var y1=50, y2=230
+            var pos = "insideBottom"
+            if(name[0]=="U") {
+              y1 = 50
+              y2 = 140
+              pos = "insideBottomRight"
+            } else if(name[0]=="D") {
+              y1 = 140
+              y2 = 230
+              pos = "insideBottomLeft"
+            }
             this.links[name] = {name:name, used:0, non_optimal:0}
             markAreaTmp.push([
-              {name:name,xAxis:res.data.data[i].range[0]},
+              {name:name,coord:[res.data.data[i].range[0],16],y:y1},
               {
                 xAxis:res.data.data[i].range[1], 
+                y:y2,
+                yAxis:'9',
                 itemStyle:{color:colors[Math.floor(i/res.data.data.length*colors.length)],opacity:0.5},
-                label:{color:"black",fontWeight:"bold",fontSize:14}
+                label:{color:"black",fontWeight:"bold",fontSize:14, position:pos}
               }
             ])
           }
@@ -346,9 +346,9 @@ export default {
     });
     // setTimeout(()=>{
     //   this.res = get_sch()
-    //   this.partition_changes = get_partition_changes()
+    //   // this.partition_changes = get_partition_changes()
     //   this.drawPartition()
-    // },100000)
+    // },1000)
   },
 }
 </script>
