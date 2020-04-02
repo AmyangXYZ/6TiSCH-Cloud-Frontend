@@ -88,8 +88,8 @@ function partition_init(sf){
   var downlink = partition_config.downlink.slice();
   partition_scale(downlink, b_u_d[2]);*/
   //Beacon reserved version
-  var u_d = [partition_config.uplink_total, partition_config.downlink_total];
-  // var u_d = [118,118]
+  // var u_d = [partition_config.uplink_total, partition_config.downlink_total];
+  var u_d = [sf-partition_config.beacon,sf-partition_config.beacon]
   // partition_scale(u_d, sf-RESERVED-partition_config.beacon);
   var uplink = partition_config.uplink.slice();
   partition_scale(uplink, u_d[0]);
@@ -188,7 +188,7 @@ Cell = {type, sender, receiver}
   
     this.used_subslot.push({slot:[slot.slot_offset, slot.channel_offset],subslot:[subslot.offset,subslot.period],cell:cell,is_optimal:  is_optimal})
 
-    if(cell.type!="beacon"&&this.init_finished)
+    if(cell.type!="beacon")
       this.partition_changes[cell.type[0]+cell.layer].count++
 
     for(var sub = sub_start; sub < sub_end; ++sub){
@@ -218,8 +218,8 @@ Cell = {type, sender, receiver}
           this.used_subslot[i].slot[1]==slot.channel_offset &&
           this.used_subslot[i].subslot[0]==subslot.offset && 
           this.used_subslot[i].subslot[1]==subslot.period) {
-        if(this.used_subslot[i].cell.type!="beacon" && this.init_finished) 
-          this.partition_changes[this.used_subslot[i].cell.type[0]+this.used_subslot[i].cell.layer].count--
+        // if(this.used_subslot[i].cell.type!="beacon") 
+        //   this.partition_changes[this.used_subslot[i].cell.type[0]+this.used_subslot[i].cell.layer].count--
         this.used_subslot.splice(i,1)
         i--
       }
@@ -532,8 +532,11 @@ Cell = {type, sender, receiver}
 
     // adjust cells offset
     // adjust cells in this.schedule
-    for(var c in this.channels) {
-      var ch = this.channels[c]
+    var channels = []
+    if(type=="uplink") channels = [1,3,5,7]
+    if(type=="downlink") channels = [9,11,13,15]
+    for(var c in channels) {
+      var ch = channels[c]
       // offset>0, rear to front
       if(offset>0) {
         for(var slot=this.partition[type][layer].end;slot>=this.partition[type][layer].start;slot--) {
