@@ -157,13 +157,12 @@ Cell = {type, sender, receiver}
   this.used_subslot = []
   this.isFull = false;
   this.nonOptimalCount = 0;
-  for(var i=0;i<sf;++i){
+  for(var i=0;i<sf+300;++i){
     this.schedule[i]=new Array(16);
   }
-
   for(var c in this.channels){
     var ch=this.channels[c];
-    for(var slot=0;slot<this.slotFrameLength;++slot){
+    for(var slot=0;slot<this.slotFrameLength+300;++slot){
       this.schedule[slot][ch]=new Array(SUBSLOTS)
     }
   }
@@ -172,11 +171,11 @@ Cell = {type, sender, receiver}
   this.partition = partition_init(sf);
   this.init_finished = 0
   // partition changes stat
-  this.partition_changes = {}
-  for(var p in this.partition.uplink) {
-    this.partition_changes['u'+p] = {count:0,name:'u'+p,has_idle:0}
-    this.partition_changes['d'+p] = {count:0,name:'d'+p,has_idle:0}
-  }
+  // this.partition_changes = {}
+  // for(var p in this.partition.uplink) {
+  //   this.partition_changes['u'+p] = {count:0,name:'u'+p,has_idle:0}
+  //   this.partition_changes['d'+p] = {count:0,name:'d'+p,has_idle:0}
+  // }
   
   this.add_slot=function(slot,cell){
     this.add_subslot(slot, {offset:0, period:1}, cell);
@@ -188,8 +187,8 @@ Cell = {type, sender, receiver}
   
     this.used_subslot.push({slot:[slot.slot_offset, slot.channel_offset],subslot:[subslot.offset,subslot.period],cell:cell,is_optimal:  is_optimal})
 
-    if(cell.type!="beacon")
-      this.partition_changes[cell.type[0]+cell.layer].count++
+    // if(cell.type!="beacon")
+    //   this.partition_changes[cell.type[0]+cell.layer].count++
 
     for(var sub = sub_start; sub < sub_end; ++sub){
       this.schedule[slot.slot_offset][slot.channel_offset][sub]={
@@ -227,7 +226,6 @@ Cell = {type, sender, receiver}
   }
 
   //3-d filter
-  // flag==1, used by calc_needed_slots()
   this.available_subslot=function(nodes_list,slot,subslot,info){
     if(slot.slot_offset<RESERVED)return false;
 
@@ -379,7 +377,6 @@ Cell = {type, sender, receiver}
           for(var i=0;i<end-start;++i){
             partition_slot_list[i]=end-1-i;
           }
-          
         } else {
           // downlink 0, as early as possible
           for(var i=0;i<end-start;++i){
@@ -411,12 +408,12 @@ Cell = {type, sender, receiver}
           inpartition_slots.push({slot_offset:slot, channel_offset:this.channels[0]});
         }else{
           if(info.type=="uplink") {
-            for(var j=0;j<4;j++){
+            for(var j=0;j<this.channels.length/2;j++){
               var ch=this.channels[j];
               inpartition_slots.push({slot_offset:slot, channel_offset:ch});
             }
           } else {
-            for(var j=4;j<8;j++){
+            for(var j=this.channels.length/2;j<this.channels.length;j++){
               var ch=this.channels[j];
               inpartition_slots.push({slot_offset:slot, channel_offset:ch});
             }
@@ -426,12 +423,12 @@ Cell = {type, sender, receiver}
       // find available slots in reserved area (layer 0 other channels)
       } else if(flag==1) {
         if(info.type == "uplink") {
-          for(var k=1;k<4;k++){
+          for(var k=1;k<this.channels.length/2;k++){
             var ch=this.channels[k];
             inpartition_slots.push({slot_offset:slot, channel_offset:ch});
           }
         } else {
-          for(var k=5;k<8;k++){
+          for(var k=this.channels.length/2+1;k<this.channels.length;k++){
             var ch=this.channels[k];
             inpartition_slots.push({slot_offset:slot, channel_offset:ch});
           }
@@ -491,7 +488,8 @@ Cell = {type, sender, receiver}
     for(var j=0;j<this.used_subslot.length;j++) {
       if(!this.used_subslot[j].is_optimal && this.used_subslot[j].cell.type==type && this.used_subslot[j].cell.layer==layer) {
         var ret = this.assign_slot_sim(this.used_subslot[j].cell)
-        used_subslot.push(ret)
+        if(ret!=null)
+          used_subslot.push(ret)
       }
     }
 
@@ -533,8 +531,8 @@ Cell = {type, sender, receiver}
     // adjust cells offset
     // adjust cells in this.schedule
     var channels = []
-    if(type=="uplink") channels = [1,3,5,7]
-    if(type=="downlink") channels = [9,11,13,15]
+    if(type=="uplink") channels = this.channels.slice(0,this.channels.length/2)
+    if(type=="downlink") channels = this.channels.slice(this.channels.length/2,this.channels.length)
     for(var c in channels) {
       var ch = channels[c]
       // offset>0, rear to front
@@ -570,14 +568,23 @@ Cell = {type, sender, receiver}
     }
     
     // adjust partition offset
-    this.partition[type][layer].start += offset
-    this.partition[type][layer].end += offset
-    
-    if(layer==1) {
-      if(type=="uplink"&&offset<0) this.partition[type][0].start+=offset
-      if(type=="downlink"&&offset>0) this.partition[type][0].end+=offset
+    if(layer!=0) {
+      this.partition[type][layer].start += offset
+      this.partition[type][layer].end += offset
+    } else {
+      if(type=="uplink") {
+        // this.partition[type][layer].start += offset
+        // this.partition[type][layer+1].end += offset
+      } else if(type=="downlink") {
+        // this.partition[type][layer].end += offset
+        // this.partition[type][layer+1].start += offset
+      } 
     }
-
+    
+    // if(layer==1) {
+    //   if(type=="uplink"&&offset<0) this.partition[type][0].start+=offset
+    //   if(type=="downlink"&&offset>0) this.partition[type][0].end+=offset
+    // }
     return count
   }
 
@@ -601,7 +608,11 @@ Cell = {type, sender, receiver}
   }
 
   this.get_gap=function(type, layer) {
-    return 8
+    // if(layer==1) return 10
+    // if(layer==2) return 7
+    // if(layer==3) return 3 
+    // if(layer==4) return 3
+    return 5
   }
   
   this.reset_partition_changes = function() {
@@ -619,10 +630,9 @@ Cell = {type, sender, receiver}
     var side = (type=="uplink")?0:1
     var sign = (type=="uplink")?1:-1
     // console.log("[*] adjusting",type,layer,'...')
-
     var gap = this.get_gap(type,layer)
     var needed_size = this.calc_needed_slots(type,layer) + gap // leave some space
-
+    // console.log("    needs", needed_size, "slots")
     // expand, low layers first
     if(needed_size>0) {
       for(var l=1;l<layer;l++) {
@@ -652,7 +662,6 @@ Cell = {type, sender, receiver}
     var highest_layer = Object.keys(this.partition['uplink']).length-1
      
     this.adjust('uplink',highest_layer); this.adjust('downlink',highest_layer)
-    this.adjust('uplink',highest_layer); this.adjust('downlink',highest_layer)
     
     this.reset_partition_changes()
 
@@ -669,7 +678,7 @@ Cell = {type, sender, receiver}
         // console.log("adjusting",old)
         var ret = this.find_empty_subslot([old.cell.sender, old.cell.receiver],1,{type:old.cell.type,layer:old.cell.layer})
         // console.log("to new position",ret)
-        this.add_subslot(ret.slot, ret.subslot, {type:old.cell.type,layer:old.cell.layer,sender:old.cell.sender,receiver:old.cell.receiver}, 1);
+        this.add_subslot(ret.slot, ret.subslot, {type:old.cell.type,layer:old.cell.layer,sender:old.cell.sender,receiver:old.cell.receiver}, ret.is_optimal);
         this.remove_subslot({slot_offset:old.slot[0],channel_offset:old.slot[1]}, {offset:old.subslot[0], period:old.subslot[1]})
         cnt++
       }
@@ -717,6 +726,28 @@ Cell = {type, sender, receiver}
     console.log("No emplty slot found");
     this.isFull=true;
     return null;
+  }
+
+  // get idle slots number of one partition
+  this.get_idle_slots=function(layer) {
+    for(var i=this.partition['uplink'][layer].end-1;i>this.partition['uplink'][layer].start;i--) {
+      for(var c=0;c<this.channels.length/2;c++) {
+        // find the edge
+        var ch = this.channels[c]
+        if(this.schedule[i][ch][0]!=null) {
+          return this.partition['uplink'][layer].end - 1 - i 
+        }
+      }
+    }
+  }
+
+  // get idle slots number of all partition
+  this.get_idles_all=function() {
+    var list = []
+    for(var l=1;l<Object.keys(this.partition['uplink']).length;l++) {
+      list[l] = this.get_idle_slots(l)
+    }
+    return list
   }
 
   this.remove_node=function(node){

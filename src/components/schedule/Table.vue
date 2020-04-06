@@ -49,7 +49,7 @@ import "echarts/lib/component/markArea";
 import "echarts/lib/component/dataZoom";
 import "echarts/lib/chart/graph"
 
-import {init,dpa,change_topo,get_sch} from '@/assets/scheduler/schedule-dpa-sim.js'
+import {init,dpa,change_topo,get_sch,foo} from '@/assets/scheduler/schedule-dpa-sim.js'
 
 export default {
   components: {
@@ -64,11 +64,13 @@ export default {
       auto: {},
       res: {},
       SlotFrameLength: 127,
-      Channels: [1,3,5,7,9,11,13,15],
+      Channels: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],
+      // Channels: [1,3,5,7,9,11,13,15],
       slots: [],
       links: {},
       bcnSubslots: {},
       nonOptimalCnt:0,
+      unAligned: {},
       option: {
         title: {
           text: "Partition Usage",
@@ -80,7 +82,8 @@ export default {
         tooltip: {
           formatter: (item) => {
             for(var i=0;i<this.slots.length;i++) {
-              if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]*2+1)) {
+              // if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]*2+1)) {
+              if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]+1)) {
                 if(this.slots[i].type == "beacon") {
                   var res = `[${item.data[0]-0.5}, ${item.data[1]*2+1}]<br/>
                             Beacon<br/>
@@ -92,7 +95,8 @@ export default {
                   }
                   return res
                 }
-                return `[${item.data[0]-0.5}, ${item.data[1]*2+1}]<br/>
+                // return `[${item.data[0]-0.5}, ${item.data[1]*2+1}]<br/>
+                return `[${item.data[0]-0.5}, ${item.data[1]+1}]<br/>
                         ${this.slots[i].type.replace(/^\S/, s => s.toUpperCase())}<br/>
                         Layer ${this.slots[i].layer}<br/>
                         ${this.slots[i].sender} -> ${this.slots[i].receiver}`
@@ -182,7 +186,8 @@ export default {
             fontSize: 9.5,
             formatter: (item) => {
               for(var i=0;i<this.slots.length;i++) {
-                if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]*2+1)) {
+                // if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]*2+1)) {
+                if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]+1)) {
                   if(!this.slots[i].is_optimal){
                     return `${this.slots[i].type[0].toUpperCase()}\n${this.slots[i].layer}`
                   }
@@ -231,26 +236,27 @@ export default {
             var name = res.data.data[i].type[0].toUpperCase()
             if(name!="B") name+=res.data.data[i].layer
             
-            var y1=50, y2=230
+            var y1=60, y2=277
             var pos = "insideBottom"
             if(name[0]=="U") {
-              y1 = 50
-              y2 = 140
+              y1 = 60
+              y2 = 167
               pos = "insideBottomRight"
             } else if(name[0]=="D") {
-              y1 = 140
-              y2 = 230
+              y1 = 167
+              y2 = 277
               pos = "insideBottomLeft"
             }
+            // window.console.log(y1,y2,pos)
             this.links[name] = {name:name, used:0, non_optimal:0}
             markAreaTmp.push([
-              {name:name,coord:[res.data.data[i].range[0],16],y:y1},
+              {name:name,coord:[res.data.data[i].range[0]],y:y1},
               {
                 xAxis:res.data.data[i].range[1], 
                 y:y2,
                 yAxis:'9',
                 itemStyle:{color:colors[Math.floor(i/res.data.data.length*colors.length)],opacity:0.5},
-                label:{color:"black",fontWeight:"bold",fontSize:14, position:pos}
+                label:{color:"black",fontWeight:"bold",fontSize:16, position:pos}
               }
             ])
           }
@@ -276,7 +282,8 @@ export default {
         }
         
 
-        this.nonOptimalCnt = 0
+        this.nonOptimalCnt = Object.keys(this.unAligned).length
+        // this.nonOptimalCnt = 0
         var cellsTmp = []
         // if(!res.data.flag) return
         this.slots = res.data.data
@@ -294,7 +301,8 @@ export default {
 
           var tag = 0
           if(!res.data.data[i].is_optimal) {
-            this.nonOptimalCnt++
+            // this.nonOptimalCnt++
+            this.unAligned[res.data.data[i].sender+'-'+res.data.data[i].receiver] = 1
             this.links[name].non_optimal+=1
             tag = 1
           }
@@ -303,7 +311,8 @@ export default {
             this.bcnSubslots[res.data.data[i].slot[0]][res.data.data[i].subslot[0]]=res.data.data[i].sender
           }
 
-          cellsTmp.push([res.data.data[i].slot[0]+0.5,Math.floor(res.data.data[i].slot[1]/2),tag])
+          cellsTmp.push([res.data.data[i].slot[0]+0.5,Math.floor(res.data.data[i].slot[1]-1),tag])
+          // cellsTmp.push([res.data.data[i].slot[0]+0.5,Math.floor(res.data.data[i].slot[1]/2),tag])
         }
         this.option.series[0].data = cellsTmp
       })
@@ -313,17 +322,18 @@ export default {
       this.drawPartition()
     },
     handleAutoBt() {
-      if(this.autoFlag==1) {
-        this.autoFlag = 1-this.autoFlag
-        clearInterval(this.auto)
-        return
-      } else {
-        this.autoFlag = 1-this.autoFlag
-      }
+      foo()
+      // if(this.autoFlag==1) {
+      //   this.autoFlag = 1-this.autoFlag
+      //   clearInterval(this.auto)
+      //   return
+      // } else {
+      //   this.autoFlag = 1-this.autoFlag
+      // }
       
-      this.auto = setInterval(()=>{
-        this.res = dpa()
-      },5000)
+      // this.auto = setInterval(()=>{
+      //   this.res = dpa()
+      // },5000)
       
      
     },
@@ -373,5 +383,5 @@ export default {
     margin-top 4px
 #sch-table
   width 100%
-  height 250px
+  height 300px
 </style>

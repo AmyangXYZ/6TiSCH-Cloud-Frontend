@@ -21,6 +21,8 @@ import ECharts from "vue-echarts/components/ECharts"
 import "echarts/lib/chart/scatter"
 import "echarts/lib/chart/effectScatter"
 import "echarts/lib/component/markLine";
+import nodes from "./nodes.json"
+import noiseList from "./noiseList.json"
 
 export default {
   components: {
@@ -29,11 +31,14 @@ export default {
   data() {
     return {
       gwPos: [],
-      nodesNumber:140,
+      size: 25,
+      nodesNumber:200,
       nodes: [],
       change_log: [],
       last_nodes:[],
       noisePos: [],
+      noisePosList: [],
+      noiseID: 0,
       blacklist: [],
       option: {
         grid: {
@@ -44,12 +49,12 @@ export default {
         },
         xAxis: {
           min:0,
-          max:20,
+          max:this.size,
           interval:1,
         },
         yAxis: {
           min:0,
-          max:20,
+          max:this.size,
           interval:1,
         },
         markLine: {
@@ -136,18 +141,18 @@ export default {
   methods: {
     draw() {    
       this.option.series[0].data = []
-      
       // gen invisible node for click event
-      for(var a=0;a<=20;a++) {
-        for(var b=0;b<=20;b++) {
+      for(var a=0;a<=this.size;a++) {
+        for(var b=0;b<=this.size;b++) {
           this.option.series[1].data.push([a,b])
         }
       }
 
       // gen gateway and nodes
-      var xx=Math.round((18)*Math.random()+1)
-      var yy=Math.round((18)*Math.random()+1)
+      var xx=Math.round((this.size-2)*Math.random()+1)
+      var yy=Math.round((this.size-2)*Math.random()+1)
       this.gwPos = [xx,yy]
+      // this.gwPos = nodes[0]
       // this.gwPos = [1,1]
       this.nodes = {0:{parent:-1,position:this.gwPos,layer:-1}}
       this.option.series[3].data = [this.gwPos]
@@ -155,18 +160,19 @@ export default {
       var pos_list = {}
       pos_list[this.gwPos[0]+'-'+this.gwPos[1]] = 1
       for(var i=1;i<this.nodesNumber;i++) {
-        var x=Math.round((18)*Math.random()+1)
-        var y=Math.round((18)*Math.random()+1)
+        var x=Math.round((this.size-2)*Math.random()+1)
+        var y=Math.round((this.size-2)*Math.random()+1)
         while(pos_list[x+'-'+y]!=null) {
-          x=Math.round((18)*Math.random()+1)
-          y=Math.round((18)*Math.random()+1)
+          x=Math.round((this.size-2)*Math.random()+1)
+          y=Math.round((this.size-2)*Math.random()+1)
         }
         pos_list[x+'-'+y] = 1
         this.nodes[i]={parent:-1,position:[x,y],layer:-1}
       }
-      
+      window.console.log(nodes[0])
       setTimeout(()=>{this.$EventBus.$emit('topo', this.nodes)},100)
-      
+      // this.nodes = nodes
+      // window.console.log(this.nodes)
       for(var nn=0;nn<Object.keys(this.nodes).length;nn++) {
         this.option.series[0].data.push(this.nodes[nn].position)
       }
@@ -295,7 +301,14 @@ export default {
     addNoiseCircleRand() {
       var x = Math.round((20)*Math.random())
       var y = Math.round((20)*Math.random())
+      // if(this.noiseID<100) {
+      //   x = noiseList[this.noiseID][0]
+      //   y = noiseList[this.noiseID][1]
+      // }
+      this.noiseID++
       this.noisePos = [x, y]
+      this.noisePosList.push([x,y])
+      window.console.log(this.noiseID,noiseList.length)
       this.option.series[2].data = [[x, y]]
       this.respondToNoise('circle')
     },
@@ -341,18 +354,7 @@ export default {
           }
         }
       }
-      if(type=="rect") {
-        for(var j=0;j<Object.keys(this.nodes).length;j++) {
-          for(var k=0;k<this.option.series[5].data.length;k++) {
-            if(Math.abs(this.nodes[j].position[0]-this.option.series[5].data[k][0])<1 &&
-              Math.abs(this.nodes[j].position[1]-this.option.series[5].data[k][1])<1) {
-              affected.push({id:j,lv:1})
-              this.option.series[4].data.push(this.nodes[j].position)
-              break
-            }
-          }
-        }
-      }
+    
       this.option.series[4].data = Array.from(new Set(this.option.series[4].data))
       this.blacklist = affected.sort((a, b)=>(a.lv>=b.lv)?1:-1)
       this.changeParents()

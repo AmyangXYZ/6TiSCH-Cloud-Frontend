@@ -8,6 +8,7 @@ function get_partition() {
     p.push({type:'uplink',layer:i,range:[sch.partition.uplink[i].start,sch.partition.uplink[i].end]})
     p.push({type:'downlink',layer:i,range:[sch.partition.downlink[i].start,sch.partition.downlink[i].end]})
   }
+  // console.log(p)
   return p
 }
 
@@ -31,8 +32,6 @@ function static_schedule() {
     var ret=sch.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer});
     sch.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer,sender:parent,receiver:node}, ret.is_optimal);
   }
-  
-  sch.init_finished = 1
 }
 
 // rm old links, add new links
@@ -48,9 +47,16 @@ function dynamic_schedule(node, parent, layer) {
   }
   // add new up/downlink
   var ret=sch.find_empty_subslot([node,parent],1,{type:"uplink",layer:layer});
-  sch.add_subslot(ret.slot, ret.subslot, {type:"uplink",layer:layer,sender:node,receiver:parent}, ret.is_optimal);
+  // console.log(ret)
+  // if(ret!=null)
+    sch.add_subslot(ret.slot, ret.subslot, {type:"uplink",layer:layer,sender:node,receiver:parent}, ret.is_optimal);
+  // else
+    // console.log("cannot find")
 
-  ret=sch.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer});
+  // if(ret!=null)
+    ret=sch.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer});
+  // else
+    // console.log("cannot find")
   sch.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer,sender:parent,receiver:node}, ret.is_optimal);
 }
 
@@ -61,7 +67,8 @@ function change_topo(nodes) {
 }
 
 function init(topology) {
-  sch = scheduler.create_scheduler(127,[1,3,5,7,9,11,13,15])
+  sch = scheduler.create_scheduler(127,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16])
+  // sch = scheduler.create_scheduler(127,[1,3,5,7,9,11,13,15])
   
   topo = topology
   static_schedule()
@@ -70,11 +77,18 @@ function init(topology) {
 }
 
 function get_sch() {
+  console.log(sch.get_idles_all())
   return {cells:sch.used_subslot, partitions: get_partition()}
+}
+
+function foo() {
+  sch.adjust_partition_offset('uplink',0,-37)
+  sch.adjust_partition_offset('downlink',0,37)
 }
 
 function dpa() { 
   console.log("trigger DPA")
+  console.log(sch.get_idles_all())
   sch.dynamic_partition_adjustment()
   return {cells:sch.used_subslot, partitions: get_partition()}
 }
@@ -83,5 +97,6 @@ module.exports={
   init: init,
   dpa: dpa,
   get_sch: get_sch,
-  change_topo: change_topo
+  change_topo: change_topo,
+  foo: foo
 };
