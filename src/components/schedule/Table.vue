@@ -238,15 +238,15 @@ export default {
             
             var y1=60, y2=277
             var pos = "insideBottom"
-            if(name[0]=="U") {
+            if(res.data.data[i].row==0) {
               y1 = 60
-              y2 = 167
-              pos = "insideBottomRight"
-            } else if(name[0]=="D") {
-              y1 = 167
+              y2 = 168
+            } else if(res.data.data[i].row==1) {
+              y1 = 168
               y2 = 277
-              pos = "insideBottomLeft"
             }
+            if(name[0]=="U") pos = "insideBottomRight"
+            if(name[0]=="D") pos = "insideBottomLeft"
             // window.console.log(y1,y2,pos)
             this.links[name] = {name:name, used:0, non_optimal:0}
             markAreaTmp.push([
