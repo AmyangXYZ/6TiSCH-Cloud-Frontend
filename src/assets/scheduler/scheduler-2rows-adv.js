@@ -167,7 +167,7 @@ Cell = {type, sender, receiver}
   console.log("create_scheduler("+sf+","+ch+")");
   this.slotFrameLength=sf;
   this.channels=ch;
-  this.row = 0
+  this.rows = 2
   this.schedule = new Array(sf);
   // mainly for send cells to cloud
   this.used_subslot = []
@@ -201,7 +201,7 @@ Cell = {type, sender, receiver}
     var sub_start = subslot.offset * SUBSLOTS/subslot.period;
     var sub_end = (subslot.offset+1) * SUBSLOTS/subslot.period;
   
-    this.used_subslot.push({slot:[slot.slot_offset, slot.channel_offset],subslot:[subslot.offset,subslot.period],cell:cell,is_optimal:  is_optimal})
+    this.used_subslot.push({slot:[slot.slot_offset, slot.channel_offset],subslot:[subslot.offset,subslot.period],cell:cell,is_optimal: is_optimal})
 
     // if(cell.type!="beacon")
     //   this.partition_changes[cell.type[0]+cell.layer].count++
@@ -292,40 +292,7 @@ Cell = {type, sender, receiver}
     }
     return true;
   }
-  //generate a shuffled slot list to iterate
-  this.shuffle_slots=function(){
-    var shuffled_slots=[];
-    for(var slot=0;slot<this.slotFrameLength;++slot){
-      for(var c in this.channels){
-        var ch=this.channels[c];
-        shuffled_slots.push({slot_offset:slot, channel_offset:ch});
-      }
-    }
-    for (var i = shuffled_slots.length - 1; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
-        var temp = shuffled_slots[i];
-        shuffled_slots[i] = shuffled_slots[j];
-        shuffled_slots[j] = temp;
-    }
-    var schedule=this.schedule;
-    //pass into sort(func)
-    //sort the shuffled list by subslot occupation
-    shuffled_slots.sort(function(a,b){
-      var ca=0,cb=0;
-      var a_sublist=schedule[a.slot_offset][a.channel_offset];
-      var b_sublist=schedule[b.slot_offset][b.channel_offset];
-      for(var sub=0;sub<SUBSLOTS;++sub){
-        if(a_sublist[sub]==null){
-          ++ca;
-        }
-        if(b_sublist[sub]==null){
-          ++cb;
-        }
-      }
-      return ca-cb;
-    });
-    return shuffled_slots;
-  }
+
   // generate a slot list inside the partition.
   // flag=0: normal case, find in_partition slots
   // flag=1: assign non-optimal slots in layer 0 reserved area
@@ -428,7 +395,7 @@ Cell = {type, sender, receiver}
               var ch=this.channels[j];
               inpartition_slots.push({slot_offset:slot, channel_offset:ch});
             }
-          } else {
+          } else if(row==1) {
             for(var j=this.channels.length/2;j<this.channels.length;j++){
               var ch=this.channels[j];
               inpartition_slots.push({slot_offset:slot, channel_offset:ch});
@@ -455,8 +422,8 @@ Cell = {type, sender, receiver}
   }
   
   // calculate the needed size(slot range) to assign non-optimal cells
-  this.calc_needed_slots=function(type,layer) {
-    var slots_list = this.inpartition_slots(2,{type:type,layer:layer})
+  this.calc_needed_slots=function(row,type,layer) {
+    var slots_list = this.inpartition_slots(2,{type:type,layer:layer},row)
     // make a copy
     var sch_cp = JSON.parse(JSON.stringify(this.schedule));
     var used_subslot = JSON.parse(JSON.stringify(this.used_subslot));
@@ -492,6 +459,7 @@ Cell = {type, sender, receiver}
           sch_cp[candidate.slot_offset][candidate.channel_offset][0] = {
             type:cell.type,
             layer: cell.layer,
+            row: cell.row,
             sender:cell.sender,
             receiver:cell.receiver,
             is_optimal: 1,
@@ -502,7 +470,8 @@ Cell = {type, sender, receiver}
     }
 
     for(var j=0;j<this.used_subslot.length;j++) {
-      if(!this.used_subslot[j].is_optimal && this.used_subslot[j].cell.type==type && this.used_subslot[j].cell.layer==layer) {
+      if(!this.used_subslot[j].is_optimal && this.used_subslot[j].cell.type==type && this.used_subslot[j].cell.row==row &&
+          this.used_subslot[j].cell.layer==layer) {
         var ret = this.assign_slot_sim(this.used_subslot[j].cell)
         if(ret!=null)
           used_subslot.push(ret)
@@ -511,15 +480,16 @@ Cell = {type, sender, receiver}
 
     var diff = 0
     // [start, end)
-    var original_size = [this.partition[0][type][layer].start,this.partition[0][type][layer].end]
+    var original_size = [this.partition[row][type][layer].start,this.partition[row][type][layer].end]
     var max = original_size[0]
     var min = original_size[1]
     for(var k=0;k<used_subslot.length;k++) {
-      if(used_subslot[k].is_optimal&&used_subslot[k].cell.type==type&&used_subslot[k].cell.layer==layer) {
+      if(used_subslot[k].is_optimal&&used_subslot[k].cell.type==type&&used_subslot[k].cell.row==row&&used_subslot[k].cell.layer==layer) {
         if(min>=used_subslot[k].slot[0]) min=used_subslot[k].slot[0]
         if(max<=used_subslot[k].slot[0]) max=used_subslot[k].slot[0]
       }
     }
+
     if(type=='uplink') {
       diff = max+1-original_size[1]
     } else {
@@ -540,20 +510,20 @@ Cell = {type, sender, receiver}
 
   // adjust the partition (and its slots) offset and its neighbour's size
   // offset >0 right, <0 left
-  this.adjust_partition_offset=function(type,layer,offset) {
+  this.adjust_partition_offset=function(row,type,layer,offset) {
     // broadcast partition do not need adjust, for now
     if(type=="broadcast"||offset==0) return
 
     // adjust cells offset
     // adjust cells in this.schedule
     var channels = []
-    if(type=="uplink") channels = this.channels.slice(0,this.channels.length/2)
-    if(type=="downlink") channels = this.channels.slice(this.channels.length/2,this.channels.length)
+    if(row==0) channels = this.channels.slice(0,this.channels.length/2)
+    if(row==1) channels = this.channels.slice(this.channels.length/2,this.channels.length)
     for(var c in channels) {
       var ch = channels[c]
       // offset>0, rear to front
       if(offset>0) {
-        for(var slot=this.partition[0][type][layer].end;slot>=this.partition[0][type][layer].start;slot--) {
+        for(var slot=this.partition[row][type][layer].end;slot>=this.partition[row][type][layer].start;slot--) {
           for(var sub=0;sub<SUBSLOTS;++sub) {
             if(this.schedule[slot][ch][sub]!=null) {
               this.schedule[slot+offset][ch][sub] = this.schedule[slot][ch][sub]
@@ -563,7 +533,7 @@ Cell = {type, sender, receiver}
         }
       } else {
         // offset<0, front to rear
-        for(var slot=this.partition[0][type][layer].start;slot<this.partition[0][type][layer].end;slot++) {
+        for(var slot=this.partition[row][type][layer].start;slot<this.partition[row][type][layer].end;slot++) {
           for(var sub=0;sub<SUBSLOTS;++sub) {
             if(this.schedule[slot][ch][sub]!=null) {
               this.schedule[slot+offset][ch][sub] = this.schedule[slot][ch][sub]
@@ -577,30 +547,16 @@ Cell = {type, sender, receiver}
     var count = 0
     // adjust cells in this.used_subslot  
     for(var i=0;i<this.used_subslot.length;i++) {
-      if(this.used_subslot[i].cell.type==type && this.used_subslot[i].cell.layer==layer && this.used_subslot[i].is_optimal) {
+      if(this.used_subslot[i].cell.type==type && this.used_subslot[i].cell.row==row &&
+          this.used_subslot[i].cell.layer==layer && this.used_subslot[i].is_optimal) {
         this.used_subslot[i].slot[0]+=offset
         count++
       }
     }
     
     // adjust partition offset
-    if(layer!=0) {
-      this.partition[0][type][layer].start += offset
-      this.partition[0][type][layer].end += offset
-    } else {
-      if(type=="uplink") {
-        // this.partition[0][type][layer].start += offset
-        // this.partition[0][type][layer+1].end += offset
-      } else if(type=="downlink") {
-        // this.partition[0][type][layer].end += offset
-        // this.partition[0][type][layer+1].start += offset
-      } 
-    }
-    
-    // if(layer==1) {
-    //   if(type=="uplink"&&offset<0) this.partition[0][type][0].start+=offset
-    //   if(type=="downlink"&&offset>0) this.partition[0][type][0].end+=offset
-    // }
+    this.partition[row][type][layer].start += offset
+    this.partition[row][type][layer].end += offset
     return count
   }
 
@@ -608,80 +564,80 @@ Cell = {type, sender, receiver}
   // side: 'left' or 'right'
   // offset >0 expand, <0 shrink
   // U0 shall not adjust right side, D0 shall not adjust left side
-  this.adjust_partition_size=function(type,layer,side,offset) {
+  this.adjust_partition_size=function(row,type,layer,side,offset) {
     // broadcast partition do not need adjust, for now
     if(type=="broadcast") return
     if(side=="left") {
-      this.partition[0][type][layer].start -= offset
+      this.partition[row][type][layer].start -= offset
     }
     if(side=="right") {
-      this.partition[0][type][layer].end += offset
+      this.partition[row][type][layer].end += offset
     }
     if(layer==1) {
-      if(type=="uplink"&&side=="right") this.partition[0]['uplink'][0].start = this.partition[0]['uplink'][1].end
-      if(type=="downlink"&&side=="left") this.partition[0]['downlink'][0].end = this.partition[0]['downlink'][1].start
+      if(type=="uplink"&&side=="right") this.partition[row]['uplink'][0].start = this.partition[row]['uplink'][1].end
+      if(type=="downlink"&&side=="left") this.partition[row]['downlink'][0].end = this.partition[row]['downlink'][1].start
     }
   }
 
-  this.get_gap=function(type, layer) {
+  this.get_gap=function(row,type, layer) {
     // if(layer==1) return 10
     // if(layer==2) return 7
     // if(layer==3) return 3 
     // if(layer==4) return 3
-    return 1
+    return 5
   }
   
   this.reset_partition_changes = function() {
     // reset partition_changes
-    for(var p in this.partition_changes) {
-      this.partition_changes[p].count = 0
-    }
+    // for(var p in this.partition_changes) {
+    //   this.partition_changes[p].count = 0
+    // }
   }
 
-  this.adjustment_summary = {}
+  this.adjustment_summary = {'0':{},'1':{}}
   // adjust partition boundary
-  this.adjust=function(type, layer) {
+  this.adjust=function(row, type, layer) {
     if(layer==0) return
     sides = ['right','left']
     var side = (type=="uplink")?0:1
     var sign = (type=="uplink")?1:-1
-    // console.log("[*] adjusting",type,layer,'...')
-    var gap = this.get_gap(type,layer)
-    var needed_size = this.calc_needed_slots(type,layer) + gap // leave some space
+    // console.log("[*] adjusting row",row,type,layer,'...')
+    var gap = this.get_gap(row,type,layer)
+    var needed_size = this.calc_needed_slots(row,type,layer) + gap // leave some space
     // console.log("    needs", needed_size, "slots")
     // expand, low layers first
     if(needed_size>0) {
       for(var l=1;l<layer;l++) {
-        var count = this.adjust_partition_offset(type,l,needed_size*sign)
+        var count = this.adjust_partition_offset(row,type,l,needed_size*sign)
         var name = type[0]+l
-        if(this.adjustment_summary[name]==null) this.adjustment_summary[name] = {affected_cells: count, offset:0}
-        this.adjustment_summary[name].offset += needed_size*sign
+        if(this.adjustment_summary[row][name]==null) this.adjustment_summary[row][name] = {affected_cells: count, offset:0}
+        this.adjustment_summary[row][name].offset += needed_size*sign
       }
     // shrink, high layers first
     } else {
       for(var l=layer-1;l>0;l--) {
-        var count = this.adjust_partition_offset(type,l,needed_size*sign)
+        var count = this.adjust_partition_offset(row,type,l,needed_size*sign)
         var name = type[0]+l
-        if(this.adjustment_summary[name]==null) this.adjustment_summary[name] = {affected_cells: count, offset:0}
-        this.adjustment_summary[name].offset += needed_size*sign
+        if(this.adjustment_summary[row][name]==null) this.adjustment_summary[row][name] = {affected_cells: count, offset:0}
+        this.adjustment_summary[row][name].offset += needed_size*sign
       }
     }
     // console.log("    neighbours move to the",sides[side],"by", needed_size)
-    this.adjust_partition_size(type, layer, sides[side], needed_size)
+    this.adjust_partition_size(row,type, layer, sides[side], needed_size)
     // console.log("   ",type,layer , "expands to the", sides[side], "by", needed_size)
 
-    this.adjust(type, layer-1)
+    this.adjust(row,type, layer-1)
   }
 
   this.dynamic_partition_adjustment=function() {
     // highest layer of non-optmial cells
     var highest_layer = Object.keys(this.partition[0]['uplink']).length-1
-     
-    this.adjust('uplink',highest_layer); this.adjust('downlink',highest_layer)
-    
-    this.reset_partition_changes()
+    for(var row=0;row<2;row++) {
+      this.adjust(row,'uplink',highest_layer); this.adjust(row,'downlink',highest_layer)
+    }
+    // this.reset_partition_changes()
 
-    // console.log('Partitions offset adjustment summary:',this.adjustment_summary)
+    console.log('Partitions offset adjustment summary:',this.adjustment_summary)
     
     
     // make a real/deep copy! add or remove will change sch.used_subslot length
@@ -692,9 +648,9 @@ Cell = {type, sender, receiver}
       if(!used_subslot[j].is_optimal) {
         var old = used_subslot[j]
         // console.log("adjusting",old)
-        var ret = this.find_empty_subslot([old.cell.sender, old.cell.receiver],1,{type:old.cell.type,layer:old.cell.layer})
+        var ret = this.find_empty_subslot([old.cell.sender, old.cell.receiver],1,{type:old.cell.type,layer:old.cell.layer},old.cell.row)
         // console.log("to new position",ret)
-        this.add_subslot(ret.slot, ret.subslot, {type:old.cell.type,layer:old.cell.layer,sender:old.cell.sender,receiver:old.cell.receiver}, ret.is_optimal);
+        this.add_subslot(ret.slot, ret.subslot, {row:old.cell.row,type:old.cell.type,layer:old.cell.layer,sender:old.cell.sender,receiver:old.cell.receiver}, ret.is_optimal);
         this.remove_subslot({slot_offset:old.slot[0],channel_offset:old.slot[1]}, {offset:old.subslot[0], period:old.subslot[1]})
         cnt++
       }
@@ -708,7 +664,7 @@ Cell = {type, sender, receiver}
 
     //This part is the partitioned scheduler
     if((algorithm == PART || algorithm == PARTPLUS ) && info!=null){
-      slots_list=this.inpartition_slots(0,info,row%2);
+      slots_list=this.inpartition_slots(0,info,row);
       for(var i=0;i<slots_list.length;++i){
         var slot=slots_list[i];
 
@@ -727,7 +683,7 @@ Cell = {type, sender, receiver}
     // assign a random slot
     // slots_list=this.shuffle_slots();
     // assign in reserved area
-    slots_list = this.inpartition_slots(1, {type:info.type, layer: 0},1);
+    slots_list = this.inpartition_slots(1, {type:info.type, layer: 0},row);
     for(var i=0;i<slots_list.length;++i){
       var slot=slots_list[i];
       for(var offset=0;offset<period;++offset){

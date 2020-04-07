@@ -152,7 +152,7 @@ export default {
       var xx=Math.round((this.size-2)*Math.random()+1)
       var yy=Math.round((this.size-2)*Math.random()+1)
       this.gwPos = [xx,yy]
-      this.gwPos = nodes[0]
+      // this.gwPos = nodes[0]
       // this.gwPos = [1,1]
       this.nodes = {0:{parent:-1,position:this.gwPos,layer:-1}}
       this.option.series[3].data = [this.gwPos]
@@ -170,9 +170,9 @@ export default {
         this.nodes[i]={parent:-1,position:[x,y],layer:-1}
       }
       window.console.log(nodes[0])
-      window.console.log(this.nodes)
-      setTimeout(()=>{this.$EventBus.$emit('topo', nodes)},100)
-      this.nodes = nodes
+      // window.console.log(this.nodes)
+      setTimeout(()=>{this.$EventBus.$emit('topo', this.nodes)},100)
+      // this.nodes = nodes
       // window.console.log(this.nodes)
       for(var nn=0;nn<Object.keys(this.nodes).length;nn++) {
         this.option.series[0].data.push(this.nodes[nn].position)
