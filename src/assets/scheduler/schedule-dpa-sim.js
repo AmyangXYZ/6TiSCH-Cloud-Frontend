@@ -1,5 +1,5 @@
 /*eslint-disable*/
-var scheduler = require('./scheduler-2rows-adv')
+var scheduler = require('./scheduler-2rows-pipe')
 
 function get_partition() {
   var p = []
@@ -76,7 +76,7 @@ function init(topology) {
   
   topo = topology
   static_schedule()
-  sch.dynamic_partition_adjustment()
+  // sch.dynamic_partition_adjustment()
   return {cells:sch.used_subslot, partitions: get_partition()}
 }
 

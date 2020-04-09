@@ -108,8 +108,8 @@ export default {
         grid: {
           top: '20%',
           // height: '78%',
-          left: '4%',
-          right: '3%',
+          left: '2%',
+          right: '1%',
           bottom: "8%",
         },
         xAxis: {
@@ -241,12 +241,14 @@ export default {
             if(res.data.data[i].row==0) {
               y1 = 60
               y2 = 168
+              pos = "insideBottomLeft"
             } else if(res.data.data[i].row==1) {
               y1 = 168
               y2 = 277
+              pos = "insideBottomRight"
             }
-            if(name[0]=="U") pos = "insideBottomRight"
-            if(name[0]=="D") pos = "insideBottomLeft"
+            // if(name[0]=="U") pos = "insideBottomRight"
+            // if(name[0]=="D") pos = "insideBottomLeft"
             // window.console.log(y1,y2,pos)
             this.links[name] = {name:name, used:0, non_optimal:0}
             markAreaTmp.push([
