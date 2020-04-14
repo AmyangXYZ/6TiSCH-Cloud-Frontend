@@ -1,5 +1,5 @@
 /*eslint-disable*/
-var scheduler = require('./scheduler-2rows-pipe')
+var scheduler = require('./scheduler-2rows-flip')
 
 function get_partition() {
   var p = []
@@ -14,31 +14,53 @@ function get_partition() {
     p.push({type:'downlink',layer:i, row:0, range:[sch.partition[0].downlink[i].start,sch.partition[0].downlink[i].end]})
     p.push({type:'downlink',layer:i, row:1, range:[sch.partition[1].downlink[i].start,sch.partition[1].downlink[i].end]})
   }
-  // console.log(p)
+  // console.log(sch.partition)
   return p
 }
 
 var sch={}
-var rows = 2
 var topo = {}
+var join_seq = []
+var nodes = {0:{children:0,row:[0]}}
 
-// static schedule
+// static schedule, init
 function static_schedule() {
-  var row = 0
-  for(var i=1;i<Object.keys(topo).length;i++) {
-    var node = i  
-    var parent = topo[i].parent
-    var layer = topo[i].layer
+  
+  for(var i=0;i<join_seq.length;i++) {
+    var node = join_seq[i]
+    var parent = topo[node].parent
+    var layer = topo[node].layer
+    var row = 0
     
-    var ret=sch.find_empty_subslot([node],16,{type:"beacon",layer:0},row%rows);
-    sch.add_subslot(ret.slot, ret.subslot, {type:"beacon",layer:layer,row:row%rows,sender:node,receiver:0xffff}, ret.is_optimal);
+    // if a node has 2 or more children, it should have up/downlinks with its parent in both row0 and row1
+    nodes[parent].children++
+    if(layer>0) {
+      if(nodes[parent].children==1) {
+        row = nodes[parent].row[0]
+      } else if(nodes[parent].children>1&&nodes[parent].row.length==1) {
+        row = 1-nodes[parent].row
+        var grand_parent = topo[parent].parent
 
-    var ret=sch.find_empty_subslot([node,parent],1,{type:"uplink",layer:layer},row%rows);
-    sch.add_subslot(ret.slot, ret.subslot, {type:"uplink",layer:layer,row:row%rows,sender:node,receiver:parent}, ret.is_optimal);
+        var ret=sch.find_empty_subslot([parent,grand_parent],1,{type:"uplink",layer:layer-1},row);
+        sch.add_subslot(ret.slot, ret.subslot, {type:"uplink",layer:layer-1,row:row,sender:parent,receiver:grand_parent}, ret.is_optimal);
 
-    var ret=sch.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer},row%rows);
-    sch.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer,row:row%rows,sender:parent,receiver:node}, ret.is_optimal);
-    row++
+        var ret=sch.find_empty_subslot([grand_parent, parent],1,{type:"downlink",layer:layer-1},row);
+        sch.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer-1,row:row,sender:grand_parent,receiver:parent}, ret.is_optimal);
+        nodes[parent].row.push(ret.row)
+      } else {
+        row = nodes[parent].children%2
+      }
+    }
+
+    nodes[node] = {children:0,row:[row]}
+    var ret=sch.find_empty_subslot([node],16,{type:"beacon",layer:0},0);
+    sch.add_subslot(ret.slot, ret.subslot, {type:"beacon",layer:layer,row:0,sender:node,receiver:0xffff}, ret.is_optimal);
+
+    var ret=sch.find_empty_subslot([node,parent],1,{type:"uplink",layer:layer},row);
+    sch.add_subslot(ret.slot, ret.subslot, {type:"uplink",layer:layer,row:row,sender:node,receiver:parent}, ret.is_optimal);
+    
+    var ret=sch.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer},row);
+    sch.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer,row:row,sender:parent,receiver:node}, ret.is_optimal);
   }
 }
 
@@ -62,6 +84,7 @@ function dynamic_schedule(node, parent, layer, row) {
 }
 
 function change_topo(nodes) {
+  nodes.sort((a, b)=>(a.layer>b.layer)?1:-1)
   var row = 0
   for(var i=0;i<nodes.length;i++) {
     dynamic_schedule(nodes[i].id,nodes[i].parent,nodes[i].layer,row%2)
@@ -70,12 +93,15 @@ function change_topo(nodes) {
   
 }
 
-function init(topology) {
+function init(topology,seq) {
   sch = scheduler.create_scheduler(127,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16])
   // sch = scheduler.create_scheduler(127,[1,3,5,7,9,11,13,15])
   
   topo = topology
+  join_seq = seq
   static_schedule()
+  console.log(nodes)
+  // sch.dynamic_partition_adjustment()
   // sch.dynamic_partition_adjustment()
   return {cells:sch.used_subslot, partitions: get_partition()}
 }
@@ -86,13 +112,14 @@ function get_sch() {
 }
 
 function foo() {
-  sch.adjust_partition_offset('uplink',0,-37)
-  sch.adjust_partition_offset('downlink',0,37)
+  // sch.adjust_partition_offset('uplink',0,-37)
+  // sch.adjust_partition_offset('downlink',0,37)
 }
 
 function dpa() { 
   console.log("trigger DPA")
   // console.log(sch.get_idles_all())
+  sch.dynamic_partition_adjustment()
   sch.dynamic_partition_adjustment()
   return {cells:sch.used_subslot, partitions: get_partition()}
 }

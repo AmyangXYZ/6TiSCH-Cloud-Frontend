@@ -577,7 +577,7 @@ Cell = {type, sender, receiver}
   }
 
   this.get_gap=function(type, layer) {
-    return 1
+    return 2
   }
   
   this.reset_partition_changes = function() {

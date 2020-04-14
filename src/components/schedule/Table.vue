@@ -23,15 +23,6 @@
           </vs-row>
         </div>
         <vs-divider/>
-        <!-- <div class="partition-usage">
-          <hPartition Changes</h4>
-          <vs-row vs-type="flex" vs-justify="center">
-            <vs-col id="part" vs-w="1" v-for="(p,i) in partition_changes" :key="i">
-              {{p.name}}: {{p.count}}
-            </vs-col>
-          </vs-row>
-        </div>
-        <vs-divider/> -->
         <ECharts id="sch-table" autoresize :options="option"/>        
       </vs-card>
     </vs-col>
@@ -108,7 +99,7 @@ export default {
         grid: {
           top: '20%',
           // height: '78%',
-          left: '2%',
+          left: '2.5%',
           right: '1%',
           bottom: "8%",
         },
@@ -189,7 +180,8 @@ export default {
                 // if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]*2+1)) {
                 if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]+1)) {
                   if(!this.slots[i].is_optimal){
-                    return `${this.slots[i].type[0].toUpperCase()}\n${this.slots[i].layer}`
+                    
+                    // return `${this.slots[i].type[0].toUpperCase()}\n${this.slots[i].layer}`
                   }
                 }
               }
@@ -223,7 +215,10 @@ export default {
 
         this.partitions = res.data.data
         var markAreaTmp = []
-        var colors = ['#313695', '#3C57A5', '#4778B6', '#6095C5', '#7AB2D4', '#97C9E0', '#B3DDEB', '#CFEBF3', '#E7F6EC', '#F7FCCE', '#FFF7B3','#FEE79A','#FED081','#FDB668','#FA9656','#F57446','#E85337','#D93328','#BF1927','#A50026']
+        var colors = ['#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
+
+        var colorMap = {B:"#313695"}
+        var color_index = 0
         for(var i=0;i<res.data.data.length;i++) {
           // init beacon subslots
           if(res.data.data[i].type=="beacon") {
@@ -235,6 +230,10 @@ export default {
           if(res.data.data[i].range[0]<res.data.data[i].range[1]) {
             var name = res.data.data[i].type[0].toUpperCase()
             if(name!="B") name+=res.data.data[i].layer
+            if(colorMap[name]==null) {
+              colorMap[name] = colors[color_index%colors.length]
+              color_index+=1
+            }
             
             var y1=60, y2=277
             var pos = "insideBottom"
@@ -245,10 +244,11 @@ export default {
             } else if(res.data.data[i].row==1) {
               y1 = 168
               y2 = 277
-              pos = "insideBottomRight"
+              pos = "insideTopRight"
             }
-            // if(name[0]=="U") pos = "insideBottomRight"
-            // if(name[0]=="D") pos = "insideBottomLeft"
+            if((name[0]=="U"&&res.data.data[i].row==0) || (name[0]=="D"&&res.data.data[i].row==1)) pos = "insideBottomRight"
+            if((name[0]=="D"&&res.data.data[i].row==0) || (name[0]=="U"&&res.data.data[i].row==1))  pos = "insideBottomLeft"
+
             // window.console.log(y1,y2,pos)
             this.links[name] = {name:name, used:0, non_optimal:0}
             markAreaTmp.push([
@@ -257,7 +257,7 @@ export default {
                 xAxis:res.data.data[i].range[1], 
                 y:y2,
                 yAxis:'9',
-                itemStyle:{color:colors[Math.floor(i/res.data.data.length*colors.length)],opacity:0.5},
+                itemStyle:{color:colorMap[name],opacity:0.5},
                 label:{color:"black",fontWeight:"bold",fontSize:16, position:pos}
               }
             ])
@@ -276,6 +276,7 @@ export default {
         if(this.simOrReal=="Simulation") {
           res = {data:{data:this.res.cells}}
           for(var x=0;x<res.data.data.length;x++) {
+            res.data.data[x].row = res.data.data[x].cell.row
             res.data.data[x].type = res.data.data[x].cell.type
             res.data.data[x].layer = res.data.data[x].cell.layer
             res.data.data[x].sender = res.data.data[x].cell.sender
@@ -284,7 +285,7 @@ export default {
         }
         
 
-        this.nonOptimalCnt = Object.keys(this.unAligned).length
+        // this.nonOptimalCnt = Object.keys(this.unAligned).length
         // this.nonOptimalCnt = 0
         var cellsTmp = []
         // if(!res.data.flag) return
@@ -322,6 +323,7 @@ export default {
     handleDPABt() {
       this.res = dpa()
       this.drawPartition()
+      setTimeout(this.getAllLatency,1500)
     },
     handleAutoBt() {
       foo()
@@ -343,11 +345,66 @@ export default {
       this.simOrReal = (this.simOrReal=="Simulation")?"Real":"Simulation"
       this.drawPartition()
     },
+    getAllLatency() {
+      var list = []
+      this.nonOptimalCnt = 0
+      for(var i=1;i<140;i++) {
+        var cell = this.findSlot(i)
+        if(cell.length>0) cell = cell[0]
+        var l = this.getLatency(i,0)
+        if(l>60) {
+          list.push(i)
+          this.option.series[0].data.push([cell.slot[0]+0.5, cell.slot[1]-1,1])
+        }
+      }
+      this.nonOptimalCnt = list.length
+    },
+    getLatency(node,verbose) {
+      var latency = 0
+      var cell = this.findSlot(node)
+      if(cell.length==0) {
+        return 0
+      }
+      cell = cell[0]
+      
+      if(verbose) window.console.log(cell.sender+' -> '+cell.receiver, cell.slot[0],cell.slot[1])
+      while(cell.receiver!=0) {
+        var next = this.findSlot(cell.receiver)
+        var next_cell = {}
+        if(next.length==0) {
+          return 0
+        }
+        for(var i=0;i<next.length;i++) {
+          if(next[i].row==cell.row) {
+            next_cell = next[i]
+            break
+          }
+        }
+        if(verbose)  window.console.log(next_cell.sender+'->'+next_cell.receiver, next_cell.slot[0],next_cell.slot[1])
+        if(next_cell.slot[0]>cell.slot[0]) latency += next_cell.slot[0]-cell.slot[0]
+        else latency+= 127-cell.slot[0]+next_cell.slot[0]
+        cell = next_cell
+      }
+      return latency
+    },
+    findSlot(node) {
+      var ret = []
+      for(var i=0;i<this.res.cells.length;i++) {
+        if(this.res.cells[i].sender == node && this.res.cells[i].type=="uplink") {
+          ret.push(this.res.cells[i])
+        }
+      }
+      return ret
+    }
   },
+
   mounted() {
+    window.vue = this
+    this.$EventBus.$emit("init",1)
     this.$EventBus.$once("topo", (topo) => {
-      this.res = init(topo)
+      this.res = init(topo.data, topo.seq)
       this.drawPartition()
+      setTimeout(this.getAllLatency,1500)
     });
     
     this.$EventBus.$on("changed", (nodes) => {
@@ -355,6 +412,7 @@ export default {
       change_topo(nodes)
       this.res = get_sch()
       this.drawPartition()
+      setTimeout(this.getAllLatency,1500)
     });
     // setTimeout(()=>{
     //   this.res = get_sch()

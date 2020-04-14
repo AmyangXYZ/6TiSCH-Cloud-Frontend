@@ -71,7 +71,7 @@ function partition_init(sf){
   //now we have everything scaled by slotframe length
   //and start do the partition
   var cur_r0 = RESERVED;
-  var cur_r1 = RESERVED;
+
   // 2 rows
   var partition={
     broadcast:{},
@@ -90,29 +90,26 @@ function partition_init(sf){
   //Beacon reserved version
   partition.broadcast={start:cur_r0, end:cur_r0+partition_config.beacon};
   cur_r0+=partition_config.beacon;
-  cur_r1+=partition_config.beacon
   // cur_d = cur_u
 
   // uplink
   for(var i=uplink.length-1; i>=0; --i){
     partition[0].uplink[i]={start:cur_r0, end:cur_r0+uplink[i]};
-    partition[1].uplink[i]={start:cur_r1, end:cur_r0+uplink[i]*2};
-    cur_r1 = cur_r0+uplink[i]*2
     cur_r0+=uplink[i];
   }
   
   // downlink
   cur_r0 = 127
-  cur_r1 = 127
   for(var i=downlink.length-1; i>=0; --i){
     partition[0].downlink[i]={start:cur_r0-downlink[i], end:cur_r0};
-    partition[1].downlink[i]={start:cur_r0-downlink[i]*2, end:cur_r1};
-    cur_r1 = cur_r0-uplink[i]*2
     cur_r0-=downlink[i];
   }
-  partition[1].uplink[0].end = partition[0].uplink[0].end
-  partition[1].downlink[0].start = partition[0].downlink[0].start
-  // partition = align_rows(partition, OFFSET)
+  
+  var offset = u_d[0]
+  for(var i=downlink.length-1; i>=0; --i){
+    partition[1].downlink[i]={start:partition[0].downlink[i].start-offset, end:partition[0].downlink[i].end-offset}
+    partition[1].uplink[i]={start:partition[0].uplink[i].start+offset, end:partition[0].uplink[i].end+offset}
+  }
 
   console.log("patition:", partition);
   return partition;
@@ -140,29 +137,6 @@ function partition_scale(list, size){
     list[i]-=list[i-1];
   }
   return list;
-}
-
-function align_rows(partition, offset) {
-  var u_d = [58,58]
-  var uplink = partition_config.uplink.slice();
-  partition_scale(uplink, u_d[0]);
-  var downlink = partition_config.downlink.slice();
-  partition_scale(downlink, u_d[1]);
-
-  for(var i=uplink.length-1; i>0; --i){
-    partition[1].uplink[i]={start:partition[0].uplink[i-1].start-offset, end:partition[0].uplink[i-1].end-offset}
-  }
-  for(var i=1; i<downlink.length-1; ++i){
-    partition[1].downlink[i]={start:partition[0].downlink[i+1].start-offset, end:partition[0].downlink[i+1].end-offset}
-  }
-
-  partition[1].uplink[0]=partition[0].downlink[0]
-  partition[1].uplink[1].end=partition[0].uplink[0].end
-  partition[1].downlink[0]={start:partition[0].downlink[1].start, end:partition[0].downlink[1].end-offset}
-  partition[1].downlink[downlink.length-2].end = 127
-  partition[1].downlink[downlink.length-1]={start:partition[0].uplink[uplink.length-1].start, end:partition[0].uplink[uplink.length-1].end-offset}
-
-  return partition
 }
 
 function create_scheduler(sf,ch){
@@ -296,8 +270,7 @@ Cell = {type, sender, receiver}
   }
 
   //3-d filter
-  //flag=1: check order
-  this.available_subslot=function(nodes_list,slot,subslot,info,flag){
+  this.available_subslot=function(nodes_list,slot,subslot,info){
     if(slot.slot_offset<RESERVED)return false;
 
     //if is beacon, we want it always the first channel in the list;
@@ -343,23 +316,6 @@ Cell = {type, sender, receiver}
           return false;
         if(nodes_list.indexOf(this.schedule[slot.slot_offset][ch][sub].receiver)!=-1)
           return false;
-      }
-    }
-
-    if(flag && info.layer>0) {
-      if(info.type!="beacon") {
-        var parent = 0
-        if(info.type=="uplink") parent = nodes_list[1]
-        else parent = nodes_list[0]
-
-        var parent_slot = this.find_slot_index(parent, info.type, info.layer-1)
-        if(info.type=="uplink") {
-          if(slot.slot_offset>parent_slot) return false
-        } else {
-          // last downlink partition, next row
-          if(Math.abs(slot.slot_offset-parent_slot)>60) return true
-          if(slot.slot_offset<parent_slot) return false
-        }
       }
     }
     return true;
@@ -425,14 +381,28 @@ Cell = {type, sender, receiver}
         }
       } else {
         if(row==0)  {
-          // as late as possible
-          for(var i=0;i<end-start;i++){
-            partition_slot_list[i]=end-1-i;
+          if(info.type=="downlink"){
+            //uplink 0, as late as possible
+            for(var i=0;i<end-start;i++){
+              partition_slot_list[i]=end-1-i;
+            }
+          } else {
+            // downlink 0, as early as possible
+            for(var i=0;i<end-start;++i){
+              partition_slot_list[i]=start+i;
+            }
           }
-        } else {
-          // as early as possible
-          for(var i=0;i<end-start;++i){
-            partition_slot_list[i]=start+i;
+        } else if(row==1) {
+          if(info.type=="uplink"){
+            //uplink 0, as late as possible
+            for(var i=0;i<end-start;i++){
+              partition_slot_list[i]=end-1-i;
+            }
+          } else {
+            // downlink 0, as early as possible
+            for(var i=0;i<end-start;++i){
+              partition_slot_list[i]=start+i;
+            }
           }
         }
       }
@@ -749,60 +719,26 @@ Cell = {type, sender, receiver}
 
     //This part is the partitioned scheduler
     if((algorithm == PART || algorithm == PARTPLUS ) && info!=null){
-      
-      if(info.type!="beacon") {
-        // Try the part more than 2 slots away from the start of the row 0 of this partition
-        const GAP = 2
-        slots_list=this.inpartition_slots(0,info,1);
-        for(var i=0;i<slots_list.length;++i){
-          var slot=slots_list[i];
-          if((this.partition[1][info.type][info.layer].end-slot.slot_offset)>GAP) {
-            for(var offset=0;offset<period;++offset){
-              if(this.available_subslot(nodes_list,slot,{period:period,offset:offset},info,1)){
-                ret = {slot:slot,subslot:{offset:offset,period:period},is_optimal:1}
-                return(ret);
-                // console.log("Empty subslot found:",ret)
-              }
-            }
-          }
-        }
-        // console.log("No empty slot in this row, try the other row",nodes_list,info)
-        // Try the part more than 2 slots away from the end of the row 1 of this partition
-        slots_list=this.inpartition_slots(0,info,0);
-        for(var i=0;i<slots_list.length;++i){
-          var slot=slots_list[i];
-          if((slot.slot_offset-this.partition[0][info.type][info.layer].start)>GAP) {
-            for(var offset=0;offset<period;++offset){
-              if(this.available_subslot(nodes_list,slot,{period:period,offset:offset},info,1)){
-                ret = {slot:slot,subslot:{offset:offset,period:period},is_optimal:1}
-                // console.log("Empty subslot found:",ret)
-                return(ret);
-              }
-            }
-          }
-        }
-      }
-      
-      // try rest part
       slots_list=this.inpartition_slots(0,info,row);
+
       for(var i=0;i<slots_list.length;++i){
         var slot=slots_list[i];
         for(var offset=0;offset<period;++offset){
-          if(this.available_subslot(nodes_list,slot,{period:period,offset:offset},info,1)){
-            ret = {slot:slot,subslot:{offset:offset,period:period},is_optimal:1}
+          if(this.available_subslot(nodes_list,slot,{period:period,offset:offset},info)){
+            ret = {slot:slot,subslot:{offset:offset,period:period},row:row,is_optimal:1}
             return(ret);
             // console.log("Empty subslot found:",ret)
           }
         }
       }
       
-      // console.log("No empty slot in this row, try the other row",nodes_list,info)
+      console.log("No empty slot in this row, try the other row",nodes_list[0])
       slots_list=this.inpartition_slots(0,info,1-row);
       for(var i=0;i<slots_list.length;++i){
         var slot=slots_list[i];
         for(var offset=0;offset<period;++offset){
-          if(this.available_subslot(nodes_list,slot,{period:period,offset:offset},info,1)){
-            ret = {slot:slot,subslot:{offset:offset,period:period},is_optimal:1}
+          if(this.available_subslot(nodes_list,slot,{period:period,offset:offset},info)){
+            ret = {slot:slot,subslot:{offset:offset,period:period},row:1-row,is_optimal:1}
             // console.log("Empty subslot found:",ret)
             return(ret);
           }
@@ -818,7 +754,7 @@ Cell = {type, sender, receiver}
     for(var i=0;i<slots_list.length;++i){
       var slot=slots_list[i];
       for(var offset=0;offset<period;++offset){
-        if(this.available_subslot(nodes_list,slot,{period:period,offset:offset},info,0)){
+        if(this.available_subslot(nodes_list,slot,{period:period,offset:offset},info)){
           var ret = {slot:slot,subslot:{offset:offset,period:period}, is_optimal:0}
           // console.log("find an alternative slot:",ret);
           return(ret);
