@@ -246,9 +246,10 @@ export default {
               y2 = 277
               pos = "insideTopRight"
             }
-            if((name[0]=="U"&&res.data.data[i].row==0) || (name[0]=="D"&&res.data.data[i].row==1)) pos = "insideBottomRight"
-            if((name[0]=="D"&&res.data.data[i].row==0) || (name[0]=="U"&&res.data.data[i].row==1))  pos = "insideBottomLeft"
-
+            if(name[0]=="U"&&res.data.data[i].row==0) pos = "insideBottomRight"
+            if(name[0]=="D"&&res.data.data[i].row==1) pos = "insideTopLeft"
+            if(name[0]=="D"&&res.data.data[i].row==0) pos = "insideBottomLeft"
+            if(name[0]=="U"&&res.data.data[i].row==1) pos = "insideTopRight"
             // window.console.log(y1,y2,pos)
             this.links[name] = {name:name, used:0, non_optimal:0}
             markAreaTmp.push([

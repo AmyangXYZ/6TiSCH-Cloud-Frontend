@@ -60,7 +60,7 @@ function partition_init(sf){
   }
 
   //Beacon reserved version
-  var u_d = [58,58];
+  var u_d = [56,56];
   // var u_d = [sf-partition_config.beacon,sf-partition_config.beacon]
   // partition_scale(u_d, sf-RESERVED-partition_config.beacon);
   var uplink = partition_config.uplink.slice();
@@ -84,14 +84,11 @@ function partition_init(sf){
       downlink:{}
     }
   };
-/*  partition.broadcast={start:cur, end:cur+b_u_d[0]};
-  cur+=b_u_d[0];*/
 
-  //Beacon reserved version
   partition.broadcast={start:cur_r0, end:cur_r0+partition_config.beacon};
   cur_r0+=partition_config.beacon;
-  // cur_d = cur_u
 
+  // row 0
   // uplink
   for(var i=uplink.length-1; i>=0; --i){
     partition[0].uplink[i]={start:cur_r0, end:cur_r0+uplink[i]};
@@ -105,11 +102,25 @@ function partition_init(sf){
     cur_r0-=downlink[i];
   }
   
-  var offset = u_d[0]
-  for(var i=downlink.length-1; i>=0; --i){
-    partition[1].downlink[i]={start:partition[0].downlink[i].start-offset, end:partition[0].downlink[i].end-offset}
-    partition[1].uplink[i]={start:partition[0].uplink[i].start+offset, end:partition[0].uplink[i].end+offset}
+  // row 1
+  cur_r1=partition_config.beacon;
+  partition[1].downlink[0]={start:cur_r1,end:cur_r1+downlink[0]-(downlink.length-1)*2}
+  cur_r1+=downlink[0]-(downlink.length-1)*2
+  // downlink
+  for(var i=1; i<downlink.length; ++i){
+    partition[1].downlink[i]={start:cur_r1, end:cur_r1+downlink[i]+2};
+    cur_r1+=downlink[i]+2;
   }
+  // uplink
+  cur_r1 = 127
+  partition[1].uplink[0]={start:cur_r1-uplink[0]+(uplink.length-1)*2,end:cur_r1}
+  cur_r1=cur_r1-uplink[0]+(uplink.length-1)*2
+  for(var i=1; i<uplink.length; ++i){
+    partition[1].uplink[i]={start:cur_r1-uplink[i]-2  , end:cur_r1};
+    cur_r1-=uplink[i]+2;
+  }
+  
+  
 
   console.log("patition:", partition);
   return partition;
@@ -380,32 +391,19 @@ Cell = {type, sender, receiver}
           }
         }
       } else {
-        if(row==0)  {
-          if(info.type=="downlink"){
-            //uplink 0, as late as possible
-            for(var i=0;i<end-start;i++){
-              partition_slot_list[i]=end-1-i;
-            }
-          } else {
-            // downlink 0, as early as possible
-            for(var i=0;i<end-start;++i){
-              partition_slot_list[i]=start+i;
-            }
+        if(info.type=="downlink"){
+        //   //uplink 0, as late as possible
+          for(var i=0;i<end-start;i++){
+            partition_slot_list[i]=end-1-i;
           }
-        } else if(row==1) {
-          if(info.type=="uplink"){
-            //uplink 0, as late as possible
-            for(var i=0;i<end-start;i++){
-              partition_slot_list[i]=end-1-i;
-            }
-          } else {
-            // downlink 0, as early as possible
-            for(var i=0;i<end-start;++i){
-              partition_slot_list[i]=start+i;
-            }
+        } else {
+          // downlink 0, as early as possible
+          for(var i=0;i<end-start;++i){
+            partition_slot_list[i]=start+i;
           }
         }
-      }
+      } 
+      
       
     } else if(flag==1){
       // flag==1: find available slots in reserved area (layer 0 other channels)
@@ -440,12 +438,11 @@ Cell = {type, sender, receiver}
               var ch=this.channels[j];
               inpartition_slots.push({slot_offset:slot, channel_offset:ch});
             }
-          }
-          
+          }      
         }
       // find available slots in reserved area (layer 0 other channels)
       } else if(flag==1) {
-        for(var k=1;k<this.channels.length-1;k++){
+        for(var k=1;k<this.channels.length/2-1;k++){
           var ch=this.channels[k];
           inpartition_slots.push({slot_offset:slot, channel_offset:ch});
         }
@@ -732,7 +729,7 @@ Cell = {type, sender, receiver}
         }
       }
       
-      console.log("No empty slot in this row, try the other row",nodes_list[0])
+      // console.log("No empty slot in this row, try the other row",nodes_list[0])
       slots_list=this.inpartition_slots(0,info,1-row);
       for(var i=0;i<slots_list.length;++i){
         var slot=slots_list[i];
