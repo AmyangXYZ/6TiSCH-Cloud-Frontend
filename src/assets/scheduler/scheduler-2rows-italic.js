@@ -60,7 +60,7 @@ function partition_init(sf){
   }
 
   //Beacon reserved version
-  var u_d = [58,58];
+  var u_d = [59,58];
   // var u_d = [sf-partition_config.beacon,sf-partition_config.beacon]
   // partition_scale(u_d, sf-RESERVED-partition_config.beacon);
   var uplink = partition_config.uplink.slice();
@@ -107,7 +107,7 @@ function partition_init(sf){
   for(var i=downlink.length-1; i>=0; --i){
     partition[0].downlink[i]={start:cur_r0-downlink[i], end:cur_r0};
     partition[1].downlink[i]={start:cur_r0-downlink[i]*2, end:cur_r1};
-    cur_r1 = cur_r0-uplink[i]*2
+    cur_r1 = cur_r0-downlink[i]*2
     cur_r0-=downlink[i];
   }
   partition[1].uplink[0].end = partition[0].uplink[0].end
@@ -143,7 +143,7 @@ function partition_scale(list, size){
 }
 
 function align_rows(partition, offset) {
-  var u_d = [58,58]
+  var u_d = [59,58]
   var uplink = partition_config.uplink.slice();
   partition_scale(uplink, u_d[0]);
   var downlink = partition_config.downlink.slice();

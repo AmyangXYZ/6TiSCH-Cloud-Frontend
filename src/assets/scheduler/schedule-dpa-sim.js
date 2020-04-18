@@ -100,7 +100,6 @@ function init(topology,seq) {
   topo = topology
   join_seq = seq
   static_schedule()
-  console.log(nodes)
   // sch.dynamic_partition_adjustment()
   // sch.dynamic_partition_adjustment()
   return {cells:sch.used_subslot, partitions: get_partition()}

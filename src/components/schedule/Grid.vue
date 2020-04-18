@@ -31,8 +31,8 @@ export default {
   data() {
     return {
       gwPos: [],
-      size: 23,
-      nodesNumber:140,
+      size: 25,
+      nodesNumber:160,
       nodes: [],
       join_seq: [],
       change_log: [],
@@ -153,7 +153,7 @@ export default {
       var xx=Math.round((this.size-8)*Math.random()+5)
       var yy=Math.round((this.size-8)*Math.random()+5)
       this.gwPos = [xx,yy]
-      // this.gwPos = nodes[0]
+      this.gwPos = nodes[0]
       this.gwPos = [6,6]
       this.nodes = {0:{parent:-1,position:this.gwPos,layer:-1}}
       this.option.series[3].data = [this.gwPos]

@@ -246,6 +246,8 @@ export default {
               y2 = 277
               pos = "insideTopRight"
             }
+            // if(res.data.data[i].type=="uplink") {y1=60;y2=168}
+            // else if(res.data.data[i].type=="downlink") {y1=168;y2=277}
             if(name[0]=="U"&&res.data.data[i].row==0) pos = "insideBottomRight"
             if(name[0]=="D"&&res.data.data[i].row==1) pos = "insideTopLeft"
             if(name[0]=="D"&&res.data.data[i].row==0) pos = "insideBottomLeft"
@@ -371,7 +373,7 @@ export default {
       if(verbose) window.console.log(cell.sender+' -> '+cell.receiver, cell.slot[0],cell.slot[1])
       while(cell.receiver!=0) {
         var next = this.findSlot(cell.receiver)
-        var next_cell = {}
+        var next_cell = 0
         if(next.length==0) {
           return 0
         }
@@ -381,6 +383,7 @@ export default {
             break
           }
         }
+        if(next_cell==0) return 0
         if(verbose)  window.console.log(next_cell.sender+'->'+next_cell.receiver, next_cell.slot[0],next_cell.slot[1])
         if(next_cell.slot[0]>cell.slot[0]) latency += next_cell.slot[0]-cell.slot[0]
         else latency+= 127-cell.slot[0]+next_cell.slot[0]

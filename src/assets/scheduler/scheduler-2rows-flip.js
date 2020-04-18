@@ -60,7 +60,7 @@ function partition_init(sf){
   }
 
   //Beacon reserved version
-  var u_d = [56,56];
+  var u_d = [59,58];
   // var u_d = [sf-partition_config.beacon,sf-partition_config.beacon]
   // partition_scale(u_d, sf-RESERVED-partition_config.beacon);
   var uplink = partition_config.uplink.slice();
