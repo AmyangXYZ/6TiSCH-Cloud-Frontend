@@ -74,9 +74,9 @@ export default {
           formatter: (item) => {
             for(var i=0;i<this.slots.length;i++) {
               // if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]*2+1)) {
-              if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]+1)) {
+              if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]-0.5)) {
                 if(this.slots[i].type == "beacon") {
-                  var res = `[${item.data[0]-0.5}, ${item.data[1]*2+1}]<br/>
+                  var res = `[${item.data[0]-0.5}, ${item.data[1]-0.5}]<br/>
                             Beacon<br/>
                             Subslots<br/>`
                   for(var sub in this.bcnSubslots[this.slots[i].slot[0]]) {
@@ -87,7 +87,7 @@ export default {
                   return res
                 }
                 // return `[${item.data[0]-0.5}, ${item.data[1]*2+1}]<br/>
-                return `[${item.data[0]-0.5}, ${item.data[1]+1}]<br/>
+                return `[${item.data[0]-0.5}, ${item.data[1]-0.5}]<br/>
                         ${this.slots[i].type.replace(/^\S/, s => s.toUpperCase())}<br/>
                         Layer ${this.slots[i].layer}<br/>
                         ${this.slots[i].sender} -> ${this.slots[i].receiver}`
@@ -130,7 +130,10 @@ export default {
         },
         yAxis: {
           name: "Channel Offset",
-          type: 'category',
+          type: 'value',
+          min: 1,
+          max: 17,
+          interval: 1,
           inverse: true,
           nameLocation: "middle",
           nameTextStyle: {
@@ -174,14 +177,14 @@ export default {
             show: true,
             color: 'white',
             fontWeight: 'bold',
-            fontSize: 9.5,
+            fontSize: 11.5,
             formatter: (item) => {
               for(var i=0;i<this.slots.length;i++) {
                 // if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]*2+1)) {
-                if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]+1)) {
-                  if(!this.slots[i].is_optimal){
+                if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]-0.5)) {
+                  if(this.slots[i].type!="beacon"){
                     
-                    // return `${this.slots[i].type[0].toUpperCase()}\n${this.slots[i].layer}`
+                    return `${this.slots[i].sender}\n${this.slots[i].receiver}`
                   }
                 }
               }
@@ -235,34 +238,42 @@ export default {
               color_index+=1
             }
             
-            var y1=60, y2=277
+            var y1 = 1
+            var y2 = 17
             var pos = "insideBottom"
             if(res.data.data[i].row==0) {
-              y1 = 60
-              y2 = 168
+              y1 = 1
+              y2 = 7
               pos = "insideBottomLeft"
             } else if(res.data.data[i].row==1) {
-              y1 = 168
-              y2 = 277
+              y1 = 7
+              y2 = 12
+              pos = "insideTopRight"
+            } else if(res.data.data[i].row==2) {
+              y1 = 12
+              y2 = 17
               pos = "insideTopRight"
             }
             // if(res.data.data[i].type=="uplink") {y1=60;y2=168}
             // else if(res.data.data[i].type=="downlink") {y1=168;y2=277}
-            if(name[0]=="U"&&res.data.data[i].row==0) pos = "insideBottomRight"
-            if(name[0]=="D"&&res.data.data[i].row==1) pos = "insideTopLeft"
-            if(name[0]=="D"&&res.data.data[i].row==0) pos = "insideBottomLeft"
-            if(name[0]=="U"&&res.data.data[i].row==1) pos = "insideTopRight"
+            // if(name[0]=="U"&&res.data.data[i].row==0) pos = "insideBottomRight"
+            // if(name[0]=="D"&&res.data.data[i].row==1) pos = "insideTopLeft"
+            // if(name[0]=="D"&&res.data.data[i].row==0) pos = "insideBottomLeft"
+            // if(name[0]=="U"&&res.data.data[i].row==1) pos = "insideTopRight"
             // window.console.log(y1,y2,pos)
             this.links[name] = {name:name, used:0, non_optimal:0}
             markAreaTmp.push([
-              {name:name,coord:[res.data.data[i].range[0]],y:y1},
+              {
+                name:name,
+                xAxis:res.data.data[i].range[0],
+                yAxis: y1,
+              },
               {
                 xAxis:res.data.data[i].range[1], 
-                y:y2,
-                yAxis:'9',
+                yAxis: y2,
                 itemStyle:{color:colorMap[name],opacity:0.5},
                 label:{color:"black",fontWeight:"bold",fontSize:16, position:pos}
-              }
+              },
             ])
           }
         }
@@ -317,7 +328,7 @@ export default {
             this.bcnSubslots[res.data.data[i].slot[0]][res.data.data[i].subslot[0]]=res.data.data[i].sender
           }
 
-          cellsTmp.push([res.data.data[i].slot[0]+0.5,Math.floor(res.data.data[i].slot[1]-1),tag])
+          cellsTmp.push([res.data.data[i].slot[0]+0.5,res.data.data[i].slot[1]+0.5,tag])
           // cellsTmp.push([res.data.data[i].slot[0]+0.5,Math.floor(res.data.data[i].slot[1]/2),tag])
         }
         this.option.series[0].data = cellsTmp
@@ -357,7 +368,7 @@ export default {
         var l = this.getLatency(i,0)
         if(l>60) {
           list.push(i)
-          this.option.series[0].data.push([cell.slot[0]+0.5, cell.slot[1]-1,1])
+          this.option.series[0].data.push([cell.slot[0]+0.5, cell.slot[1],1])
         }
       }
       this.nonOptimalCnt = list.length
@@ -406,9 +417,10 @@ export default {
     window.vue = this
     this.$EventBus.$emit("init",1)
     this.$EventBus.$once("topo", (topo) => {
+      this.topo = topo.data
       this.res = init(topo.data, topo.seq)
       this.drawPartition()
-      setTimeout(this.getAllLatency,1500)
+      // setTimeout(this.getAllLatency,1500)
     });
     
     this.$EventBus.$on("changed", (nodes) => {
@@ -416,7 +428,7 @@ export default {
       change_topo(nodes)
       this.res = get_sch()
       this.drawPartition()
-      setTimeout(this.getAllLatency,1500)
+      // setTimeout(this.getAllLatency,1500)
     });
     // setTimeout(()=>{
     //   this.res = get_sch()
@@ -447,5 +459,5 @@ export default {
     margin-top 4px
 #sch-table
   width 100%
-  height 300px
+  height 600px
 </style>
