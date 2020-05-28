@@ -1,6 +1,6 @@
 <template>
     <vs-row vs-align="flex-start" vs-w="12">
-      <vs-col style="z-index:99" vs-offset="3" vs-w="6.25">  
+      <vs-col style="z-index:99" vs-offset="3" vs-w="4">  
         <vs-card>
           <div slot='header'>
             <h4>Disturbance Simluator</h4>
@@ -81,7 +81,7 @@ export default {
             type: 'effectScatter',
             symbolSize: 10,
             rippleEffect: {
-              scale: 15
+              scale: 18
             },
             data: []
           },
@@ -237,7 +237,9 @@ export default {
       var x = Math.round((20)*Math.random())
       var y = Math.round((20)*Math.random())
       this.noisePos = [x, y]
-      this.option.series[2].data = [[x, y]]
+      this.noisePos = this.noisePosList[this.i%this.noisePosList.length]
+      this.i++
+      this.option.series[2].data = [this.noisePos]
       this.respondToNoise()
     },
     clearNoise() {
@@ -265,7 +267,7 @@ export default {
       }
       this.option.series[4].data = Array.from(new Set(this.option.series[4].data))
       this.blacklist = affected
-      this.changeParents()
+      // this.changeParents()
     }
   },
   created() {
@@ -277,5 +279,5 @@ export default {
 <style lang="stylus" scoped>
 #chart
   width: 100%
-  height 800px
+  height 600px
 </style>

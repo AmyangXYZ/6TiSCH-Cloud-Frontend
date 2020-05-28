@@ -31,7 +31,7 @@ export default {
   data() {
     return {
       gwPos: [],
-      size: 25,
+      size: 22,
       nodesNumber:160,
       nodes: [],
       join_seq: [],
@@ -63,12 +63,23 @@ export default {
         },
         series: [
           {
-            symbolSize: 18,
+            symbolSize: 23,
             itemStyle: {
               color: 'deepskyblue',
             },
             data: [],
-
+            label: {
+              show: true,
+              color: "black",
+              fontSize: 17,
+              formatter: (item)=> {
+                for(var i=0;i<Object.keys(this.nodes).length;i++) {
+                  if(this.nodes[i].position[0]==item.data[0] && this.nodes[i].position[1]==item.data[1]) {
+                    return i
+                  }
+                }
+              }
+            },
             markLine: {
               animation: false,
               silent:true,
@@ -104,11 +115,18 @@ export default {
           {
             type: 'scatter',
             data: [],
+            label: {
+              show: true,
+              fontSize: 18,
+              formatter: ()=> {
+                return "0"
+              }
+            },
             itemStyle: {
               color: 'purple',
               opacity:0.85,
             },
-            symbolSize: 21,
+            symbolSize: 24,
             hoverAnimation: false
           },
           {
@@ -155,7 +173,7 @@ export default {
       this.gwPos = [xx,yy]
       this.gwPos = nodes[0]
       this.gwPos = [6,6]
-      this.nodes = {0:{parent:-1,position:this.gwPos,layer:-1}}
+      this.nodes = {0:{parent:-1,position:this.gwPos,layer:-1,path:[0]}}
       this.option.series[3].data = [this.gwPos]
 
       var pos_list = {}
@@ -168,7 +186,7 @@ export default {
           y=Math.round((this.size-2)*Math.random()+1)
         }
         pos_list[x+'-'+y] = 1
-        this.nodes[i]={parent:-1,position:[x,y],layer:-1}
+        this.nodes[i]={parent:-1,position:[x,y],layer:-1, path:[i]}
       }
       window.console.log(nodes[0])
     
@@ -180,7 +198,7 @@ export default {
       
       // find parents
       this.findParents()
-      window.console.log(this.nodes)
+      
       setTimeout(()=>{this.$EventBus.$emit('topo', {data:this.nodes,seq:this.join_seq})},100)
     },
     findParents() {
@@ -215,6 +233,8 @@ export default {
             if(nearest_parent.d<=threshold) {            
               this.nodes[j].parent = nearest_parent.id
               this.nodes[j].layer = cur_layer
+              this.nodes[j].path = this.nodes[j].path.concat(this.nodes[nearest_parent.id].path)
+              
               layers[cur_layer].push(j)
               this.join_seq.push(j)
 
@@ -262,6 +282,7 @@ export default {
               distance_list.push({id:j,d:distance})
             }
             // cannot find, don't change
+            // layer 0 nodes
             var nearest_parent = 0
             if(distance_list.length<1) {
               nearest_parent = {id:this.nodes[k].parent,d:1}

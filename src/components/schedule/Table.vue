@@ -23,7 +23,7 @@
           </vs-row>
         </div>
         <vs-divider/>
-        <ECharts id="sch-table" autoresize :options="option"/>        
+        <ECharts id="sch-table" autoresize :options="option" @click="handleClickSch" />        
       </vs-card>
     </vs-col>
   </vs-row> 
@@ -37,6 +37,7 @@ import "echarts/lib/component/legend";
 import "echarts/lib/component/tooltip";
 import "echarts/lib/component/title";
 import "echarts/lib/component/markArea";
+import "echarts/lib/component/markLine";
 import "echarts/lib/component/dataZoom";
 import "echarts/lib/chart/graph"
 
@@ -52,6 +53,7 @@ export default {
       autoFlag: 0,
       simOrReal: "Simulation",
       partition_changes: {},
+      selectedNode: {},
       auto: {},
       res: {},
       SlotFrameLength: 127,
@@ -149,8 +151,8 @@ export default {
         dataZoom: [
           {
             type: "inside",
-            start: 0,
-            end: 100,
+            start: 5.5,
+            end: 58,
           },
         ],
         visualMap: {
@@ -177,7 +179,7 @@ export default {
             show: true,
             color: 'white',
             fontWeight: 'bold',
-            fontSize: 11.5,
+            fontSize: 13,
             formatter: (item) => {
               for(var i=0;i<this.slots.length;i++) {
                 // if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]*2+1)) {
@@ -195,6 +197,16 @@ export default {
             borderWidth: 0.3,
             borderType: "solid",
             borderColor: "#E2E2E2"
+          },
+          markLine: {
+            data: [],
+            symbolSize: 15,
+            lineStyle: {
+              color: "red",
+              width: 7,
+              type: "dash"
+            },
+            animationDuration: 300,
           },
           markArea: {
             silent:true,
@@ -244,23 +256,18 @@ export default {
             if(res.data.data[i].row==0) {
               y1 = 1
               y2 = 7
-              pos = "insideBottomLeft"
             } else if(res.data.data[i].row==1) {
               y1 = 7
               y2 = 12
-              pos = "insideTopRight"
             } else if(res.data.data[i].row==2) {
               y1 = 12
               y2 = 17
-              pos = "insideTopRight"
             }
-            // if(res.data.data[i].type=="uplink") {y1=60;y2=168}
-            // else if(res.data.data[i].type=="downlink") {y1=168;y2=277}
-            // if(name[0]=="U"&&res.data.data[i].row==0) pos = "insideBottomRight"
-            // if(name[0]=="D"&&res.data.data[i].row==1) pos = "insideTopLeft"
-            // if(name[0]=="D"&&res.data.data[i].row==0) pos = "insideBottomLeft"
-            // if(name[0]=="U"&&res.data.data[i].row==1) pos = "insideTopRight"
-            // window.console.log(y1,y2,pos)
+            if(res.data.data[i].type=="uplink") {
+              pos = "insideBottomLeft"
+            } else {
+              pos = "insideBottomRight"
+            }
             this.links[name] = {name:name, used:0, non_optimal:0}
             markAreaTmp.push([
               {
@@ -355,6 +362,28 @@ export default {
       
      
     },
+    handleClickSch(item) {
+      this.option.series[0].markLine.data = []
+      var node = {}
+      var parent = {}
+      for(var i=0;i<this.slots.length;i++) {
+        if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]-0.5)) {
+          node = this.slots[i]
+          // reset
+          if(node == this.selectedNode) {
+            this.selectedNode = {}
+            return
+          }
+          this.selectedNode = node
+          
+          while(node.receiver!=0) {
+            parent = this.findSlot(node.receiver)[0]
+            this.option.series[0].markLine.data.push([{xAxis:node.slot[0]+1, yAxis:node.slot[1]+0.5}, {xAxis:parent.slot[0], yAxis:parent.slot[1]+0.5}])
+            node = parent
+          }  
+        }
+      }
+    },
     handleSwitch() {
       this.simOrReal = (this.simOrReal=="Simulation")?"Real":"Simulation"
       this.drawPartition()
@@ -420,7 +449,7 @@ export default {
       this.topo = topo.data
       this.res = init(topo.data, topo.seq)
       this.drawPartition()
-      // setTimeout(this.getAllLatency,1500)
+      setTimeout(this.getAllLatency,1500)
     });
     
     this.$EventBus.$on("changed", (nodes) => {
@@ -428,7 +457,7 @@ export default {
       change_topo(nodes)
       this.res = get_sch()
       this.drawPartition()
-      // setTimeout(this.getAllLatency,1500)
+      setTimeout(this.getAllLatency,1500)
     });
     // setTimeout(()=>{
     //   this.res = get_sch()
