@@ -53,7 +53,7 @@ export default {
       autoFlag: 0,
       simOrReal: "Simulation",
       partition_changes: {},
-      selectedNode: {},
+      selectedCell: {},
       auto: {},
       res: {},
       SlotFrameLength: 127,
@@ -200,11 +200,11 @@ export default {
           },
           markLine: {
             data: [],
-            symbolSize: 15,
+            symbolSize: 12,
             lineStyle: {
               color: "red",
-              width: 7,
-              type: "dash"
+              width: 5,
+              type: "solid"
             },
             animationDuration: 300,
           },
@@ -364,22 +364,28 @@ export default {
     },
     handleClickSch(item) {
       this.option.series[0].markLine.data = []
-      var node = {}
+      var cell = {}
       var parent = {}
+
       for(var i=0;i<this.slots.length;i++) {
         if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]-0.5)) {
-          node = this.slots[i]
+          cell = this.slots[i]
           // reset
-          if(node == this.selectedNode) {
-            this.selectedNode = {}
+          if(cell == this.selectedcell) {
+            this.selectedCell = {}
             return
           }
-          this.selectedNode = node
-          
-          while(node.receiver!=0) {
-            parent = this.findSlot(node.receiver)[0]
-            this.option.series[0].markLine.data.push([{xAxis:node.slot[0]+1, yAxis:node.slot[1]+0.5}, {xAxis:parent.slot[0], yAxis:parent.slot[1]+0.5}])
-            node = parent
+          this.selectedCell = cell
+          // find children
+          for(var j=0;j<this.slots.length;j++) {
+            if(this.slots[j].receiver==cell.sender&&this.slots[j].type==cell.type) {
+              this.option.series[0].markLine.data.push([{xAxis:this.slots[j].slot[0]+1, yAxis:this.slots[j].slot[1]+0.5}, {xAxis:cell.slot[0], yAxis:cell.slot[1]+0.5, lineStyle:{color:"lime", width:4}}])
+            }
+          }
+          while(cell.receiver!=0) {
+            parent = this.findSlot(cell.receiver)[0]
+            this.option.series[0].markLine.data.push([{xAxis:cell.slot[0]+1, yAxis:cell.slot[1]+0.5}, {xAxis:parent.slot[0], yAxis:parent.slot[1]+0.5}])
+            cell = parent
           }  
         }
       }
