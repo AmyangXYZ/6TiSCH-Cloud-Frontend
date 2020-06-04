@@ -44,22 +44,22 @@ function static_schedule() {
 }
 
 // rm old links, add new links
-function dynamic_schedule(node, parent, layer) {
+function dynamic_schedule(node) {
   // add new up/downlink
-  var ret=sch.find_empty_subslot([node,parent],1,{type:"uplink",layer:layer});
-  sch.add_subslot(ret.slot, ret.subslot, {row:ret.row,type:"uplink",layer:layer,sender:node,receiver:parent}, ret.is_optimal);
+  var ret=sch.find_empty_subslot([node.id,node.parent],1,{type:"uplink",layer:node.layer});
+  sch.add_subslot(ret.slot, ret.subslot, {row:ret.row,type:"uplink",layer:node.layer,sender:node.id,receiver:node.parent}, ret.is_optimal);
 
-  ret=sch.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer});
-  sch.add_subslot(ret.slot, ret.subslot, {row:ret.row, type:"downlink",layer:layer,sender:parent,receiver:node}, ret.is_optimal);
+  ret=sch.find_empty_subslot([node.parent, node.id],1,{type:"downlink",layer:node.layer});
+  sch.add_subslot(ret.slot, ret.subslot, {row:ret.row, type:"downlink",layer:node.layer,sender:node.parent,receiver:node.id}, ret.is_optimal);
+  return ret.is_optimal
 }
 
-function change_topo(nodes) {
-  
+function kick(nodes) {
   var used_subslot = JSON.parse(JSON.stringify(sch.used_subslot));
   // console.log(used_subslot.length)
   // rm old up/downlink
-  for(var i=0;i<Object.keys(nodes).length;i++ ) {
-    node = nodes[i].id
+  for(var i=0;i<nodes.length;i++ ) {
+    node = nodes[i]
     for(var j=0;j<used_subslot.length;j++) {
       if((used_subslot[j].cell.type=="uplink"&&used_subslot[j].cell.sender==node) ||
         (used_subslot[j].cell.type=="downlink"&&used_subslot[j].cell.receiver==node)) {
@@ -67,7 +67,9 @@ function change_topo(nodes) {
       }
     }
   }
-  
+}
+
+function change_topo(nodes) {
   for(var ii=0;ii<nodes.length;ii++) {
     dynamic_schedule(nodes[ii].id,nodes[ii].parent,nodes[ii].layer)
   }  
@@ -104,7 +106,8 @@ function dpa() {
 module.exports={
   init: init,
   dpa: dpa,
+  kick: kick,
+  dynamic_schedule: dynamic_schedule,
   get_sch: get_sch,
-  change_topo: change_topo,
   foo: foo
 };

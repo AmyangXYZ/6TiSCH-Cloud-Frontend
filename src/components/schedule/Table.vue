@@ -41,7 +41,7 @@ import "echarts/lib/component/markLine";
 import "echarts/lib/component/dataZoom";
 import "echarts/lib/chart/graph"
 
-import {init,dpa,change_topo,get_sch,foo} from '@/assets/scheduler/schedule-dpa-sim.js'
+import {init,dpa,dynamic_schedule,kick,get_sch,foo} from '@/assets/scheduler/schedule-dpa-sim.js'
 
 export default {
   components: {
@@ -63,6 +63,7 @@ export default {
       links: {},
       bcnSubslots: {},
       nonOptimalCnt:0,
+      nonOptimalList: [],
       unAligned: {},
       option: {
         title: {
@@ -455,9 +456,18 @@ export default {
       setTimeout(this.getAllLatency,1000)
     });
     
+    this.$EventBus.$on("kicked", (kicked) => {
+      kick(kicked)
+      
+      this.res = get_sch()
+      this.drawPartition()
+    })
     this.$EventBus.$on("changed", (nodes) => {
-      // window.console.log(nodes.length)
-      change_topo(nodes)
+      var node = nodes[0]
+      var is_optimal = dynamic_schedule(node)
+      if(!is_optimal) {
+        this.$EventBus.$emit("nonOptimal", node.id)
+      }
       this.res = get_sch()
       this.drawPartition()
       if(this.selectedCell!=0) setTimeout(()=>{this.findPath(this.selectedCell)},500)

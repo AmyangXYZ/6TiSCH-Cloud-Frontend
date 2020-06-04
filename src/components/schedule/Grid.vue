@@ -23,6 +23,7 @@ import "echarts/lib/chart/effectScatter"
 import "echarts/lib/component/markLine";
 import nodes from "./nodes.json"
 import noiseList from "./noiseList.json"
+
 export default {
   components: {
     ECharts
@@ -34,6 +35,7 @@ export default {
       kicked: [],
       nodesNumber:160,
       nodes: [],
+      nonOptimal: [],
       join_seq: [],
       change_log: [],
       last_nodes:[],
@@ -256,23 +258,26 @@ export default {
         this.last_nodes = JSON.parse(JSON.stringify(this.nodes))
       }
     },
-    changeParents() {
+    changeParents(kicked) {
       var changed = []
-      this.kicked = Array.from(new Set(this.kicked))
-      for(var i=0;i<this.kicked.length;i++) {
-        var node = this.kicked[i]
+      
+      for(var i=0;i<kicked.length;i++) {
+        var node = kicked[i]
         // find new parent, nearest and low layer
         var distance_list = []
         
         var nearest_parent = {id:this.nodes[node].parent,d:1}
         
-        // parent in blacklist
-        if(this.blacklist.findIndex(n=>n.id===node)!=-1 || this.blacklist.findIndex(n=>n.id===this.nodes[node].parent)!=-1) {
+        // parent in blacklist or parent's cell is not optimal now
+        if(this.blacklist.findIndex(n=>n.id===node)!=-1 || this.blacklist.findIndex(n=>n.id===this.nodes[node].parent)!=-1 
+          || this.nonOptimal.indexOf(this.nodes[node].parent)!=-1) {
           for(var j=0;j<Object.keys(this.nodes).length;j++) {
             // itself
             if(node==j) continue
             // in blacklist, pass
             if(this.blacklist.findIndex(n=>n.id===j)!=-1) continue
+            // parent's cell are not optimal
+            if(this.nonOptimal.indexOf(j)!=-1) continue
             // higher layer, pass
             if(this.nodes[j].layer>=this.nodes[node].layer) continue
             // old parent, pass
@@ -299,7 +304,6 @@ export default {
       this.last_nodes = JSON.parse(JSON.stringify(this.nodes))
       
       this.$EventBus.$emit('changed',changed.sort((a, b)=>(a.layer>b.layer)?1:-1))
-      
     },
     drawLine(start,end) {
       this.option.series[0].markLine.data.push([{coord:this.nodes[start].position},{coord:this.nodes[end].position}])
@@ -384,7 +388,23 @@ export default {
     
       this.option.series[4].data = Array.from(new Set(this.option.series[4].data))
       this.blacklist = affected.sort((a, b)=>(a.lv>=b.lv)?1:-1)
-      this.changeParents()
+      
+      // Deduplicate and sort by layer
+      this.kicked = Array.from(new Set(this.kicked))
+      var tmp = []
+      for(var k=0;k<this.kicked.length;k++) {
+        tmp.push({id:this.kicked[k],layer:this.nodes[this.kicked[k]].layer})
+      }
+      tmp.sort((a, b)=>(a.layer>=b.layer)?1:-1)
+      this.kicked = []
+      for(var kk=0;kk<tmp.length;kk++) {
+        this.kicked.push(tmp[kk].id)
+      }
+
+      this.$EventBus.$emit('kicked', this.kicked)
+      for(var j=0;j<this.kicked.length;j++) {
+        setTimeout(this.changeParents,500*j,[ this.kicked[j] ])
+      }
     },
     // kick the whole branch
     kickChildren(node) {
@@ -402,6 +422,9 @@ export default {
     window.grid = this
     this.$EventBus.$on("init", (flag)=>{
       if(flag) this.draw()
+    })
+    this.$EventBus.$on("nonOptimal", (nodeId) => {
+      this.nonOptimal.push(nodeId)
     })
     
   }
