@@ -266,7 +266,7 @@ export default {
     },
     changeParents() {
       var changed = []
-      
+      this.kicked = Array.from(new Set(this.kicked))
       for(var i=0;i<this.kicked.length;i++) {
         var node = this.kicked[i]
         // find new parent, nearest and low layer
@@ -302,8 +302,9 @@ export default {
 
       }
       this.last_nodes = JSON.parse(JSON.stringify(this.nodes))
-
+      window.console.log("kicked", this.kicked)
       this.$EventBus.$emit('changed',changed)
+      window.console.log("changed", changed)
     },
     drawLine(start,end) {
       this.option.series[0].markLine.data.push([{coord:this.nodes[start].position},{coord:this.nodes[end].position}])
@@ -392,7 +393,6 @@ export default {
     },
     // kick the whole branch
     kickChildren(node) {
-      if(this.kicked.indexOf(node)!=-1) return
       for(var i=0;i<Object.keys(this.nodes).length;i++) {
         if(this.nodes[i].parent==node) {
           // this.nodes[i].parent = -1

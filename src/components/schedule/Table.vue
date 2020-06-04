@@ -452,7 +452,7 @@ export default {
       this.topo = topo.data
       this.res = init(topo.data, topo.seq)
       this.drawPartition()
-      setTimeout(this.getAllLatency,1500)
+      setTimeout(this.getAllLatency,1000)
     });
     
     this.$EventBus.$on("changed", (nodes) => {
@@ -461,7 +461,7 @@ export default {
       this.res = get_sch()
       this.drawPartition()
       if(this.selectedCell!=0) setTimeout(()=>{this.findPath(this.selectedCell)},500)
-      setTimeout(this.getAllLatency,1500)
+      setTimeout(this.getAllLatency,1000)
     });
     // setTimeout(()=>{
     //   this.res = get_sch()
