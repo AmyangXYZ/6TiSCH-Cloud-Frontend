@@ -721,7 +721,7 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
       }
     }
     
-    console.log("No emplty slot found");
+    console.log(nodes_list,info,"No emplty slot found");
     this.isFull=true;
     return  {slot:{slot_offset:0,channel_offset:1},subslot:{offset:0,period:1}, is_optimal:0};
   }

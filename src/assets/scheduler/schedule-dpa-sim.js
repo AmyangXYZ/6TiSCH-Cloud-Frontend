@@ -45,15 +45,6 @@ function static_schedule() {
 
 // rm old links, add new links
 function dynamic_schedule(node, parent, layer) {
-  var used_subslot = JSON.parse(JSON.stringify(sch.used_subslot));
-  // console.log(used_subslot.length)
-  // rm old up/downlink
-  for(var j=0;j<used_subslot.length;j++) {
-    if((used_subslot[j].cell.type=="uplink"&&used_subslot[j].cell.sender==node) ||
-      (used_subslot[j].cell.type=="downlink"&&used_subslot[j].cell.receiver==node)) {
-      sch.remove_slot({slot_offset:used_subslot[j].slot[0],channel_offset:used_subslot[j].slot[1]})
-    }
-  }
   // add new up/downlink
   var ret=sch.find_empty_subslot([node,parent],1,{type:"uplink",layer:layer});
   sch.add_subslot(ret.slot, ret.subslot, {row:ret.row,type:"uplink",layer:layer,sender:node,receiver:parent}, ret.is_optimal);
@@ -64,10 +55,22 @@ function dynamic_schedule(node, parent, layer) {
 
 function change_topo(nodes) {
   nodes.sort((a, b)=>(a.layer>b.layer)?1:-1)
-  for(var i=0;i<nodes.length;i++) {
-    dynamic_schedule(nodes[i].id,nodes[i].parent,nodes[i].layer)
+  var used_subslot = JSON.parse(JSON.stringify(sch.used_subslot));
+  // console.log(used_subslot.length)
+  // rm old up/downlink
+  for(var i=0;i<Object.keys(nodes).length;i++ ) {
+    node = nodes[i].id
+    for(var j=0;j<used_subslot.length;j++) {
+      if((used_subslot[j].cell.type=="uplink"&&used_subslot[j].cell.sender==node) ||
+        (used_subslot[j].cell.type=="downlink"&&used_subslot[j].cell.receiver==node)) {
+        sch.remove_slot({slot_offset:used_subslot[j].slot[0],channel_offset:used_subslot[j].slot[1]})
+      }
+    }
   }
   
+  for(var ii=0;ii<nodes.length;ii++) {
+    dynamic_schedule(nodes[ii].id,nodes[ii].parent,nodes[ii].layer)
+  }  
 }
 
 function init(topology,seq) {
@@ -83,7 +86,6 @@ function init(topology,seq) {
 }
 
 function get_sch() {
-  // console.log(sch.get_idles_all())
   return {cells:sch.used_subslot, partitions: get_partition()}
 }
 

@@ -32,6 +32,7 @@ export default {
     return {
       gwPos: [],
       size: 22,
+      kicked: [],
       nodesNumber:160,
       nodes: [],
       join_seq: [],
@@ -265,43 +266,45 @@ export default {
     },
     changeParents() {
       var changed = []
-      for(var i=0;i<this.blacklist.length;i++) {
-        for(var k=0;k<Object.keys(this.nodes).length;k++) {
-          if(k==this.blacklist[i].id || this.nodes[k].parent==this.blacklist[i].id) {
-            // find new parent, nearest and low layer
-            var distance_list = []
-            for(var j=0;j<Object.keys(this.nodes).length;j++) {
-              // in blacklist, pass
-              if(this.blacklist.findIndex(node=>node.id===j)!=-1||k==j) continue
-              // higher layer, pass
-              if(this.nodes[j].layer>=this.nodes[k].layer) continue
-              // old parent, pass
-              if(this.nodes[k].parent==j) continue
+      window.console.log(this.kicked)
+      for(var i=0;i<this.kicked.length;i++) {
+        var node = this.kicked[i]
+        // find new parent, nearest and low layer
+        var distance_list = []
+        
+        for(var j=0;j<Object.keys(this.nodes).length;j++) {
+          // itself
+          if(node==j) continue
+          // in blacklist, pass
+          if(this.blacklist.findIndex(n=>n.id===node)!=-1) continue
+          // higher layer, pass
+          if(this.nodes[j].layer>=this.nodes[node].layer) continue
+          // old parent, pass
+          if(this.nodes[node].parent==j) continue
 
-              var distance = Math.pow(this.nodes[j].position[0]-this.nodes[k].position[0], 2) + Math.pow(this.nodes[j].position[1]-this.nodes[k].position[1], 2)
-              distance_list.push({id:j,d:distance})
-            }
-            // cannot find, don't change
-            // layer 0 nodes
-            var nearest_parent = 0
-            if(distance_list.length<1) {
-              nearest_parent = {id:this.nodes[k].parent,d:1}
-            } else {
-              nearest_parent = distance_list.sort((a, b)=>(a.d>b.d)?1:-1)[0]
-            }
-            
-            this.eraseLine(k,this.nodes[k].parent)
-            this.nodes[k].parent = nearest_parent.id
-            this.nodes[k].layer = this.nodes[nearest_parent.id].layer+1
-            
-            changed.push({id:k, parent:this.nodes[k].parent, layer:this.nodes[k].layer})
-            this.drawLine(k,nearest_parent.id)        
-          }
+          var distance = Math.pow(this.nodes[j].position[0]-this.nodes[node].position[0], 2) + Math.pow(this.nodes[j].position[1]-this.nodes[node].position[1], 2)
+          distance_list.push({id:j,d:distance})
         }
+        // cannot find, don't change
+        // layer 0 nodes
+        
+        var nearest_parent = 0
+        if(distance_list.length<1) {
+          nearest_parent = {id:this.nodes[node].parent,d:1}
+        } else {
+          nearest_parent = distance_list.sort((a, b)=>(a.d>b.d)?1:-1)[0]
+        }
+        this.nodes[node].parent = nearest_parent.id
+        this.nodes[node].layer = this.nodes[nearest_parent.id].layer+1
+        
+        changed.push({id:node, parent:this.nodes[node].parent, layer:this.nodes[node].layer})
+        this.drawLine(node,nearest_parent.id)        
+
       }
       this.last_nodes = JSON.parse(JSON.stringify(this.nodes))
 
       this.$EventBus.$emit('changed',changed)
+      window.console.log(changed)
     },
     drawLine(start,end) {
       this.option.series[0].markLine.data.push([{coord:this.nodes[start].position},{coord:this.nodes[end].position}])
@@ -365,10 +368,11 @@ export default {
       this.findParents()
       
     },
-    // respondToNoise() {
     respondToNoise(type) {
       this.option.series[4].data = []
       var affected = []
+      this.kicked = []
+      this.blacklist = []
       if(type=="circle") {
         for(var i=0;i<Object.keys(this.nodes).length;i++) {
           var distance = Math.pow(this.nodes[i].position[0]-this.noisePos[0], 2) + Math.pow(this.nodes[i].position[1]-this.noisePos[1], 2)
@@ -378,6 +382,7 @@ export default {
             if(distance<=1) lv = 1
             affected.push({id:i,lv:lv})
             this.option.series[4].data.push(this.nodes[i].position)
+            this.kickChildren(i)
           }
         }
       }
@@ -385,9 +390,22 @@ export default {
       this.option.series[4].data = Array.from(new Set(this.option.series[4].data))
       this.blacklist = affected.sort((a, b)=>(a.lv>=b.lv)?1:-1)
       this.changeParents()
+    },
+    // kick the whole branch
+    kickChildren(node) {
+      if(this.kicked.indexOf(node)!=-1) return
+      for(var i=0;i<Object.keys(this.nodes).length;i++) {
+        if(this.nodes[i].parent==node) {
+          // this.nodes[i].parent = -1
+          this.kicked.push(i)
+          this.eraseLine(i, node)
+          this.kickChildren(i)
+        }
+      }
     }
   },
   mounted() {
+    window.grid = this
     this.$EventBus.$on("init", (flag)=>{
       if(flag) this.draw()
     })

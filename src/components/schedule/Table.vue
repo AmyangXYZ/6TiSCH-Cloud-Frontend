@@ -445,11 +445,11 @@ export default {
         }
       }
       return ret
-    }
+    },
   },
 
   mounted() {
-    window.vue = this
+    window.sch = this
     this.$EventBus.$emit("init",1)
     this.$EventBus.$once("topo", (topo) => {
       this.topo = topo.data
