@@ -54,7 +54,7 @@ function dynamic_schedule(node, parent, layer) {
 }
 
 function change_topo(nodes) {
-  nodes.sort((a, b)=>(a.layer>b.layer)?1:-1)
+  
   var used_subslot = JSON.parse(JSON.stringify(sch.used_subslot));
   // console.log(used_subslot.length)
   // rm old up/downlink

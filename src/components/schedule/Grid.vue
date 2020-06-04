@@ -23,7 +23,6 @@ import "echarts/lib/chart/effectScatter"
 import "echarts/lib/component/markLine";
 import nodes from "./nodes.json"
 import noiseList from "./noiseList.json"
-
 export default {
   components: {
     ECharts
@@ -167,7 +166,6 @@ export default {
           this.option.series[1].data.push([a,b])
         }
       }
-
       // gen gateway and nodes
       var xx=Math.round((this.size-8)*Math.random()+5)
       var yy=Math.round((this.size-8)*Math.random()+5)
@@ -176,7 +174,6 @@ export default {
       this.gwPos = [6,6]
       this.nodes = {0:{parent:-1,position:this.gwPos,layer:-1,path:[0]}}
       this.option.series[3].data = [this.gwPos]
-
       var pos_list = {}
       pos_list[this.gwPos[0]+'-'+this.gwPos[1]] = 1
       for(var i=1;i<this.nodesNumber;i++) {
@@ -213,7 +210,6 @@ export default {
       var cur_layer = 0
       var cnt = 1
       this.join_seq = []
-
       while(cnt<Object.keys(this.nodes).length) {
         var threshold = 20
         layers[cur_layer] = []
@@ -221,7 +217,6 @@ export default {
           for(var j=1;j<Object.keys(this.nodes).length;j++) {
             // assigned
             if(this.nodes[j].parent!=-1) continue
-
             // distance to possible parents
             var distance_list = []
             for(var p=0;p<layers[cur_layer-1].length;p++) {
@@ -230,7 +225,6 @@ export default {
               distance_list.push({id:pp,d:distance})
             }
             var nearest_parent = distance_list.sort((a, b)=>(a.d>b.d)?1:-1)[0]
-
             if(nearest_parent.d<=threshold) {            
               this.nodes[j].parent = nearest_parent.id
               this.nodes[j].layer = cur_layer
@@ -238,7 +232,6 @@ export default {
               
               layers[cur_layer].push(j)
               this.join_seq.push(j)
-
               cnt++
               this.drawLine(j,nearest_parent.id)
             }
@@ -249,7 +242,6 @@ export default {
         }
         cur_layer++
       }
-
       var changed = []
       if(this.last_nodes.length<1) {
         this.last_nodes = JSON.parse(JSON.stringify(this.nodes))
@@ -272,39 +264,42 @@ export default {
         // find new parent, nearest and low layer
         var distance_list = []
         
-        for(var j=0;j<Object.keys(this.nodes).length;j++) {
-          // itself
-          if(node==j) continue
-          // in blacklist, pass
-          if(this.blacklist.findIndex(n=>n.id===node)!=-1) continue
-          // higher layer, pass
-          if(this.nodes[j].layer>=this.nodes[node].layer) continue
-          // old parent, pass
-          if(this.nodes[node].parent==j) continue
-
-          var distance = Math.pow(this.nodes[j].position[0]-this.nodes[node].position[0], 2) + Math.pow(this.nodes[j].position[1]-this.nodes[node].position[1], 2)
-          distance_list.push({id:j,d:distance})
-        }
-        // cannot find, don't change
-        // layer 0 nodes
+        var nearest_parent = {id:this.nodes[node].parent,d:1}
         
-        var nearest_parent = 0
-        if(distance_list.length<1) {
-          nearest_parent = {id:this.nodes[node].parent,d:1}
-        } else {
-          nearest_parent = distance_list.sort((a, b)=>(a.d>b.d)?1:-1)[0]
+        // parent in blacklist
+        if(this.blacklist.findIndex(n=>n.id===node)!=-1 || this.blacklist.findIndex(n=>n.id===this.nodes[node].parent)!=-1) {
+          for(var j=0;j<Object.keys(this.nodes).length;j++) {
+            // itself
+            if(node==j) continue
+            // in blacklist, pass
+            if(this.blacklist.findIndex(n=>n.id===j)!=-1) continue
+            // higher layer, pass
+            if(this.nodes[j].layer>=this.nodes[node].layer) continue
+            // old parent, pass
+            if(this.nodes[node].parent==j) continue
+            var distance = Math.pow(this.nodes[j].position[0]-this.nodes[node].position[0], 2) + Math.pow(this.nodes[j].position[1]-this.nodes[node].position[1], 2)
+            distance_list.push({id:j,d:distance})
+          }
+          // cannot find, don't change
+          // layer 0 nodes
+
+          if(distance_list.length<1) {
+            nearest_parent = {id:this.nodes[node].parent,d:1}
+          } else {
+            nearest_parent = distance_list.sort((a, b)=>(a.d>b.d)?1:-1)[0]
+          }
         }
+        
         this.nodes[node].parent = nearest_parent.id
         this.nodes[node].layer = this.nodes[nearest_parent.id].layer+1
         
         changed.push({id:node, parent:this.nodes[node].parent, layer:this.nodes[node].layer})
         this.drawLine(node,nearest_parent.id)        
-
       }
       this.last_nodes = JSON.parse(JSON.stringify(this.nodes))
-      window.console.log("kicked", this.kicked)
-      this.$EventBus.$emit('changed',changed)
-      window.console.log("changed", changed)
+      
+      this.$EventBus.$emit('changed',changed.sort((a, b)=>(a.layer>b.layer)?1:-1))
+      
     },
     drawLine(start,end) {
       this.option.series[0].markLine.data.push([{coord:this.nodes[start].position},{coord:this.nodes[end].position}])

@@ -714,7 +714,7 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
       var slot=slots_list[i];
       for(var offset=0;offset<period;++offset){
         if(this.available_subslot(nodes_list,slot,{period:period,offset:offset},info,0)){
-          var ret = {slot:slot,subslot:{offset:offset,period:period}, is_optimal:0}
+          var ret = {slot:slot,subslot:{offset:offset,period:period},row:0, is_optimal:0}
           // console.log("find an alternative slot:",ret);
           return(ret);
         }
@@ -723,7 +723,7 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     
     console.log(nodes_list,info,"No emplty slot found");
     this.isFull=true;
-    return  {slot:{slot_offset:0,channel_offset:1},subslot:{offset:0,period:1}, is_optimal:0};
+    return  {slot:{slot_offset:0,channel_offset:1},row:0,subslot:{offset:0,period:16}, is_optimal:0};
   }
 
   // get idle slots number of one partition
