@@ -266,7 +266,7 @@ export default {
     },
     changeParents() {
       var changed = []
-      window.console.log(this.kicked)
+      
       for(var i=0;i<this.kicked.length;i++) {
         var node = this.kicked[i]
         // find new parent, nearest and low layer
@@ -304,7 +304,6 @@ export default {
       this.last_nodes = JSON.parse(JSON.stringify(this.nodes))
 
       this.$EventBus.$emit('changed',changed)
-      window.console.log(changed)
     },
     drawLine(start,end) {
       this.option.series[0].markLine.data.push([{coord:this.nodes[start].position},{coord:this.nodes[end].position}])

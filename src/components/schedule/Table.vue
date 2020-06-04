@@ -53,7 +53,7 @@ export default {
       autoFlag: 0,
       simOrReal: "Simulation",
       partition_changes: {},
-      selectedCell: {},
+      selectedCell: 0,
       auto: {},
       res: {},
       SlotFrameLength: 127,
@@ -362,11 +362,32 @@ export default {
       
      
     },
+    findPath(cell) {
+      this.option.series[0].markLine.data = []
+      // update cell
+      for(var i=0;i<this.slots.length;i++) {
+        if(this.slots[i].sender==cell.sender && this.slots[i].type=="uplink") {
+          cell = this.slots[i] 
+        }
+      }
+      // find children
+      for(var j=0;j<this.slots.length;j++) {
+        if(this.slots[j].receiver==cell.sender&&this.slots[j].type==cell.type) {
+          this.option.series[0].markLine.data.push([{xAxis:this.slots[j].slot[0]+1, yAxis:this.slots[j].slot[1]+0.5}, {xAxis:cell.slot[0], yAxis:cell.slot[1]+0.5, lineStyle:{color:"lime", width:4}}])
+        }
+      }
+      // find parent
+      var parent = {}
+      while(cell.receiver!=0) {
+        parent = this.findSlot(cell.receiver)
+        this.option.series[0].markLine.data.push([{xAxis:cell.slot[0]+1, yAxis:cell.slot[1]+0.5}, {xAxis:parent.slot[0], yAxis:parent.slot[1]+0.5}])
+        cell = parent
+      }  
+    },
     handleClickSch(item) {
       this.option.series[0].markLine.data = []
       var cell = {}
-      var parent = {}
-
+      
       for(var i=0;i<this.slots.length;i++) {
         if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]-0.5)) {
           cell = this.slots[i]
@@ -376,17 +397,7 @@ export default {
             return
           }
           this.selectedCell = cell
-          // find children
-          for(var j=0;j<this.slots.length;j++) {
-            if(this.slots[j].receiver==cell.sender&&this.slots[j].type==cell.type) {
-              this.option.series[0].markLine.data.push([{xAxis:this.slots[j].slot[0]+1, yAxis:this.slots[j].slot[1]+0.5}, {xAxis:cell.slot[0], yAxis:cell.slot[1]+0.5, lineStyle:{color:"lime", width:4}}])
-            }
-          }
-          while(cell.receiver!=0) {
-            parent = this.findSlot(cell.receiver)[0]
-            this.option.series[0].markLine.data.push([{xAxis:cell.slot[0]+1, yAxis:cell.slot[1]+0.5}, {xAxis:parent.slot[0], yAxis:parent.slot[1]+0.5}])
-            cell = parent
-          }  
+          this.findPath(cell)
         }
       }
     },
@@ -399,11 +410,11 @@ export default {
       this.nonOptimalCnt = 0
       for(var i=1;i<140;i++) {
         var cell = this.findSlot(i)
-        if(cell.length>0) cell = cell[0]
+
         var l = this.getLatency(i,0)
         if(l>60) {
           list.push(i)
-          this.option.series[0].data.push([cell.slot[0]+0.5, cell.slot[1],1])
+          this.option.series[0].data.push([cell.slot[0]+0.5, cell.slot[1]+0.5,1])
         }
       }
       this.nonOptimalCnt = list.length
@@ -411,26 +422,13 @@ export default {
     getLatency(node,verbose) {
       var latency = 0
       var cell = this.findSlot(node)
-      if(cell.length==0) {
-        return 0
-      }
-      cell = cell[0]
       
       if(verbose) window.console.log(cell.sender+' -> '+cell.receiver, cell.slot[0],cell.slot[1])
       while(cell.receiver!=0) {
-        var next = this.findSlot(cell.receiver)
-        var next_cell = 0
-        if(next.length==0) {
-          return 0
-        }
-        for(var i=0;i<next.length;i++) {
-          if(next[i].row==cell.row) {
-            next_cell = next[i]
-            break
-          }
-        }
+        var next_cell = this.findSlot(cell.receiver)
+
         if(next_cell==0) return 0
-        if(verbose)  window.console.log(next_cell.sender+'->'+next_cell.receiver, next_cell.slot[0],next_cell.slot[1])
+        if(verbose)  window.console.log(next_cell,next_cell.sender+'->'+next_cell.receiver, next_cell.slot[0],next_cell.slot[1])
         if(next_cell.slot[0]>cell.slot[0]) latency += next_cell.slot[0]-cell.slot[0]
         else latency+= 127-cell.slot[0]+next_cell.slot[0]
         cell = next_cell
@@ -438,13 +436,12 @@ export default {
       return latency
     },
     findSlot(node) {
-      var ret = []
-      for(var i=0;i<this.res.cells.length;i++) {
-        if(this.res.cells[i].sender == node && this.res.cells[i].type=="uplink") {
-          ret.push(this.res.cells[i])
+      for(var i=0;i<this.slots.length;i++) {
+        if(this.slots[i].sender == node && this.slots[i].type=="uplink") {
+          return this.slots[i]
         }
       }
-      return ret
+      return 0
     },
   },
 
@@ -463,6 +460,7 @@ export default {
       change_topo(nodes)
       this.res = get_sch()
       this.drawPartition()
+      if(this.selectedCell!=0) setTimeout(()=>{this.findPath(this.selectedCell)},500)
       setTimeout(this.getAllLatency,1500)
     });
     // setTimeout(()=>{
