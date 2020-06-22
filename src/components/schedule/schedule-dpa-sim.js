@@ -1,5 +1,5 @@
 /*eslint-disable*/
-var scheduler = require('./scheduler-pipeline')
+var scheduler = require('./scheduler-multi-row')
 
 function get_partition() {
   var p = []
@@ -32,14 +32,14 @@ function static_schedule() {
     var parent = topo[node].parent
     var layer = topo[node].layer
 
-    var ret=sch.find_empty_subslot([node],16,{type:"beacon",layer:0});
-    sch.add_subslot(ret.slot, ret.subslot, {type:"beacon",layer:layer,row:ret.row, sender:node,receiver:0xffff}, ret.is_optimal);
+    // var ret=sch.find_empty_subslot([node],16,{type:"beacon",layer:0});
+    // sch.add_subslot(ret.slot, ret.subslot, {type:"beacon",layer:layer,row:ret.row, sender:node,receiver:0xffff}, ret.is_optimal);
 
     var ret=sch.find_empty_subslot([node,parent],1,{type:"uplink",layer:layer});
     sch.add_subslot(ret.slot, ret.subslot, {type:"uplink",layer:layer,row:ret.row,sender:node,receiver:parent}, ret.is_optimal);
     
-    var ret=sch.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer});
-    sch.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer,row:ret.row,sender:parent,receiver:node}, ret.is_optimal);
+    // var ret=sch.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer});
+    // sch.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer,row:ret.row,sender:parent,receiver:node}, ret.is_optimal);
   }
 }
 
@@ -49,8 +49,8 @@ function dynamic_schedule(node) {
   var ret=sch.find_empty_subslot([node.id,node.parent],1,{type:"uplink",layer:node.layer});
   sch.add_subslot(ret.slot, ret.subslot, {row:ret.row,type:"uplink",layer:node.layer,sender:node.id,receiver:node.parent}, ret.is_optimal);
 
-  ret=sch.find_empty_subslot([node.parent, node.id],1,{type:"downlink",layer:node.layer});
-  sch.add_subslot(ret.slot, ret.subslot, {row:ret.row, type:"downlink",layer:node.layer,sender:node.parent,receiver:node.id}, ret.is_optimal);
+  // ret=sch.find_empty_subslot([node.parent, node.id],1,{type:"downlink",layer:node.layer});
+  // sch.add_subslot(ret.slot, ret.subslot, {row:ret.row, type:"downlink",layer:node.layer,sender:node.parent,receiver:node.id}, ret.is_optimal);
   return ret.is_optimal
 }
 
@@ -67,12 +67,6 @@ function kick(nodes) {
       }
     }
   }
-}
-
-function change_topo(nodes) {
-  for(var ii=0;ii<nodes.length;ii++) {
-    dynamic_schedule(nodes[ii].id,nodes[ii].parent,nodes[ii].layer)
-  }  
 }
 
 function init(topology,seq) {
@@ -103,11 +97,16 @@ function dpa() {
   return {cells:sch.used_subslot, partitions: get_partition()}
 }
 
+function get_scheduler() {
+  return sch
+}
+
 module.exports={
   init: init,
   dpa: dpa,
   kick: kick,
   dynamic_schedule: dynamic_schedule,
+  get_scheduler: get_scheduler,
   get_sch: get_sch,
   foo: foo
 };

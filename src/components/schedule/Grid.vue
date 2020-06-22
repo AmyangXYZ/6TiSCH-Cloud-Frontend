@@ -33,12 +33,11 @@ export default {
       gwPos: [],
       size: 22,
       kicked: [],
-      nodesNumber:160,
+      nodesNumber:200,
       nodes: [],
+      distanceTable: {},
       nonOptimal: [],
       join_seq: [],
-      change_log: [],
-      last_nodes:[],
       noisePos: [],
       noisePosList: [],
       noiseID: 0,
@@ -173,7 +172,7 @@ export default {
       var yy=Math.round((this.size-8)*Math.random()+5)
       this.gwPos = [xx,yy]
       this.gwPos = nodes[0]
-      this.gwPos = [6,6]
+      // this.gwPos = [10,10]
       this.nodes = {0:{parent:-1,position:this.gwPos,layer:-1,path:[0]}}
       this.option.series[3].data = [this.gwPos]
       var pos_list = {}
@@ -244,19 +243,6 @@ export default {
         }
         cur_layer++
       }
-      var changed = []
-      if(this.last_nodes.length<1) {
-        this.last_nodes = JSON.parse(JSON.stringify(this.nodes))
-      } else {
-        // find difference
-        for(var nn=0;nn<Object.keys(this.nodes).length;nn++) {
-          if(this.nodes[nn].parent!=this.last_nodes[nn].parent) {
-            changed.push({id:nn,parent:this.nodes[nn].parent,layer:this.nodes[nn].layer})
-          }
-        }
-        this.$EventBus.$emit("changed",changed)
-        this.last_nodes = JSON.parse(JSON.stringify(this.nodes))
-      }
     },
     changeParents(kicked) {
       var changed = []
@@ -282,6 +268,10 @@ export default {
             if(this.nodes[j].layer>=this.nodes[node].layer) continue
             // old parent, pass
             if(this.nodes[node].parent==j) continue
+            // too far
+            if((this.nodes[j].position[0]-this.nodes[node].position[0])>10 ||
+              (this.nodes[j].position[1]-this.nodes[node].position[1])>10) continue
+            
             var distance = Math.pow(this.nodes[j].position[0]-this.nodes[node].position[0], 2) + Math.pow(this.nodes[j].position[1]-this.nodes[node].position[1], 2)
             distance_list.push({id:j,d:distance})
           }
@@ -364,6 +354,7 @@ export default {
       this.blacklist = []
       this.option.series[4].data = []
       this.option.series[5].data = []
+      this.$EventBus.$emit('clear', 1)
       this.findParents()
       
     },

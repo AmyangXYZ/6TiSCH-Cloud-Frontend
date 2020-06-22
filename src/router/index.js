@@ -2,7 +2,6 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Dashboard from '@/pages/Dashboard'
 import Schedule from '@/pages/Schedule'
-import Disturbance from '@/pages/Disturbance'
 
 Vue.use(Router)
 
@@ -19,10 +18,6 @@ export default new Router({
         {
             path: '/schedule',
             component: Schedule,
-        },
-        {
-            path: '/disturbance',
-            component: Disturbance,
         },
     ]
 })

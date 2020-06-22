@@ -41,7 +41,7 @@ import "echarts/lib/component/markLine";
 import "echarts/lib/component/dataZoom";
 import "echarts/lib/chart/graph"
 
-import {init,dpa,dynamic_schedule,kick,get_sch,foo} from '@/assets/scheduler/schedule-dpa-sim.js'
+import {init,dpa,dynamic_schedule,kick,get_sch,get_scheduler,foo} from './schedule-dpa-sim.js'
 
 export default {
   components: {
@@ -58,9 +58,10 @@ export default {
       res: {},
       SlotFrameLength: 127,
       Channels: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],
-      // Channels: [1,3,5,7,9,11,13,15],
       slots: [],
       links: {},
+      topo: [],
+      seq:[],
       bcnSubslots: {},
       nonOptimalCnt:0,
       nonOptimalList: [],
@@ -305,10 +306,9 @@ export default {
             res.data.data[x].receiver = res.data.data[x].cell.receiver
           }
         }
-        
 
         // this.nonOptimalCnt = Object.keys(this.unAligned).length
-        // this.nonOptimalCnt = 0
+        this.nonOptimalCnt = 0
         var cellsTmp = []
         // if(!res.data.flag) return
         this.slots = res.data.data
@@ -326,7 +326,7 @@ export default {
 
           var tag = 0
           if(!res.data.data[i].is_optimal) {
-            // this.nonOptimalCnt++
+            this.nonOptimalCnt++
             this.unAligned[res.data.data[i].sender+'-'+res.data.data[i].receiver] = 1
             this.links[name].non_optimal+=1
             tag = 1
@@ -345,7 +345,8 @@ export default {
     handleDPABt() {
       this.res = dpa()
       this.drawPartition()
-      setTimeout(this.getAllLatency,1500)
+      setTimeout(this.getAllLatency,1000)
+      setTimeout(this.getCrossRowLinks,1000)
     },
     handleAutoBt() {
       foo()
@@ -406,19 +407,26 @@ export default {
       this.simOrReal = (this.simOrReal=="Simulation")?"Real":"Simulation"
       this.drawPartition()
     },
+    getCrossRowLinks() {
+      for(var i=0;i<this.slots.length;i++) {
+        if(this.slots[i].type=="uplink" && this.slots[i].layer>0) {
+          var parent = this.findSlot(this.slots[i].receiver)
+          if(parent.row!=this.slots[i].row) {
+            this.option.series[0].data.push([this.slots[i].slot[0]+0.5, this.slots[i].slot[1]+0.5,1])
+          }
+        }
+      }
+    },
     getAllLatency() {
-      var list = []
-      this.nonOptimalCnt = 0
-      for(var i=1;i<140;i++) {
+      for(var i=1;i<160;i++) {
         var cell = this.findSlot(i)
 
         var l = this.getLatency(i,0)
         if(l>60) {
-          list.push(i)
           this.option.series[0].data.push([cell.slot[0]+0.5, cell.slot[1]+0.5,1])
         }
       }
-      this.nonOptimalCnt = list.length
+      // this.nonOptimalCnt = list.length
     },
     getLatency(node,verbose) {
       var latency = 0
@@ -444,16 +452,23 @@ export default {
       }
       return 0
     },
+    update_sch() {
+      this.res = get_sch()
+      this.drawPartition()
+    }
   },
 
   mounted() {
-    window.sch = this
+    window.table = this
     this.$EventBus.$emit("init",1)
     this.$EventBus.$once("topo", (topo) => {
       this.topo = topo.data
+      this.seq = topo.seq
       this.res = init(topo.data, topo.seq)
       this.drawPartition()
       setTimeout(this.getAllLatency,1000)
+      // setTimeout(this.getCrossRowLinks,1000)
+      window.sch = get_scheduler()
     });
     
     this.$EventBus.$on("kicked", (kicked) => {
@@ -461,6 +476,14 @@ export default {
       
       this.res = get_sch()
       this.drawPartition()
+    })
+    this.$EventBus.$on("clear", (clear) => {
+      if(clear) {
+        window.console.log(1)
+        this.res = init(this.topo, this.seq)
+        this.drawPartition()
+        setTimeout(this.getAllLatency,1000)
+      }
     })
     this.$EventBus.$on("changed", (nodes) => {
       var node = nodes[0]
@@ -473,11 +496,6 @@ export default {
       if(this.selectedCell!=0) setTimeout(()=>{this.findPath(this.selectedCell)},500)
       setTimeout(this.getAllLatency,1000)
     });
-    // setTimeout(()=>{
-    //   this.res = get_sch()
-    //   // this.partition_changes = get_partition_changes()
-    //   this.drawPartition()
-    // },1000)
   },
 }
 </script>
