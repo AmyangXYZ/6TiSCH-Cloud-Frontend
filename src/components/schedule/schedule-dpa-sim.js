@@ -4,17 +4,11 @@ var scheduler = require('./scheduler-multi-row')
 function get_partition() {
   var p = []
   p.push({type:"beacon", layer:0, range:[sch.partition.broadcast.start,sch.partition.broadcast.end]})
-  // for(var i=0;i<Object.keys(sch.partition.uplink).length;i++) {
-  for(var i=0;i<Object.keys(sch.partition[0].uplink).length;i++) {
-    // p.push({type:'uplink',layer:i, row:0, range:[sch.partition.uplink[i].start,sch.partition.uplink[i].end]})
-    p.push({type:'uplink',layer:i, row:0, range:[sch.partition[0].uplink[i].start,sch.partition[0].uplink[i].end]})
-    p.push({type:'uplink',layer:i, row:1, range:[sch.partition[1].uplink[i].start,sch.partition[1].uplink[i].end]})
-    p.push({type:'uplink',layer:i, row:2, range:[sch.partition[2].uplink[i].start,sch.partition[2].uplink[i].end]})
-    
-    // p.push({type:'downlink',layer:i, row:0, range:[sch.partition.downlink[i].start,sch.partition.downlink[i].end]})
-    p.push({type:'downlink',layer:i, row:0, range:[sch.partition[0].downlink[i].start,sch.partition[0].downlink[i].end]})
-    p.push({type:'downlink',layer:i, row:1, range:[sch.partition[1].downlink[i].start,sch.partition[1].downlink[i].end]})
-    p.push({type:'downlink',layer:i, row:2, range:[sch.partition[2].downlink[i].start,sch.partition[2].downlink[i].end]})
+  for(var l=0;l<Object.keys(sch.partition[0].uplink).length;l++) {
+    for(var r=0;r<3;r++) {
+      p.push({type:'uplink',layer:l, row:r, range:[sch.partition[r].uplink[l].start,sch.partition[r].uplink[l].end]})
+      p.push({type:'downlink',layer:l, row:r, range:[sch.partition[r].downlink[l].start,sch.partition[r].downlink[l].end]})
+    }
   }
   // console.log(sch.partition)
   return p
@@ -26,7 +20,6 @@ var join_seq = []
 
 // static schedule, init
 function static_schedule() {
-  
   for(var i=0;i<join_seq.length;i++) {
     var node = join_seq[i]
     var parent = topo[node].parent
@@ -76,7 +69,6 @@ function init(topology,seq) {
   topo = topology
   join_seq = seq
   static_schedule()
-  // sch.dynamic_partition_adjustment()
   // sch.dynamic_partition_adjustment()
   return {cells:sch.used_subslot, partitions: get_partition()}
 }

@@ -41,6 +41,7 @@
 
 const RESERVED=0; //Number of reserved
 const SUBSLOTS=16;
+const ROWS=3;
 const partition_config = require("./partition.json");
 
 
@@ -65,56 +66,48 @@ function partition_init(sf){
   var cur_r0 = RESERVED;
   var cur_r1 = RESERVED;
   var cur_r2 = RESERVED;
-  // 3 rows
+
   var partition={
     broadcast:{},
-    '0': {
-      uplink:{},
-      downlink:{}
-    },
-    '1': {
-      uplink:{},
-      downlink:{}
-    },
-    '2': {
-      uplink:{},
-      downlink:{}
-    }
-  };
+  }
+  for(var r=0;r<ROWS;r++) {
+    partition[r] = {uplink:{}, downlink:{}}
+  }
 
   // Reserved beacon
   partition.broadcast={start:cur_r0, end:cur_r0+partition_config.beacon};
   cur_r0+=partition_config.beacon;
   cur_r1 = cur_r0
-  cur_r2 = cur_r1
+  cur_r2 = cur_r0
 
   // uplink
-  for(var i=uplink.length-1; i>=0; --i){
-    partition[0].uplink[i]={start:cur_r0, end:cur_r0+uplink_row0[i]};
-    partition[1].uplink[i]={start:cur_r1, end:cur_r1+uplink_row1[i]};
-    partition[2].uplink[i]={start:cur_r2, end:cur_r2+uplink_row2[i]};
+  for(var u=uplink.length-1; u>=0; --u){
+    partition[0].uplink[u]={start:cur_r0, end:cur_r0+uplink_row0[u]};
+    partition[1].uplink[u]={start:cur_r1, end:cur_r1+uplink_row1[u]};
+    partition[2].uplink[u]={start:cur_r2, end:cur_r2+uplink_row2[u]};
     
-    cur_r0+=uplink_row0[i];
-    cur_r1+=uplink_row1[i];
-    cur_r2+=uplink_row2[i];
+    cur_r0+=uplink_row0[u];
+    cur_r1+=uplink_row1[u];
+    cur_r2+=uplink_row2[u];
   }
   
   // downlink
   cur_r0 = 127
   cur_r1 = 127
   cur_r2 = 127
-  for(var i=downlink.length-1; i>=0; --i){
-    partition[0].downlink[i]={start:cur_r0-downlink_row0[i], end:cur_r0};
-    partition[1].downlink[i]={start:cur_r1-downlink_row1[i], end:cur_r1};
-    partition[2].downlink[i]={start:cur_r2-downlink_row2[i], end:cur_r2};
+
+  for(var d=downlink.length-1; d>=0; --d){
+    partition[0].downlink[d]={start:cur_r0-downlink_row0[d], end:cur_r0};
+    partition[1].downlink[d]={start:cur_r1-downlink_row1[d], end:cur_r1};
+    partition[2].downlink[d]={start:cur_r2-downlink_row2[d], end:cur_r2};
     
-    cur_r0-=downlink_row0[i];
-    cur_r1-=downlink_row1[i];
-    cur_r2-=downlink_row2[i];
+    cur_r0-=downlink_row0[d];
+    cur_r1-=downlink_row1[d];
+    cur_r2-=downlink_row2[d];
   }
 
 
-  console.log("patition:", partition);
+  window.console.log("patition:", partition);
   return partition;
 }
 
@@ -152,12 +145,11 @@ Cell = {type, layer, row, sender, receiver}
 
 used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell: cell, is_optimal:1}
 */
-  // sf = 127
   if(!(this instanceof create_scheduler)){
     return new create_scheduler(sf,ch);
   }
   
-  console.log("create_scheduler("+sf+","+ch+")");
+  window.console.log("create_scheduler("+sf+","+ch+")");
   this.slotFrameLength=sf;
   this.channels=ch;
   this.schedule = new Array(sf);
@@ -753,15 +745,8 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     // swap the leafNode and the layer 0 parent
     var leafNodeCell = this.find_cell(leafNode, "uplink")
     var l0Parent = this.find_cell(path[path.length-1], "uplink")
-    // mv leaf to a tmp cell
-    this.add_subslot({slot_offset:10, channel_offset:10},{offset:0,period:1},leafNodeCell.cell,leafNodeCell.is_optimal)
-    this.remove_slot({slot_offset:leafNodeCell.slot[0],channel_offset:leafNodeCell.slot[1]})
-    // mv l0parent to leaf's old cell
-    this.add_subslot({slot_offset:leafNodeCell.slot[0],channel_offset:leafNodeCell.slot[1]},{offset:0,period:1},l0Parent.cell,l0Parent.is_optimal)
-    this.remove_slot({slot_offset:l0Parent.slot[0],channel_offset:l0Parent.slot[1]})
-    // mv leaf to l0parent's old cell
-    this.add_subslot({slot_offset:l0Parent.slot[0],channel_offset:l0Parent.slot[1]},{offset:0,period:1},leafNodeCell.cell,leafNodeCell.is_optimal)
-    this.remove_slot({slot_offset:10,channel_offset:10})
+    
+    this.swap_cell(leafNodeCell, l0Parent)
 
     leafNodeCell.cell.row = l0Parent.cell.row
     l0Parent.cell.row = 0
@@ -775,6 +760,29 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
         var ret = this.find_empty_subslot([c.cell.sender,c.cell.receiver],1,{type:c.cell.type,layer:c.cell.layer})
         sch.add_subslot(ret.slot, ret.subslot, {row:ret.row, type:c.cell.type,layer:c.cell.layer,sender:c.cell.sender,receiver:c.cell.receiver}, ret.is_optimal)
       }
+    }
+  }
+
+  // swap two cells' position (slot, ch)
+  // input should be one element of this.used_subslot, use this.find_cell to get
+  // need 3 edits
+  this.swap_cell=function(cell1, cell2) {
+    this.add_subslot({slot_offset:10, channel_offset:10},{offset:0,period:1},cell1.cell,cell1.is_optimal)
+    this.remove_slot({slot_offset:cell1.slot[0],channel_offset:cell1.slot[1]})
+
+    this.add_subslot({slot_offset:cell1.slot[0],channel_offset:cell1.slot[1]},{offset:0,period:1},cell2.cell,cell2.is_optimal)
+    this.remove_slot({slot_offset:cell2.slot[0],channel_offset:cell2.slot[1]})
+    
+    this.add_subslot({slot_offset:cell2.slot[0],channel_offset:cell2.slot[1]},{offset:0,period:1},cell1.cell,cell1.is_optimal)
+    this.remove_slot({slot_offset:10,channel_offset:10})
+  }
+
+  // adjust cells of one partition (all rows)
+  // 1. change order by subtree size; 2. 
+  this.inpartition_adjust=function(type, layer) {
+    var subtree_sizes = {}
+    for(var r=0;r<3;r++) {
+
     }
   }
 
@@ -830,10 +838,7 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
   this.find_empty_subslot=function(nodes_list, period, info){
     var slots_list;
     var checkOrder = 1
-
-    var parent = 0
-    if(info.type=="uplink") parent = nodes_list[1]
-    else parent = nodes_list[0]
+    var parent = (info.type=="uplink") ? nodes_list[1]:parent = nodes_list[0]
     var rows = [0, 1, 2]
 
     // move parent's row to the first
@@ -843,7 +848,7 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
       rows.unshift(parent_slot.cell.row)
     }
 
-    for(var ii=0;ii<3;ii++) {
+    for(var ii=0;ii<ROWS;ii++) {
       r = rows[ii]
       slots_list=this.inpartition_slots(0, info, r);
       for(var i=0;i<slots_list.length;++i){
