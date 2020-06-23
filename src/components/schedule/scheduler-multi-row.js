@@ -161,6 +161,8 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
   this.slotFrameLength=sf;
   this.channels=ch;
   this.schedule = new Array(sf);
+  // { parent: [children] }, mainly for count subtree size
+  this.topology = {0:[]}
   // mainly for send cells to cloud
   this.used_subslot = []
   this.isFull = false;
@@ -185,8 +187,6 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
   this.add_subslot=function(slot,subslot,cell, is_optimal){
     var sub_start = subslot.offset * SUBSLOTS/subslot.period;
     var sub_end = (subslot.offset+1) * SUBSLOTS/subslot.period;
-  
-    this.used_subslot.push({slot:[slot.slot_offset, slot.channel_offset],subslot:[subslot.offset,subslot.period],cell:cell,is_optimal: is_optimal})
 
     for(var sub = sub_start; sub < sub_end; ++sub){
       this.schedule[slot.slot_offset][slot.channel_offset][sub]={
@@ -196,6 +196,14 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
         receiver:cell.receiver,
       }
     }
+
+    this.used_subslot.push({slot:[slot.slot_offset, slot.channel_offset],subslot:[subslot.offset,subslot.period],cell:cell,is_optimal: is_optimal})
+
+    if(cell.type=="uplink") {
+      if(this.topology[cell.receiver]!=null) this.topology[cell.receiver].push(cell.sender)
+      else this.topology[cell.receiver] = [cell.sender]
+    }
+    
   }
 
   this.remove_slot=function(slot){
@@ -214,23 +222,12 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
           this.used_subslot[i].slot[1]==slot.channel_offset &&
           this.used_subslot[i].subslot[0]==subslot.offset && 
           this.used_subslot[i].subslot[1]==subslot.period) {
+        if(this.topology[this.used_subslot[i].cell.sender]!=null)
+          delete this.topology[this.used_subslot[i].cell.sender]
+        if(this.topology[this.used_subslot[i].cell.receiver]!=null)
+          this.topology[this.used_subslot[i].cell.receiver].splice(this.topology[this.used_subslot[i].cell.receiver].indexOf(this.used_subslot[i].cell.sender),1)
         this.used_subslot.splice(i,1)
         i--
-      }
-    }
-  }
-
-  // find the first(uplink)/last(downlink) used slot of the node
-  this.find_cell=function(node,type) {
-    for(var i=0;i<this.used_subslot.length;i++) {
-      if(type == "uplink") {
-        if(this.used_subslot[i].cell.sender==node && this.used_subslot[i].cell.type == type) {
-          return this.used_subslot[i]
-        }
-      } else if(type == "downlink") {
-        if(this.used_subslot[i].cell.receiver==node && this.used_subslot[i].cell.type == type) {
-          return this.used_subslot[i]
-        }
       }
     }
   }
@@ -616,6 +613,66 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     this.adjust(row,type, layer-1)
   }
 
+  // find the first(uplink)/last(downlink) used slot of the node
+  this.find_cell=function(node,type) {
+    for(var i=0;i<this.used_subslot.length;i++) {
+      if(type == "uplink") {
+        if(this.used_subslot[i].cell.sender==node && this.used_subslot[i].cell.type == type) {
+          return this.used_subslot[i]
+        }
+      } else if(type == "downlink") {
+        if(this.used_subslot[i].cell.receiver==node && this.used_subslot[i].cell.type == type) {
+          return this.used_subslot[i]
+        }
+      }
+    }
+  }
+
+  // get subtree size (get children and children's children number)
+  this.get_subtree_size=function(node) {
+    if(this.topology[node]==null) return 0
+    var cnt = this.topology[node].length
+    for(var i=0;i<this.topology[node].length;i++) {
+      cnt += this.get_subtree_size(this.topology[node][i])
+    }
+    return cnt
+  }
+
+  // check if this partition uses the minimum slots (used_slots > the max number of children with same parent)
+  // return used - Common Parent nodes
+  this.get_extra_slots=function(row, type, layer) {
+    var start = this.partition[row][type][layer].start
+    var find = false
+    for(var i=this.partition[row][type][layer].start;i<this.partition[row][type][layer].end;i++) {
+      if(!find) {
+        for(var c in this.channelRows[row]) {
+          // find the edge
+          var ch = this.channelRows[row][c]
+          start = i
+          if(this.schedule[i][ch][0]!=null) {
+            find = true
+            break
+          }
+        }
+      }
+    }
+    
+    var used_slots = find ? this.partition[row][type][layer].end-start : 0
+    
+    var parents = {}
+    for(var j=0;j<this.used_subslot.length;j++) {
+      if(this.used_subslot[j].cell.row==row&&this.used_subslot[j].cell.type==type&&this.used_subslot[j].cell.layer==layer) {
+        var parent = (type=="uplink")?this.used_subslot[j].cell.receiver:this.used_subslot[j].cell.sender
+        if(parents[parent]==null) parents[parent] = 1
+        else parents[parent]++
+      }
+    }
+    var max_common_parent_nodes = 0
+    if(Object.keys(parents).length>0) max_common_parent_nodes = parents[Object.keys(parents).sort(function(a,b){return parents[b]-parents[a]})[0]]
+    
+    return used_slots - max_common_parent_nodes
+    
+  }
   // get conflict slots, same sender/receiver in one slot
   // call it after adjust partition offset
   this.get_conflict_slots=function() {
@@ -642,11 +699,28 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     return ret
   }
 
-  // adjust unaligned links back to the right partition
-  this.adjust_unaligned=function() {
-    
 
+  // get idle slots number of one partition
+  this.get_idle_slots=function(row,type,layer) {
+    for(var i=this.partition[row][type][layer].start;i<this.partition[row][type][layer].end;i++) {
+      for(var c in this.channelRows[row]) {
+        // find the edge
+        var ch = this.channelRows[row][c]
+        if(this.schedule[i][ch][0]!=null) {
+          return i-this.partition[row][type][layer].start
+        }
+      }
+    }
+    return this.partition[row][type][layer].end - this.partition[row][type][layer].start
+  }
 
+  // get idle slots number of all partition
+  this.get_idles_all=function() {
+    var list = []
+    for(var l=1;l<Object.keys(this.partition[0]['uplink']).length;l++) {
+      list[l] = this.get_idle_slots(l)
+    }
+    return list
   }
 
   // if the parent is in row1 or row2 and parent's children number > hop count
@@ -800,29 +874,6 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     console.log(nodes_list,info,"No emplty slot found");
     this.isFull=true;
     return  {slot:{slot_offset:0,channel_offset:1},row:0,subslot:{offset:0,period:16}, is_optimal:0};
-  }
-
-  // get idle slots number of one partition
-  this.get_idle_slots=function(row,type,layer) {
-    for(var i=this.partition[row][type][layer].start;i<this.partition[row][type][layer].end;i++) {
-      for(var c in this.channelRows[row]) {
-        // find the edge
-        var ch = this.channelRows[row][c]
-        if(this.schedule[i][ch][0]!=null) {
-          return i-this.partition[row][type][layer].start
-        }
-      }
-    }
-    return this.partition[row][type][layer].end - this.partition[row][type][layer].start
-  }
-
-  // get idle slots number of all partition
-  this.get_idles_all=function() {
-    var list = []
-    for(var l=1;l<Object.keys(this.partition[0]['uplink']).length;l++) {
-      list[l] = this.get_idle_slots(l)
-    }
-    return list
   }
 
   this.remove_node=function(node){
