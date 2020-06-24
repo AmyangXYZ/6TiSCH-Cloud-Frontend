@@ -766,7 +766,7 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
   // swap two cells' position (slot, ch)
   // input should be one element of this.used_subslot, use this.find_cell to get
   // need 3 edits
-  this.swap_cell=function(cell1, cell2) {
+  this.swap_cells=function(cell1, cell2) {
     this.add_subslot({slot_offset:10, channel_offset:10},{offset:0,period:1},cell1.cell,cell1.is_optimal)
     this.remove_slot({slot_offset:cell1.slot[0],channel_offset:cell1.slot[1]})
 
@@ -780,10 +780,79 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
   // adjust cells of one partition (all rows)
   // 1. change order by subtree size; 2. 
   this.inpartition_adjust=function(type, layer) {
-    var subtree_sizes = {}
-    for(var r=0;r<3;r++) {
+    
+  }
 
+  this.get_subtree_size_list=function(type, layer) {
+    var subtree_sizes = []
+    for(var i=0;i<this.used_subslot.length;i++) {
+      if(this.used_subslot[i].cell.layer==layer && this.used_subslot[i].cell.type==type) {
+        subtree_sizes.push({
+          sender:this.used_subslot[i].cell.sender,
+          receiver:this.used_subslot[i].cell.receiver,
+          row: this.used_subslot[i].cell.row,
+          slot:this.used_subslot[i].slot[0],
+          size:this.get_subtree_size(this.used_subslot[i].cell.sender),
+        })
+      }
     }
+    return subtree_sizes.sort((a, b) => (a.slot > b.slot) ? 1 : -1)
+  }
+
+  // adjust the order of cells of one partition by subtree size
+  this.adjust_subtree_distribution=function(type, layer) {
+    var subtree_sizes = this.get_subtree_size_list(type, layer)
+
+    // cycle sort, minimize swap opertations
+    var cnt = 0
+    for(var curIndex=0;curIndex<subtree_sizes.length;curIndex++) {
+      var item = subtree_sizes[curIndex]
+      var curIndexCopy = curIndex
+
+      // find the right index
+      for(var i=curIndex+1;i<subtree_sizes.length;i++) 
+        if(subtree_sizes[i].size < item.size) 
+          curIndexCopy++
+
+      // not changed
+      if(curIndexCopy==curIndex) continue
+      
+      // skip duplicates
+      while(item.size == subtree_sizes[curIndexCopy].size) curIndexCopy++
+
+      // both in row 0, no need to swap
+      // if(item.row==0 && subtree_sizes[curIndexCopy].row==0) continue
+
+      // swap
+      var tmp = subtree_sizes[curIndexCopy]
+      console.log("swap1",item,tmp)
+      
+      subtree_sizes[curIndexCopy] = item
+      item = tmp
+      
+      // repeat above to find a value to swap
+      while(curIndexCopy!=curIndex) {
+        curIndexCopy = curIndex
+        for(var i=curIndex+1;i<subtree_sizes.length;i++)
+          if(subtree_sizes[i].size < item.size)
+            curIndexCopy++
+
+        while(item.size == subtree_sizes[curIndexCopy].size) curIndexCopy++
+        
+        tmp = JSON.parse(JSON.stringify(subtree_sizes[curIndexCopy]))
+        console.log("swap2",item,tmp)
+        var itemCell = this.find_cell(item.sender,"uplink")
+        var tmpCell = this.find_cell(tmp.sender,"uplink")
+        
+        this.swap_cells(itemCell, tmpCell)
+        cnt++
+        
+        subtree_sizes[curIndexCopy] = item
+        item = tmp
+      }
+    }
+    console.log(subtree_sizes)
+    return cnt
   }
 
   // adjust partitions to the left to leave space
