@@ -43,6 +43,7 @@ const RESERVED=0; //Number of reserved
 const SUBSLOTS=16;
 const ROWS=3;
 const partition_config = require("./partition.json");
+const { seq } = require("async");
 
 
 function partition_init(sf){
@@ -171,7 +172,7 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
 
   //initialize partition
   this.partition = partition_init(sf);
-  this.channelRows = {0:[1,2,3,4,5,6], 1:[7,8,9,10,11], 2:[12,13,14,15,16]}
+  this.channelRows = {0:[1,2,3,4,5,6,7,8], 1:[9,10,11,12], 2:[13,14,15,16]}
 
   this.setTopology=function(topo) {
     this.topo = topo
@@ -223,6 +224,18 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
           this.used_subslot[i].slot[1]==slot.channel_offset &&
           this.used_subslot[i].subslot[0]==subslot.offset && 
           this.used_subslot[i].subslot[1]==subslot.period) {
+        this.used_subslot.splice(i,1)
+        i--
+      }
+    }
+  }
+
+  // remove used subslot by sender, receiver, type
+  this.remove_usedsubslot=function(sender, receiver, type) {
+    for(var i=0;i<this.used_subslot.length;i++) {
+      if(this.used_subslot[i].cell.sender == sender &&
+          this.used_subslot[i].cell.receiver == receiver &&
+          this.used_subslot[i].cell.type == type) {
         this.used_subslot.splice(i,1)
         i--
       }
@@ -720,54 +733,6 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     return list
   }
 
-  // if the parent is in row1 or row2 and parent's children number > hop count
-  // move parent (and its parents) to row1, (swap with a leaf node in layer 0),
-  this.shift_branch=function(node) {
-    var path = []
-    var cell = this.find_cell(node,"uplink")
-    var parent = cell.cell.receiver
-    // find relay nodes
-    while(parent!=0) {
-      path.push(parent)
-      cell = this.find_cell(parent,"uplink")
-      parent = cell.cell.receiver
-    }
-
-    // find a leaf node in layer 0 row 0
-    var l0r0Nodes = {}
-    for(var i=0;i<this.used_subslot.length;i++) {
-      if(this.used_subslot[i].cell.layer==0 && this.used_subslot[i].cell.row==0 && this.used_subslot[i].type=="uplink") {
-        l0r0Nodes[this.used_subslot[i].cell.sender] = 0
-      }
-    }
-    for(var j=0;j<this.used_subslot.length;j++) {
-      if(this.used_subslot[j].cell.layer==1 && this.used_subslot[j].type=="uplink") {
-        if(l0r0Nodes[this.used_subslot[j].cell.receiver]!=null) l0r0Nodes[this.used_subslot[j].cell.receiver]++
-      }
-    }
-    var leafNode = Object.keys(l0r0Nodes).sort(function(a,b){return l0r0Nodes[a]-l0r0Nodes[b]})[0]
-    
-    // swap the leafNode and the layer 0 parent
-    var leafNodeCell = this.find_cell(leafNode, "uplink")
-    var l0Parent = this.find_cell(path[path.length-1], "uplink")
-    
-    this.swap_cell(leafNodeCell, l0Parent)
-
-    leafNodeCell.cell.row = l0Parent.cell.row
-    l0Parent.cell.row = 0
-
-    // reallocate other relay parents
-    if(path.length>1) {
-      for(var k=path.length-2;k>=0;k--) {
-        var c = this.find_cell(path[k],"uplink")
-        this.remove_slot({slot_offset:c.slot[0],channel_offset:c.slot[1]})
-        
-        var ret = this.find_empty_subslot([c.cell.sender,c.cell.receiver],1,{type:c.cell.type,layer:c.cell.layer})
-        sch.add_subslot(ret.slot, ret.subslot, {row:ret.row, type:c.cell.type,layer:c.cell.layer,sender:c.cell.sender,receiver:c.cell.receiver}, ret.is_optimal)
-      }
-    }
-  }
-
   // swap two cells' position (slot, ch)
   // input should be one element of this.used_subslot, use this.find_cell to get
   // need 3 edits
@@ -798,9 +763,8 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
       if(this.used_subslot[i].cell.layer==layer && this.used_subslot[i].cell.type==type) {
         subtree_sizes.push({
           sender:this.used_subslot[i].cell.sender,
-          receiver:this.used_subslot[i].cell.receiver,
-          row: this.used_subslot[i].cell.row,
           slot:this.used_subslot[i].slot[0],
+          ch:this.used_subslot[i].slot[1],
           size:this.get_subtree_size(this.used_subslot[i].cell.sender),
         })
       }
@@ -831,11 +795,10 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
       // skip duplicates
       while(item.size == subtree_sizes[pos].size) pos++
 
-      // swap
+      // write
       var tmp = JSON.parse(JSON.stringify(subtree_sizes[pos])) 
       subtree_sizes[pos] = item
       subtree_sizes[pos].slot = tmp.slot
-      subtree_sizes[pos].row = tmp.row
       item = tmp
       
       // repeat above to find a value to swap
@@ -852,13 +815,12 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
         var itemCell = this.find_cell(item.sender,"uplink")
         var tmpCell = this.find_cell(tmp.sender,"uplink")
         this.swap_cells(itemCell, tmpCell)
-        console.log("SWAP",item, tmp)
+        // console.log("SWAP",item, tmp)
         swapped.push(item.sender, tmp.sender)
         cnt++
 
         subtree_sizes[pos] = item
         subtree_sizes[pos].slot = tmp.slot
-        subtree_sizes[pos].row = tmp.row
         item = tmp
       }
     }
@@ -868,11 +830,35 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
   }
 
   // adjust the order of cells of one partition by subtree size
-  // sort and swap
-  this.adjust_subtree_distributionv=function(type, layer) {
+  // Version 2, determine the order by size and then do a `rejoin` process to get the schedule
+  this.adjust_subtree_distribution_v2=function(type, layer) {
+    var schedule_backup = JSON.parse(JSON.stringify(this.schedule))
+    var used_subslot_backup = JSON.parse(JSON.stringify(this.used_subslot))
     var subtree_sizes = this.get_subtree_size_list(type, layer)
-    var sorted = JSON.parse(JSON.stringify(subtree_sizes)).sort((a, b) => (a.size > b.size) ? 1 : -1)
-    console.log(subtree_sizes, sorted)
+    subtree_sizes.sort((a, b) => (a.size < b.size) ? 1 : -1)
+    console.log(subtree_sizes)
+    var sequence = []
+    for(var i=0;i<subtree_sizes.length;i++) {
+      // rejoin sequence
+      var cell = this.find_cell(subtree_sizes[i].sender, "uplink")
+      sequence.push(cell)
+
+      // reset schedule
+      this.schedule[subtree_sizes[i].slot][subtree_sizes[i].ch] = new Array(SUBSLOTS)
+      
+      sch.remove_usedsubslot(cell.cell.sender, cell.cell.receiver, cell.cell.type)
+    }
+    
+    // reschedule
+    for(var j=0;j<sequence.length;j++) {
+      var cell = sequence[j]
+      
+      var ret = this.find_empty_subslot([cell.cell.sender, cell.cell.receiver], 1, {type:cell.cell.type, layer:cell.cell.layer})
+      console.log(cell.cell.sender, ret.slot)
+      sch.add_subslot(ret.slot, ret.subslot, {row:ret.row,type:"uplink",layer:cell.cell.layer,sender:cell.cell.sender,receiver:cell.cell.receiver}, ret.is_optimal);
+
+    }
+    
   }
 
   // adjust partitions to the left to leave space
@@ -930,12 +916,12 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     var parent = (info.type=="uplink") ? nodes_list[1]:parent = nodes_list[0]
     var rows = [0, 1, 2]
 
-    // move parent's row to the first
-    if(info.layer>0) {
-      var parent_slot = this.find_cell(parent, info.type)   
-      rows.splice(rows.indexOf(parent_slot.cell.row),1)
-      rows.unshift(parent_slot.cell.row)
-    }
+    // // move parent's row to the first
+    // if(info.layer>0) {
+    //   var parent_slot = this.find_cell(parent, info.type)   
+    //   rows.splice(rows.indexOf(parent_slot.cell.row),1)
+    //   rows.unshift(parent_slot.cell.row)
+    // }
 
     for(var ii=0;ii<ROWS;ii++) {
       r = rows[ii]

@@ -257,12 +257,12 @@ export default {
             var pos = "insideBottom"
             if(res.data.data[i].row==0) {
               y1 = 1
-              y2 = 7
+              y2 =9
             } else if(res.data.data[i].row==1) {
-              y1 = 7
-              y2 = 12
+              y1 = 9
+              y2 = 13
             } else if(res.data.data[i].row==2) {
-              y1 = 12
+              y1 = 13
               y2 = 17
             }
             if(res.data.data[i].type=="uplink") {

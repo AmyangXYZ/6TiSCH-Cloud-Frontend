@@ -67,8 +67,19 @@ function init(topology,seq) {
   // sch = scheduler.create_scheduler(127,[1,3,5,7,9,11,13,15])
   
   topo = topology
+  // topo for scheduler, {parent: [children]}
+  var sch_topo = {0:[]}
+  for(var n=1;n<Object.keys(topo).length;n++) {
+    if(sch_topo[topo[n].parent]!=null) sch_topo[topo[n].parent].push(n)
+    else sch_topo[topo[n].parent] = [n]
+  }
+  sch.setTopology(sch_topo)
   join_seq = seq
   static_schedule()
+  // sch.sort_test()
+  var cnt = sch.adjust_subtree_distribution("uplink",0)
+  // var cnt = sch.adjust_subtree_distribution("uplink",1)
+  // console.log(cnt)
   // sch.dynamic_partition_adjustment()
   return {cells:sch.used_subslot, partitions: get_partition()}
 }
