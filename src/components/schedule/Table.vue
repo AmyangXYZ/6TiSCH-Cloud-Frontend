@@ -344,9 +344,13 @@ export default {
     },
     handleDPABt() {
       this.res = dpa()
+      var layer = this.res.layer
+      var edits = this.res.edits
       this.drawPartition()
-      setTimeout(this.getAllLatency,1000)
-      setTimeout(this.getCrossRowLinks,1000)
+      this.$vs.notify({
+        title:'Adjust subtree distribution',
+        text:'Uplink Layer '+layer+", "+edits+" edits",
+      })
     },
     handleAutoBt() {
       foo()

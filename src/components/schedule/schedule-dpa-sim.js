@@ -77,9 +77,11 @@ function init(topology,seq) {
   join_seq = seq
   static_schedule()
   // sch.sort_test()
-  var cnt = sch.adjust_subtree_distribution("uplink",0)
-  // var cnt = sch.adjust_subtree_distribution("uplink",1)
-  // console.log(cnt)
+  // for(var l=0;l<4;l++) {
+  //   setTimeout((l)=>{sch.adjust_subtree_distribution("uplink",l)},1000*(l+1),l)
+  // }
+  
+  
   // sch.dynamic_partition_adjustment()
   return {cells:sch.used_subslot, partitions: get_partition()}
 }
@@ -92,12 +94,13 @@ function foo() {
   // sch.adjust_partition_offset('uplink',0,-37)
   // sch.adjust_partition_offset('downlink',0,37)
 }
-
+layer = 0
 function dpa() { 
-  console.log("trigger DPA")
-  // console.log(sch.get_idles_all())
-  sch.dynamic_partition_adjustment()
-  return {cells:sch.used_subslot, partitions: get_partition()}
+  var edits = sch.adjust_subtree_distribution("uplink",layer)
+  layer++
+  // // console.log(sch.get_idles_all())
+  // sch.dynamic_partition_adjustment()
+  return {cells:sch.used_subslot, partitions: get_partition(), layer:layer, edits}
 }
 
 function get_scheduler() {

@@ -43,8 +43,6 @@ const RESERVED=0; //Number of reserved
 const SUBSLOTS=16;
 const ROWS=3;
 const partition_config = require("./partition.json");
-const { seq } = require("async");
-
 
 function partition_init(sf){
   //Beacon reserved version
@@ -762,24 +760,21 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     for(var i=0;i<this.used_subslot.length;i++) {
       if(this.used_subslot[i].cell.layer==layer && this.used_subslot[i].cell.type==type) {
         subtree_sizes.push({
-          sender:this.used_subslot[i].cell.sender,
           slot:this.used_subslot[i].slot[0],
+          sender:this.used_subslot[i].cell.sender,
           ch:this.used_subslot[i].slot[1],
           size:this.get_subtree_size(this.used_subslot[i].cell.sender),
         })
       }
     }
-    return subtree_sizes.sort((a, b) => (a.slot > b.slot) ? 1 : -1)
+    subtree_sizes.sort((a, b) => (a.slot > b.slot) ? 1 : -1)
+    return subtree_sizes
   }
 
-  // adjust the order of cells of one partition by subtree size
-  // version 1: cycle sort
-  this.adjust_subtree_distribution=function(type, layer) {
+  this.get_subtree_size_list_cycle_sort=function(type, layer) {
     var subtree_sizes = this.get_subtree_size_list(type, layer)
 
     // cycle sort, minimize swap opertations
-    var cnt = 0
-    var swapped = []
     for(var cycleStart=0;cycleStart<subtree_sizes.length;cycleStart++) {
       var item = JSON.parse(JSON.stringify(subtree_sizes[cycleStart]))
       var pos = cycleStart
@@ -796,9 +791,8 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
       while(item.size == subtree_sizes[pos].size) pos++
 
       // write
-      var tmp = JSON.parse(JSON.stringify(subtree_sizes[pos])) 
+      var tmp = subtree_sizes[pos]
       subtree_sizes[pos] = item
-      subtree_sizes[pos].slot = tmp.slot
       item = tmp
       
       // repeat above to find a value to swap
@@ -811,54 +805,140 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
 
         while(item.size == subtree_sizes[pos].size) pos++
 
-        tmp = JSON.parse(JSON.stringify(subtree_sizes[pos]))
-        var itemCell = this.find_cell(item.sender,"uplink")
-        var tmpCell = this.find_cell(tmp.sender,"uplink")
-        this.swap_cells(itemCell, tmpCell)
-        // console.log("SWAP",item, tmp)
-        swapped.push(item.sender, tmp.sender)
-        cnt++
-
+        var tmp = subtree_sizes[pos]
         subtree_sizes[pos] = item
-        subtree_sizes[pos].slot = tmp.slot
         item = tmp
       }
     }
     // console.log(subtree_sizes)
     // console.log(Array.from(new Set(swapped)).length)
-    return cnt
+    return subtree_sizes.reverse()
   }
 
   // adjust the order of cells of one partition by subtree size
-  // Version 2, determine the order by size and then do a `rejoin` process to get the schedule
-  this.adjust_subtree_distribution_v2=function(type, layer) {
+  // determine the order by size and then do a `rejoin` process to compute the optimal schedule
+  this.adjust_subtree_distribution=function(type, layer) {
     var schedule_backup = JSON.parse(JSON.stringify(this.schedule))
     var used_subslot_backup = JSON.parse(JSON.stringify(this.used_subslot))
     var subtree_sizes = this.get_subtree_size_list(type, layer)
     subtree_sizes.sort((a, b) => (a.size < b.size) ? 1 : -1)
-    console.log(subtree_sizes)
-    var sequence = []
+    var subtree_sizes = this.get_subtree_size_list_cycle_sort(type, layer)
+
+    this.sequence = []
     for(var i=0;i<subtree_sizes.length;i++) {
       // rejoin sequence
       var cell = this.find_cell(subtree_sizes[i].sender, "uplink")
-      sequence.push(cell)
-
+      this.sequence.push(cell)
       // reset schedule
       this.schedule[subtree_sizes[i].slot][subtree_sizes[i].ch] = new Array(SUBSLOTS)
-      
-      sch.remove_usedsubslot(cell.cell.sender, cell.cell.receiver, cell.cell.type)
+      this.remove_usedsubslot(cell.cell.sender, cell.cell.receiver, cell.cell.type)
     }
-    
-    // reschedule
-    for(var j=0;j<sequence.length;j++) {
-      var cell = sequence[j]
-      
-      var ret = this.find_empty_subslot([cell.cell.sender, cell.cell.receiver], 1, {type:cell.cell.type, layer:cell.cell.layer})
-      console.log(cell.cell.sender, ret.slot)
-      sch.add_subslot(ret.slot, ret.subslot, {row:ret.row,type:"uplink",layer:cell.cell.layer,sender:cell.cell.sender,receiver:cell.cell.receiver}, ret.is_optimal);
 
+    // compute new optimal schedule
+    this.new_schedule = []
+    for(var j=0;j<this.sequence.length;j++) {
+      var cell = this.sequence[j]
+      var ret = this.find_empty_subslot([cell.cell.sender, cell.cell.receiver], 1, {type:cell.cell.type, layer:cell.cell.layer})
+      this.new_schedule.push(ret)
+      this.add_subslot(ret.slot, ret.subslot, {row:ret.row,type:"uplink",layer:cell.cell.layer,sender:cell.cell.sender,receiver:cell.cell.receiver}, ret.is_optimal);
     }
+    // restore old schedule
+    this.schedule = schedule_backup
+    this.used_subslot = used_subslot_backup
     
+    // mark the cells that no need to adjust
+    for(var xx=0;xx<this.sequence.length;xx++) {
+      this.sequence[xx].adjusted = false
+      if(this.sequence[xx].slot[0] == this.new_schedule[xx].slot.slot_offset) {
+        this.sequence[xx].adjusted = true
+      }
+    }
+
+    this.total_edits = 0
+
+    // cell in tmp area
+    this.tmpCellIndex = -1
+    this.rmTmpCellFlag = 0
+    // still use the cycle sort idea, but try to insert into an idle cell first, then swap;
+    // we only care the slot order, which channel doesn't matter.
+    for(var k=0;k<this.sequence.length;k++) {
+      this.adjust_schedule(k, [k])
+      if(this.tmpCellIndex!=-1) {
+        this.rmTmpCellFlag = 1
+        this.adjust_schedule(this.tmpCellIndex, [])
+      }
+    }
+    console.log("adjust "+type+"-"+layer+": "+this.total_edits+" edits")
+    return this.total_edits
+  }
+
+  this.adjust_schedule=function(k, history) {
+    var old_cell = this.sequence[k]
+    var new_slot = this.new_schedule[k]
+    if(old_cell.adjusted) return
+
+    // check if that slot has an idle channel to use and if there exists a conflict cell
+    var idleChannels = []
+    var conflictCellIndex = -1
+    var swapCandidates = []
+    for(var c=0;c<this.channelRows[new_slot.row].length;c++) {
+      var ch = this.channelRows[new_slot.row][c]
+      // idle: not used
+      if(this.schedule[new_slot.slot.slot_offset][ch][0]==null) {
+        idleChannels.push(ch)
+      } else {
+        var index = 0
+        for(var ii=0;ii<this.sequence.length;ii++) 
+          if(this.sequence[ii].cell.sender == this.schedule[new_slot.slot.slot_offset][ch][0].sender)
+            index = ii
+
+        // conflict (same parent/receiver) or swap candidate (havent adjusted)
+        if(this.schedule[new_slot.slot.slot_offset][ch][0].receiver==old_cell.cell.receiver) {
+          conflictCellIndex = index
+        }
+        else if(!this.sequence[index].adjusted)
+          swapCandidates.push(index)
+      }
+    }
+    var tmpFlag = 0
+    
+    var dstSlot = new_slot.slot.slot_offset
+    // move the conflict cell away and insert
+    if(conflictCellIndex != -1) {
+      // loop detected, move to tmp area
+      if(history.indexOf(conflictCellIndex)!=-1) {
+        this.add_subslot({slot_offset:10, channel_offset:10},{offset:0,period:1},this.sequence[k].cell, 0)
+        this.tmpCellIndex = k
+        dstSlot = 10
+        tmpFlag = 1
+      } else {
+        history.push(conflictCellIndex)
+        this.adjust_schedule(conflictCellIndex, history)
+        this.add_subslot({slot_offset:new_slot.slot.slot_offset, channel_offset: this.sequence[conflictCellIndex].slot[1]},{offset:0,period:1}, {row:new_slot.row,type:old_cell.cell.type,layer:old_cell.cell.layer,sender:old_cell.cell.sender,receiver:old_cell.cell.receiver}, 1)
+      }
+      
+    // insert into a idle cell
+    } else if(idleChannels.length>0) {
+      this.add_subslot({slot_offset:new_slot.slot.slot_offset, channel_offset: idleChannels[0]},{offset:0,period:1}, {row:new_slot.row,type:old_cell.cell.type,layer:old_cell.cell.layer,sender:old_cell.cell.sender,receiver:old_cell.cell.receiver}, 1)
+      
+    // move a swap candidate away and insert
+    } else if(swapCandidates.length>0) {
+      history.push(swapCandidates[0])
+      this.adjust_schedule(swapCandidates[0], history)
+      this.add_subslot({slot_offset:new_slot.slot.slot_offset, channel_offset: this.sequence[swapCandidates[0]].slot[1]},{offset:0,period:1}, {row:new_slot.row,type:old_cell.cell.type,layer:old_cell.cell.layer,sender:old_cell.cell.sender,receiver:old_cell.cell.receiver}, 1)
+    }
+
+    if(this.tmpCellIndex!=-1 && this.rmTmpCellFlag) {
+      this.remove_slot({slot_offset: 10, channel_offset: 10})
+      this.tmpCellIndex = -1
+      this.rmTmpCellFlag = 0
+    } else {
+      this.remove_slot({slot_offset: old_cell.slot[0], channel_offset: old_cell.slot[1]})
+    }
+    this.total_edits++
+    if(!tmpFlag) old_cell.adjusted = true
+
+    // console.log(old_cell.cell.sender,k, old_cell.slot[0],'->',dstSlot)
   }
 
   // adjust partitions to the left to leave space
