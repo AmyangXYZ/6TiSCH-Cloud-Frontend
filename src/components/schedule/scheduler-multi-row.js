@@ -751,10 +751,11 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
 
   // adjust cells of one partition (all rows)
   // 1. change order by subtree size; 2. 
-  this.inpartition_adjust=function(type, layer) {
+  this.intra_partition_adjust=function(type, layer) {
     
   }
 
+  // get one partition cell list with subtree size
   this.get_subtree_size_list=function(type, layer) {
     var subtree_sizes = []
     for(var i=0;i<this.used_subslot.length;i++) {
@@ -762,8 +763,10 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
         subtree_sizes.push({
           slot:this.used_subslot[i].slot[0],
           sender:this.used_subslot[i].cell.sender,
-          ch:this.used_subslot[i].slot[1],
           size:this.get_subtree_size(this.used_subslot[i].cell.sender),
+          row:this.used_subslot[i].cell.row,
+          receiver:this.used_subslot[i].cell.receiver,
+          ch:this.used_subslot[i].slot[1],
         })
       }
     }
@@ -771,48 +774,215 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     return subtree_sizes
   }
 
-  this.get_subtree_size_list_cycle_sort=function(type, layer) {
+  // move cells with larger subtree size to row 0 and sort row 1/2
+  // cells in row 0 don't need to be adjust
+  this.adjust_subtree_distribution_v3=function(type, layer) {
+    this.total_edits = 0
     var subtree_sizes = this.get_subtree_size_list(type, layer)
+    if(layer == 0) {
+      var dividerSlot = this.partition[1][type][layer].end
+      var dividerSlotIndex = 0
+      for(var ii=0;ii<subtree_sizes.length;ii++) {
+        if(subtree_sizes[ii].slot == dividerSlot) {
+          dividerSlotIndex = ii
+          break
+        }
+      }
+      var copy = JSON.parse(JSON.stringify(subtree_sizes))
+      copy.sort((a, b) => (a.size > b.size) ? 1 : -1)
 
-    // cycle sort, minimize swap opertations
-    for(var cycleStart=0;cycleStart<subtree_sizes.length;cycleStart++) {
-      var item = JSON.parse(JSON.stringify(subtree_sizes[cycleStart]))
-      var pos = cycleStart
-
-      // find the right index
-      for(var i=cycleStart+1;i<subtree_sizes.length;i++) 
-        if(subtree_sizes[i].size < item.size) 
-          pos++
-
-      // not changed
-      if(pos==cycleStart) continue
+      // max subtree size in other rows (row 1,2...)
+      var maxSubtreeSize = copy[dividerSlotIndex].size
       
-      // skip duplicates
-      while(item.size == subtree_sizes[pos].size) pos++
+      // move some cell with larger subtree size to row 0
+      for(var j=0;j<dividerSlotIndex;j++) {
+        if(subtree_sizes[j].size>maxSubtreeSize) {
+          // swap with a smaller one in row 0
+          for(k=dividerSlotIndex;k<subtree_sizes.length;k++) {
+            if(subtree_sizes[k].size <= maxSubtreeSize) {
+              var tmp = JSON.parse(JSON.stringify(subtree_sizes[k]))
+              var tmp2 = JSON.parse(JSON.stringify(subtree_sizes[j]))
+              subtree_sizes[k].sender = tmp2.sender
+              subtree_sizes[k].receiver = tmp2.receiver
+              subtree_sizes[k].size = tmp2.size
+              subtree_sizes[j].sender = tmp.sender
+              subtree_sizes[j].receiver = tmp.receiver
+              subtree_sizes[j].size = tmp.size
+              break
+            }
+          }
+        }
+      } 
 
-      // write
-      var tmp = subtree_sizes[pos]
-      subtree_sizes[pos] = item
-      item = tmp
-      
-      // repeat above to find a value to swap
-      while(pos!=cycleStart) {
-        pos = cycleStart
-        
-        for(var i=cycleStart+1;i<subtree_sizes.length;i++)
-          if(subtree_sizes[i].size < item.size)
+      // cycle sort cells in other rows (row 1,2...)
+      for(var cycleStart=0;cycleStart<dividerSlotIndex;cycleStart++) {
+        var item = JSON.parse(JSON.stringify(subtree_sizes[cycleStart]))
+        var pos = cycleStart
+
+        // find the right index
+        for(var i=cycleStart+1;i<dividerSlotIndex.length;i++) 
+          if(subtree_sizes[i].size < item.size) 
             pos++
 
+        // not changed
+        if(pos==cycleStart) continue
+        
+        // skip duplicates
         while(item.size == subtree_sizes[pos].size) pos++
 
-        var tmp = subtree_sizes[pos]
-        subtree_sizes[pos] = item
+        // write
+        var tmp = JSON.parse(JSON.stringify(subtree_sizes[pos]))
+        subtree_sizes[pos].sender = item.sender
+        subtree_sizes[pos].receiver = item.receiver
+        subtree_sizes[pos].size = item.size
         item = tmp
+        
+        // repeat above to find a value to swap
+        while(pos!=cycleStart) {
+          pos = cycleStart
+          
+          for(var i=cycleStart+1;i<subtree_sizes.length;i++)
+            if(subtree_sizes[i].size < item.size)
+              pos++
+
+          while(item.size == subtree_sizes[pos].size) pos++
+
+          var tmp = JSON.parse(JSON.stringify(subtree_sizes[pos]))
+          subtree_sizes[pos].sender = item.sender
+          subtree_sizes[pos].receiver = item.receiver
+          subtree_sizes[pos].size = item.size
+          item = tmp
+        }
+      }
+
+      this.sequence = []
+      this.new_schedule = []
+      for(var s=0;s<subtree_sizes.length;s++) {
+        this.sequence.push(this.find_cell(subtree_sizes[s].sender, "uplink"))
+        this.new_schedule.push({slot:{slot_offset:subtree_sizes[s].slot, channel_offset:subtree_sizes[s].ch}, row: subtree_sizes[s].row})
+      }
+
+      // mark the cells that no need to adjust
+      for(var xx=0;xx<this.sequence.length;xx++) {
+        this.sequence[xx].adjusted = false
+        if(this.sequence[xx].slot[0] == this.new_schedule[xx].slot.slot_offset) {
+          this.sequence[xx].adjusted = true
+        }
+      }
+
+      // cell in tmp area
+      this.tmpCellIndex = -1
+      this.rmTmpCellFlag = 0
+
+      for(var k=0;k<this.sequence.length;k++) {
+        this.adjust_schedule(k, [k])
+        if(this.tmpCellIndex!=-1) {
+          this.rmTmpCellFlag = 1
+          this.adjust_schedule(this.tmpCellIndex, [])
+        }
+      }
+
+    } else if(layer > 0) {
+      subtree_sizes.sort((a, b) => (a.size < b.size) ? 1 : -1)
+      for(var i=0;i<subtree_sizes.length;i++) {
+        if(subtree_sizes[i].row>0 && subtree_sizes[i].size>0) {
+          var old_cell = this.find_cell(subtree_sizes[i].sender,"uplink")
+          var ret = this.find_empty_subslot([old_cell.cell.sender, old_cell.cell.receiver], 1, {type:old_cell.cell.type, layer:old_cell.cell.layer})
+
+          // A best, row 0 has space, just move
+          if(ret.row == 0) {
+            console.log("move",subtree_sizes[i],"to",ret.slot)
+            subtree_sizes[i].slot = ret.slot.slot_offset
+            subtree_sizes[i].ch = ret.slot.channel_offset
+            subtree_sizes[i].row = ret.row
+            
+            this.add_subslot(ret.slot, ret.subslot, {type:old_cell.cell.type,layer:old_cell.cell.layer,row:ret.row,sender:old_cell.cell.sender,receiver:old_cell.cell.receiver}, ret.is_optimal);
+            this.remove_slot({slot_offset:old_cell.slot[0], channel_offset:old_cell.slot[1]})
+            this.total_edits++
+          // if cannot simply move to row 0, check if can swap with a smallest cell or its smallest conflict cell
+          } else {
+            var swapCandidates = []
+            var conflictCells = []
+            var conflictSlots = []
+            for(var j=0;j<subtree_sizes.length;j++) {
+              if(subtree_sizes[j].row==0) {
+                if(subtree_sizes[j].size<subtree_sizes[i].size) swapCandidates.push(subtree_sizes[j])
+                if(subtree_sizes[j].receiver == subtree_sizes[i].receiver) {
+                  conflictCells.push(subtree_sizes[j])
+                  conflictSlots.push(subtree_sizes[j].slot)
+                }
+              }
+            }
+            
+            swapCandidates.sort((a, b) => (a.size > b.size) ? 1 : -1)
+            conflictCells.sort((a, b) => (a.size > b.size) ? 1 : -1)
+            var minConflictCellSubtreeSize = conflictCells[0].size
+
+            var haveSwappedFlag = 0
+            for(k=0;k<swapCandidates.length;k++) {
+              if(swapCandidates[k].size < minConflictCellSubtreeSize) {
+                if(conflictSlots.indexOf(swapCandidates[k].slot) == -1) {
+                  console.log("move",subtree_sizes[i],"to", swapCandidates[k].slot,swapCandidates[k].ch)
+                  var cell1 = this.find_cell(subtree_sizes[i].sender, "uplink")
+                  var cell2 = this.find_cell(swapCandidates[k].sender, "uplink")
+
+                  this.remove_slot({slot_offset:cell1.slot[0], channel_offset:cell1.slot[1]})
+                  this.remove_slot({slot_offset:cell2.slot[0], channel_offset:cell2.slot[1]})
+                  this.add_subslot({slot_offset:cell2.slot[0], channel_offset:cell2.slot[1]}, {offset:0, period:1}, cell1.cell, 1)
+
+                  // find a cell to place the swapped cell
+                  var ret = this.find_empty_subslot([cell2.cell.sender, cell2.cell.receiver], 1, {type:cell2.cell.type, layer:cell2.cell.layer})
+                  this.add_subslot(ret.slot, ret.subslot, {type:cell2.cell.type,layer:cell2.cell.layer,row:ret.row,sender:cell2.cell.sender,receiver:cell2.cell.receiver}, ret.is_optimal);
+
+                  subtree_sizes[i].slot = cell2.slot[0]
+                  subtree_sizes[i].ch = cell2.slot[1]
+                  subtree_sizes[i].row = cell2.cell.row
+
+                  swapCandidates[k].slot = ret.slot.slot_offset
+                  swapCandidates[k].ch = ret.slot.channel_offset
+                  swapCandidates[k].row = ret.row
+
+                  haveSwappedFlag = 1
+                  if(ret.slot.slot_offset==cell1.slot[0] && ret.slot.channel_offset==cell1.slot[1]) this.total_edits+=3
+                  else this.total_edits+=2
+                  break
+                }
+              }
+            }
+            if(!haveSwappedFlag) {
+              // no swap candidate works, swap with its smallest conflict cell
+              if(minConflictCellSubtreeSize < subtree_sizes[i].size) {
+                console.log("move",subtree_sizes[i],"to", conflictCells[0].slot,conflictCells[0].ch)
+                var cell1 = this.find_cell(subtree_sizes[i].sender, "uplink")
+                var cell2 = this.find_cell(conflictCells[0].sender, "uplink")
+                
+                this.remove_slot({slot_offset:cell1.slot[0], channel_offset:cell1.slot[1]})
+                this.remove_slot({slot_offset:cell2.slot[0], channel_offset:cell2.slot[1]})
+                this.add_subslot({slot_offset:cell2.slot[0], channel_offset:cell2.slot[1]}, {offset:0, period:1}, cell1.cell, 1)
+
+                // find a cell to place the swapped cell
+                var ret = this.find_empty_subslot([cell2.cell.sender, cell2.cell.receiver], 1, {type:cell2.cell.type, layer:cell2.cell.layer})
+                this.add_subslot(ret.slot, ret.subslot, {type:cell2.cell.type,layer:cell2.cell.layer,row:ret.row,sender:cell2.cell.sender,receiver:cell2.cell.receiver}, ret.is_optimal);
+
+                subtree_sizes[i].slot = cell2.slot[0]
+                subtree_sizes[i].ch = cell2.slot[1]
+                subtree_sizes[i].row = cell2.cell.row
+
+                conflictCells[0].slot = ret.slot.slot_offset
+                conflictCells[0].ch = ret.slot.channel_offset
+                conflictCells[0].row = ret.row
+
+                if(ret.slot.slot_offset==cell1.slot[0] && ret.slot.channel_offset==cell1.slot[1]) this.total_edits+=3
+                else this.total_edits+=2
+              }
+            }
+          }
+        }
       }
     }
-    // console.log(subtree_sizes)
-    // console.log(Array.from(new Set(swapped)).length)
-    return subtree_sizes.reverse()
+
+     console.log("adjust "+type+"-"+layer+": "+this.total_edits+" edits")
+    return this.total_edits
   }
 
   // adjust the order of cells of one partition by subtree size
@@ -822,7 +992,7 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     var used_subslot_backup = JSON.parse(JSON.stringify(this.used_subslot))
     var subtree_sizes = this.get_subtree_size_list(type, layer)
     subtree_sizes.sort((a, b) => (a.size < b.size) ? 1 : -1)
-    var subtree_sizes = this.get_subtree_size_list_cycle_sort(type, layer)
+    // var subtree_sizes = this.get_subtree_size_list_cycle_sort(type, layer)
 
     this.sequence = []
     for(var i=0;i<subtree_sizes.length;i++) {
@@ -871,13 +1041,15 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     console.log("adjust "+type+"-"+layer+": "+this.total_edits+" edits")
     return this.total_edits
   }
-
+  
+  // adjust old schedule to new_schedule, with the idea of cycle sort to minimize schedule edits number
+  // assume not support "specify a future time" in schedule edit
   this.adjust_schedule=function(k, history) {
     var old_cell = this.sequence[k]
     var new_slot = this.new_schedule[k]
     if(old_cell.adjusted) return
 
-    // check if that slot has an idle channel to use and if there exists a conflict cell
+    // check if that slot has an idle channel to use or if there exists a conflict cell
     var idleChannels = []
     var conflictCellIndex = -1
     var swapCandidates = []
@@ -938,7 +1110,7 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     this.total_edits++
     if(!tmpFlag) old_cell.adjusted = true
 
-    // console.log(old_cell.cell.sender,k, old_cell.slot[0],'->',dstSlot)
+    console.log(old_cell.cell.sender, old_cell.slot[0],'->',dstSlot)
   }
 
   // adjust partitions to the left to leave space

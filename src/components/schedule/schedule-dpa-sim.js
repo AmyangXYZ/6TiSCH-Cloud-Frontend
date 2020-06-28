@@ -76,6 +76,7 @@ function init(topology,seq) {
   sch.setTopology(sch_topo)
   join_seq = seq
   static_schedule()
+  // sch.adjust_subtree_distribution_v2("uplink",0)
   // sch.sort_test()
   // for(var l=0;l<4;l++) {
   //   setTimeout((l)=>{sch.adjust_subtree_distribution("uplink",l)},1000*(l+1),l)
@@ -96,7 +97,7 @@ function foo() {
 }
 layer = 0
 function dpa() { 
-  var edits = sch.adjust_subtree_distribution("uplink",layer)
+  var edits = sch.adjust_subtree_distribution_v3("uplink",layer)
   layer++
   // // console.log(sch.get_idles_all())
   // sch.dynamic_partition_adjustment()
