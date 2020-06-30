@@ -891,7 +891,7 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
 
           // A best, row 0 has space, just move
           if(ret.row == 0) {
-            console.log("move",subtree_sizes[i],"to",ret.slot)
+            // console.log("move",subtree_sizes[i],"to",ret.slot)
             subtree_sizes[i].slot = ret.slot.slot_offset
             subtree_sizes[i].ch = ret.slot.channel_offset
             subtree_sizes[i].row = ret.row
@@ -922,7 +922,7 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
             for(k=0;k<swapCandidates.length;k++) {
               if(swapCandidates[k].size < minConflictCellSubtreeSize) {
                 if(conflictSlots.indexOf(swapCandidates[k].slot) == -1) {
-                  console.log("move",subtree_sizes[i],"to", swapCandidates[k].slot,swapCandidates[k].ch)
+                  // console.log("move",subtree_sizes[i],"to", swapCandidates[k].slot,swapCandidates[k].ch)
                   var cell1 = this.find_cell(subtree_sizes[i].sender, "uplink")
                   var cell2 = this.find_cell(swapCandidates[k].sender, "uplink")
 
@@ -952,7 +952,7 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
             if(!haveSwappedFlag) {
               // no swap candidate works, swap with its smallest conflict cell
               if(minConflictCellSubtreeSize < subtree_sizes[i].size) {
-                console.log("move",subtree_sizes[i],"to", conflictCells[0].slot,conflictCells[0].ch)
+                // console.log("move",subtree_sizes[i],"to", conflictCells[0].slot,conflictCells[0].ch)
                 var cell1 = this.find_cell(subtree_sizes[i].sender, "uplink")
                 var cell2 = this.find_cell(conflictCells[0].sender, "uplink")
                 
@@ -1110,7 +1110,7 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     this.total_edits++
     if(!tmpFlag) old_cell.adjusted = true
 
-    console.log(old_cell.cell.sender, old_cell.slot[0],'->',dstSlot)
+    // console.log(old_cell.cell.sender, old_cell.slot[0],'->',dstSlot)
   }
 
   // adjust partitions to the left to leave space
@@ -1128,6 +1128,22 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     }
     // if(total_idle_slots)
 
+  }
+
+  this.adjust_unaligned_cells=function() {
+    // put unaligned links back
+    var used_subslot = JSON.parse(JSON.stringify(this.used_subslot));
+    for(var j=0;j<used_subslot.length;j++) {
+      if(!used_subslot[j].is_optimal) {
+        var old = used_subslot[j]
+        this.remove_subslot({slot_offset:old.slot[0],channel_offset:old.slot[1]}, {offset:old.subslot[0], period:old.subslot[1]})
+        
+        // console.log("adjusting",old)
+        var ret = this.find_empty_subslot([old.cell.sender, old.cell.receiver],1,{type:old.cell.type,layer:old.cell.layer},old.cell.row)
+        // console.log("to new position",ret)
+        this.add_subslot(ret.slot, ret.subslot, {row:old.cell.row,type:old.cell.type,layer:old.cell.layer,sender:old.cell.sender,receiver:old.cell.receiver}, ret.is_optimal);
+      }
+    }
   }
 
   this.dynamic_partition_adjustment=function() {

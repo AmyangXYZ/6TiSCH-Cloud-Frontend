@@ -64,7 +64,6 @@ function kick(nodes) {
 
 function init(topology,seq) {
   sch = scheduler.create_scheduler(127,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16])
-  // sch = scheduler.create_scheduler(127,[1,3,5,7,9,11,13,15])
   
   topo = topology
   // topo for scheduler, {parent: [children]}
@@ -95,13 +94,27 @@ function foo() {
   // sch.adjust_partition_offset('uplink',0,-37)
   // sch.adjust_partition_offset('downlink',0,37)
 }
-layer = 0
-function dpa() { 
-  var edits = sch.adjust_subtree_distribution_v3("uplink",layer)
-  layer++
+
+function intra_partition_adjustment(topology) { 
+  var edits = 0
+  var sch_topo = {0:[]}
+  // topo for scheduler, {parent: [children]}
+  for(var n=1;n<Object.keys(topology).length;n++) {
+    if(sch_topo[topology[n].parent]!=null) sch_topo[topology[n].parent].push(n)
+    else sch_topo[topology[n].parent] = [n]
+  }
+  sch.setTopology(sch_topo)
+  for(var l=0;l<5;l++) {
+    edits = sch.adjust_subtree_distribution_v3("uplink",l)
+  }
   // // console.log(sch.get_idles_all())
   // sch.dynamic_partition_adjustment()
-  return {cells:sch.used_subslot, partitions: get_partition(), layer:layer, edits}
+  return {cells:sch.used_subslot, partitions: get_partition(), edits}
+}
+
+function inter_partition_adjustment() {
+  sch.adjust_unaligned_cells()
+  return {cells:sch.used_subslot, partitions: get_partition()}
 }
 
 function get_scheduler() {
@@ -110,7 +123,8 @@ function get_scheduler() {
 
 module.exports={
   init: init,
-  dpa: dpa,
+  intra_partition_adjustment: intra_partition_adjustment,
+  inter_partition_adjustment: inter_partition_adjustment,
   kick: kick,
   dynamic_schedule: dynamic_schedule,
   get_scheduler: get_scheduler,

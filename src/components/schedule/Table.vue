@@ -6,8 +6,8 @@
           <h4>Partition-based Scheduler | <span style="text-decoration:underline;cursor:pointer;" @click="handleSwitch">{{simOrReal}}</span>
             <div v-if="simOrReal=='Simulation'" class="bts">
               <!-- <vs-button color="danger" type="filled" @click="handleShuffleBt">Shuffle</vs-button> -->
-              <vs-button color="primary" type="filled"  @click="handleDPABt">DPA</vs-button>
-              <vs-button color="grey" type="filled"  @click="handleAutoBt">AUTO</vs-button>
+              <vs-button color="primary" type="filled"  @click="handleIntraPartitionAdjustmentBt">Intra-Partition Adjustment</vs-button>
+              <vs-button color="danger" type="filled"  @click="handleInterPartitionAdjustmentBt">Inter-Partition Adjustment</vs-button>
             </div>
           </h4>
         </div>
@@ -41,7 +41,7 @@ import "echarts/lib/component/markLine";
 import "echarts/lib/component/dataZoom";
 import "echarts/lib/chart/graph"
 
-import {init,dpa,dynamic_schedule,kick,get_sch,get_scheduler,foo} from './schedule-dpa-sim.js'
+import {init,inter_partition_adjustment, intra_partition_adjustment,dynamic_schedule,kick,get_sch,get_scheduler} from './schedule-dpa-sim.js'
 
 export default {
   components: {
@@ -342,31 +342,15 @@ export default {
         this.option.series[0].data = cellsTmp
       })
     },
-    handleDPABt() {
-      this.res = dpa()
-      var layer = this.res.layer
-      var edits = this.res.edits
+    handleIntraPartitionAdjustmentBt() {
+      this.res = intra_partition_adjustment(window.grid.nodes)
       this.drawPartition()
-      this.$vs.notify({
-        title:'Adjust subtree distribution',
-        text:'Uplink Layer '+layer+", "+edits+" edits",
-      })
+      if(this.selectedCell!=0) setTimeout(()=>{this.findPath(this.selectedCell)},300)
     },
-    handleAutoBt() {
-      foo()
-      // if(this.autoFlag==1) {
-      //   this.autoFlag = 1-this.autoFlag
-      //   clearInterval(this.auto)
-      //   return
-      // } else {
-      //   this.autoFlag = 1-this.autoFlag
-      // }
-      
-      // this.auto = setInterval(()=>{
-      //   this.res = dpa()
-      // },5000)
-      
-     
+    handleInterPartitionAdjustmentBt() {
+      this.res = inter_partition_adjustment()
+      this.drawPartition()
+      if(this.selectedCell!=0) setTimeout(()=>{this.findPath(this.selectedCell)},300)
     },
     findPath(cell) {
       this.option.series[0].markLine.data = []
