@@ -53,7 +53,7 @@ export default {
       autoFlag: 0,
       simOrReal: "Simulation",
       partition_changes: {},
-      selectedCell: 0,
+      selectedCell: {slot:[]},
       auto: {},
       res: {},
       SlotFrameLength: 127,
@@ -345,12 +345,12 @@ export default {
     handleIntraPartitionAdjustmentBt() {
       this.res = intra_partition_adjustment(window.grid.nodes)
       this.drawPartition()
-      if(this.selectedCell!=0) setTimeout(()=>{this.findPath(this.selectedCell)},300)
+      if(this.selectedCell.slot.length>0) setTimeout(()=>{this.findPath(this.selectedCell)},300)
     },
     handleInterPartitionAdjustmentBt() {
       this.res = inter_partition_adjustment()
       this.drawPartition()
-      if(this.selectedCell!=0) setTimeout(()=>{this.findPath(this.selectedCell)},300)
+      if(this.selectedCell.slot.length>0) setTimeout(()=>{this.findPath(this.selectedCell)},300)
     },
     findPath(cell) {
       this.option.series[0].markLine.data = []
@@ -376,16 +376,14 @@ export default {
     },
     handleClickSch(item) {
       this.option.series[0].markLine.data = []
+      if((item.data[0]-0.5)==this.selectedCell.slot[0] && (item.data[1]-0.5)==this.selectedCell.slot[1]) {
+        this.selectedCell = {slot:[]}
+        return
+      }
       var cell = {}
-      
       for(var i=0;i<this.slots.length;i++) {
         if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]-0.5)) {
           cell = this.slots[i]
-          // reset
-          if(cell == this.selectedcell) {
-            this.selectedCell = {}
-            return
-          }
           this.selectedCell = cell
           this.findPath(cell)
         }
@@ -481,8 +479,8 @@ export default {
       }
       this.res = get_sch()
       this.drawPartition()
-      if(this.selectedCell!=0) setTimeout(()=>{this.findPath(this.selectedCell)},500)
-      setTimeout(this.getAllLatency,1000)
+      if(this.selectedCell.slot.length>0) setTimeout(()=>{this.findPath(this.selectedCell)},500)
+      // setTimeout(this.getAllLatency,1000)
     });
   },
 }

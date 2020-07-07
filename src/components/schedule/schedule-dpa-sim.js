@@ -94,8 +94,8 @@ function foo() {
   // sch.adjust_partition_offset('uplink',0,-37)
   // sch.adjust_partition_offset('downlink',0,37)
 }
-
-function intra_partition_adjustment(topology) { 
+l = -1
+function intra_partition_adjustment(topology) {
   var edits = 0
   var sch_topo = {0:[]}
   // topo for scheduler, {parent: [children]}
@@ -104,9 +104,12 @@ function intra_partition_adjustment(topology) {
     else sch_topo[topology[n].parent] = [n]
   }
   sch.setTopology(sch_topo)
-  for(var l=0;l<5;l++) {
-    edits = sch.adjust_subtree_distribution_v3("uplink",l)
-  }
+  
+  l++
+  edits += sch.intra_partition_adjustment("uplink", l)
+  
+  if(l==5) l = -1
+  
   // // console.log(sch.get_idles_all())
   // sch.dynamic_partition_adjustment()
   return {cells:sch.used_subslot, partitions: get_partition(), edits}

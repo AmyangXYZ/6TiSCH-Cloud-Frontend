@@ -21,7 +21,7 @@ import ECharts from "vue-echarts/components/ECharts"
 import "echarts/lib/chart/scatter"
 import "echarts/lib/chart/effectScatter"
 import "echarts/lib/component/markLine";
-import nodes from "./nodes.json"
+import nodes from "./nodes4.json"
 import noiseList from "./noiseList.json"
 
 export default {
@@ -31,9 +31,9 @@ export default {
   data() {
     return {
       gwPos: [],
-      size: 22,
+      size: 25,
       kicked: [],
-      nodesNumber:200,
+      nodesNumber:256,
       nodes: [],
       distanceTable: {},
       nonOptimal: [],
@@ -394,7 +394,7 @@ export default {
 
       this.$EventBus.$emit('kicked', this.kicked)
       for(var j=0;j<this.kicked.length;j++) {
-        setTimeout(this.changeParents,500*j,[ this.kicked[j] ])
+        setTimeout(this.changeParents,1000*j,[ this.kicked[j] ])
       }
     },
     // kick the whole branch
