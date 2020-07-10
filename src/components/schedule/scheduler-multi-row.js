@@ -646,43 +646,6 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     return cnt
   }
 
-  // check if this partition uses the minimum slots (used_slots > the max number of children with same parent)
-  // return used - Common Parent nodes
-  this.get_extra_slots=function(type, layer) {
-    var start = this.partition[row][type][layer].start
-    var find = false
-    for(var i=this.partition[ROWS-1][type][layer].start;i<this.partition[0][type][layer].end;i++) {
-      if(!find) {
-        for(var c in this.channelRows[row]) {
-          // find the edge
-          var ch = this.channelRows[row][c]
-          start = i
-          if(this.schedule[i][ch][0]!=null) {
-            find = true
-            break
-          }
-        }
-      }
-    }
-    
-    var used_slots = find ? this.partition[row][type][layer].end-start : 0
-    
-    var parents = {}
-    for(var j=0;j<this.used_subslot.length;j++) {
-      if(this.used_subslot[j].cell.row==row&&this.used_subslot[j].cell.type==type&&this.used_subslot[j].cell.layer==layer) {
-        var parent = (type=="uplink")?this.used_subslot[j].cell.receiver:this.used_subslot[j].cell.sender
-        if(parents[parent]==null) parents[parent] = 1
-        else parents[parent]++
-      }
-    }
-    var max_common_parent_nodes = 0
-    if(Object.keys(parents).length>0) max_common_parent_nodes = parents[Object.keys(parents).sort(function(a,b){return parents[b]-parents[a]})[0]]
-    
-    return used_slots - max_common_parent_nodes
-  }
-
-
-
   // get conflict slots, same sender/receiver in one slot
   // call it after adjust partition offset
   this.get_conflict_slots=function() {
@@ -731,24 +694,6 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
       list[l] = this.get_idle_slots(l)
     }
     return list
-  }
-
-  // swap two cells' position (slot, ch)
-  // input should be one element of this.used_subslot, use this.find_cell to get
-  // need 3 edits
-  this.swap_cells=function(cell1, cell2) {
-    var tmp = cell1.cell.row 
-    cell1.cell.row = cell2.cell.row
-    cell2.cell.row = tmp
-
-    this.add_subslot({slot_offset:10, channel_offset:10},{offset:0,period:1},cell1.cell,cell1.is_optimal)
-    this.remove_slot({slot_offset:cell1.slot[0],channel_offset:cell1.slot[1]})
-
-    this.add_subslot({slot_offset:cell1.slot[0],channel_offset:cell1.slot[1]},{offset:0,period:1},cell2.cell,cell2.is_optimal)
-    this.remove_slot({slot_offset:cell2.slot[0],channel_offset:cell2.slot[1]})
-    
-    this.add_subslot({slot_offset:cell2.slot[0],channel_offset:cell2.slot[1]},{offset:0,period:1},cell1.cell,cell1.is_optimal)
-    this.remove_slot({slot_offset:10,channel_offset:10})
   }
 
   // adjust cells of one partition (all rows)
@@ -922,7 +867,9 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
 
             swapCandidates.sort((a, b) => (a.size > b.size) ? 1 : -1)
             conflictCells.sort((a, b) => (a.size > b.size) ? 1 : -1)
-            var minConflictCellSubtreeSize = conflictCells[0].size
+            
+            var minConflictCellSubtreeSize = 100
+            if(conflictCells.length>0) minConflictCellSubtreeSize = conflictCells[0].size
 
             var haveSwappedFlag = 0
             for(k=0;k<swapCandidates.length;k++) {
@@ -1232,7 +1179,7 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
                     this.add_subslot(ret.slot, ret.subslot, {type:cell.cell.type,layer:cell.cell.layer,row:ret.row,sender:cell.cell.sender,receiver:cell.cell.receiver}, ret.is_optimal);
                     this.remove_slot({slot_offset:cell.slot[0], channel_offset:cell.slot[1]})
                     // move old_cell here
-                    this.add_subslot({slot_offset:cell.slot[0], channel_offset:cell.slot[1]}, {offset:0, period:1}, {type:old_cell.cell.type,layer:old_cell.cell.layer,row:cell.cell.row,sender:old_cell.cell.sender,receiver:old_cell.cell.receiver}, 1)
+                    this.add_subslot({slot_offset:cell.slot[0], channel_offset:cell.slot[1]}, {offset:0, period:1}, {type:old_cell.cell.type,layer:old_cell.cell.layer,row:cell.cell.row,sender:old_cell.cell.sender,receiver:old_cell.cell.receiver}, ret.is_optimal)
                     this.remove_slot({slot_offset:old_cell.slot[0], channel_offset:old_cell.slot[1]})
                     done = 1
                     edits += 2
@@ -1259,6 +1206,7 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
         cells.push(this.used_subslot[i])
       }
     }
+    if(cells.length == 0) return 0
     cells.sort((a, b) => (a.slot[0] > b.slot[0]) ? 1 : -1)
     var used_slots_number = cells[cells.length-1].slot[0] - cells[0].slot[0] + 1
     return used_slots_number
@@ -1272,9 +1220,11 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
         var old = used_subslot[j]
         // console.log("adjusting",old)
         var ret = this.find_empty_subslot([old.cell.sender, old.cell.receiver],1,{type:old.cell.type,layer:old.cell.layer},old.cell.row)
-        // console.log("to new position",ret)
-        this.add_subslot(ret.slot, ret.subslot, {row:old.cell.row,type:old.cell.type,layer:old.cell.layer,sender:old.cell.sender,receiver:old.cell.receiver}, ret.is_optimal);  
-        this.remove_subslot({slot_offset:old.slot[0],channel_offset:old.slot[1]}, {offset:old.subslot[0], period:old.subslot[1]})
+        if(ret.is_optimal) {
+          // console.log("to new position",ret)
+          this.add_subslot(ret.slot, ret.subslot, {row:old.cell.row,type:old.cell.type,layer:old.cell.layer,sender:old.cell.sender,receiver:old.cell.receiver}, ret.is_optimal);  
+          this.remove_subslot({slot_offset:old.slot[0],channel_offset:old.slot[1]}, {offset:old.subslot[0], period:old.subslot[1]})
+        }
       }
     }
   }
@@ -1354,7 +1304,7 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     
     console.log(nodes_list,info,"No emplty slot found");
     this.isFull=true;
-    return  {slot:{slot_offset:0,channel_offset:1},row:0,subslot:{offset:0,period:16}, is_optimal:0};
+    return  {slot:{slot_offset:5,channel_offset:10},row:0,subslot:{offset:0,period:16}, is_optimal:0};
   }
 
   this.remove_node=function(node){

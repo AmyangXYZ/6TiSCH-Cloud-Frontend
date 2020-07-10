@@ -31,9 +31,9 @@ export default {
   data() {
     return {
       gwPos: [],
-      size: 25,
+      size: 20,
       kicked: [],
-      nodesNumber:256,
+      nodesNumber:201,
       nodes: [],
       distanceTable: {},
       nonOptimal: [],
@@ -171,7 +171,7 @@ export default {
       var xx=Math.round((this.size-8)*Math.random()+5)
       var yy=Math.round((this.size-8)*Math.random()+5)
       this.gwPos = [xx,yy]
-      this.gwPos = nodes[0]
+      // this.gwPos = nodes[0]
       // this.gwPos = [10,10]
       this.nodes = {0:{parent:-1,position:this.gwPos,layer:-1,path:[0]}}
       this.option.series[3].data = [this.gwPos]
@@ -189,7 +189,7 @@ export default {
       }
       window.console.log(nodes[0])
     
-      this.nodes = nodes
+      // this.nodes = nodes
     
       for(var nn=0;nn<Object.keys(this.nodes).length;nn++) {
         this.option.series[0].data.push(this.nodes[nn].position)
