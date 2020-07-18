@@ -30,8 +30,11 @@
         <vs-th sort-key="children">
           CHILDREN
         </vs-th>
-        <vs-th sort-key="avg_rtt">
+        <vs-th sort-key="avg_latency">
           LATENCY(s)
+        </vs-th>
+        <vs-th sort-key="avg_rtt">
+          RTT(s)
         </vs-th>
         <vs-th sort-key="mac_per">
           MAC PER(%)
@@ -54,6 +57,9 @@
           </vs-td>
           <vs-td :data="data[index].children">
             {{data[index].children}}
+          </vs-td>
+          <vs-td :data="data[index].avg_latency">
+            {{data[index].avg_latency.toFixed(3)}}
           </vs-td>
           <vs-td :data="data[index].avg_rtt">
             {{data[index].avg_rtt.toFixed(3)}}
