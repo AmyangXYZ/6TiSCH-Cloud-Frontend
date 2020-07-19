@@ -84,7 +84,7 @@ export default {
       sensors: [],
       selectedGW: 'any',
       selectedSensor: {},
-      maxItems: 8,
+      maxItems: 10,
       currentPage: 0,
       selectedRange: 'day',
       ranges: ['hour','day','week','month']

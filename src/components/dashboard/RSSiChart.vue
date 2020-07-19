@@ -1,6 +1,6 @@
 <template>
   <vs-card style="margin-top:22px">
-    <div slot="header"><h4> RSSI of Sensor {{this.selectedSensor}}, {{this.selectedGW}}</h4></div>
+    <div slot="header"><h5> RSSI of Sensor {{this.selectedSensor}}, {{this.selectedGW}}</h5></div>
     <ECharts autoresize :options="option" />
   </vs-card>
 </template>
@@ -32,9 +32,10 @@ export default {
       option: {
         grid: [{
           top: '30',
-          height: '35%'
+          height: '28%'
         }, {
-          top: '280',
+          top: '210',
+          height: '28%'
         }],
         xAxis: [
           {
@@ -61,7 +62,7 @@ export default {
           },
           {
             name: "Channel-Level",
-            nameGap: 30,
+            nameGap: 20,
             nameTextStyle: {
               fontWeight: 800,
               fontSize: 16,
@@ -98,8 +99,8 @@ export default {
         visualMap: {
           seriesIndex: 1,
           type: 'piecewise',
-          top: "250",
-          right: "40",
+          top: "185",
+          right: "20",
           orient: "horizontal",
           precision: 1,
           min: this.min,
@@ -223,5 +224,5 @@ export default {
 <style lang="stylus" scoped>
 .echarts 
   width 100%
-  height 480px
+  height 375px
 </style>
