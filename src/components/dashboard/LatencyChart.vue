@@ -30,6 +30,7 @@ export default {
         },
         grid: [
           {
+            top: "18%",
             width: "55%",
             left: '3%',
             bottom: "5%",
@@ -37,6 +38,7 @@ export default {
           },
           {
             // width: "45%",
+            top: "18%",
             bottom: "5%",
             left: "65%",
             containLabel: true 
@@ -45,25 +47,20 @@ export default {
         xAxis: [
           {
             type: 'value',
-            boundaryGap: [0, 0.1],
+            boundaryGap: [0, 0.15],
             gridIndex: 0,
             name: "(s)",
             nameTextStyle: {
-              fontSize: 18,
-              fontWeight: "bold",
+              fontSize: 16,
               align: "center"
             },
+
           },
           {
             type: 'category',
             data: [],
             gridIndex: 1,
-            name: "(s)",
-            nameTextStyle: {
-              fontSize: 18,
-              fontWeight: "bold",
-              align: "center"
-            },
+
           }
         ],
         yAxis: [
@@ -78,7 +75,7 @@ export default {
             data: ['Average Latency'],
             gridIndex: 0,
             axisLabel: {
-               fontSize: 16
+               fontSize: 15
             }
           },
           {
