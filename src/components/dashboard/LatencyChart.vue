@@ -31,16 +31,16 @@ export default {
         grid: [
           {
             top: "18%",
-            width: "55%",
+            width: "35%",
             left: '3%',
             bottom: "5%",
             containLabel: true 
           },
           {
-            // width: "45%",
+            right: "5%",
             top: "18%",
             bottom: "5%",
-            left: "65%",
+            left: "45%",
             containLabel: true 
           }
         ],
@@ -94,12 +94,15 @@ export default {
             {
               type: 'bar',
               data: [],
+              barMaxWidth: 50,
               xAxisIndex: 0,
               yAxisIndex: 0,
             },
             {
+              silent:true,
               data: [],
               type: 'bar',
+              barMaxWidth: 90,
               xAxisIndex: 1,
               yAxisIndex: 1,
             }
