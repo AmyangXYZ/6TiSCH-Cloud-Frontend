@@ -91,9 +91,9 @@ function partition_init(sf){
   }
   
   // downlink
-  cur_r0 = 127
-  cur_r1 = 127
-  cur_r2 = 127
+  cur_r0 = sf
+  cur_r1 = sf
+  cur_r2 = sf
 
   for(var d=downlink.length-1; d>=0; --d){
     partition[0].downlink[d]={start:cur_r0-downlink_row0[d], end:cur_r0};
@@ -696,8 +696,25 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     return list
   }
 
-  // adjust cells of one partition (all rows)
-  // 1. change order by subtree size; 2. 
+  // adjust neighbor's boundary to assign more slots for this partition
+  this.inter_partition_adjustment=function(type, layer) {
+
+  }
+
+  // get needed slots to realign non-optimal cells
+  // clear row 3 neighbors and reschedule
+  this.get_needed_slots=function(type, layer) {
+    var schedule_backup = JSON.parse(JSON.stringify(this.schedule))
+    var used_subslot_backup = JSON.parse(JSON.stringify(this.used_subslot))
+    
+    for(var i=0;i<this.used_subslot.length;i++) {
+      if(!this.used_subslot[i].is_optimal && this.used_subslot[i].cell.type==type && this.used_subslot[i].cell.layer==layer) {
+        
+      }
+    }
+  }
+
+  // adjust cells of within partition (all rows)
   this.intra_partition_adjustment=function(type, layer) {
     console.log("adjusting "+type+" layer "+layer+"...")
     var edits = 0
@@ -1199,6 +1216,65 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     return edits
   }
   
+  //generate a shuffled slot list to iterate
+  this.shuffle_slots=function(){
+    var shuffled_slots=[];
+    for(var slot=0;slot<this.slotFrameLength;++slot){
+      for(var c in this.channels){
+        var ch=this.channels[c];
+        shuffled_slots.push({slot_offset:slot, channel_offset:ch});
+      }
+    }
+    for (var i = shuffled_slots.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = shuffled_slots[i];
+        shuffled_slots[i] = shuffled_slots[j];
+        shuffled_slots[j] = temp;
+    }
+    var schedule=this.schedule;
+    //pass into sort(func)
+    //sort the shuffled list by subslot occupation
+    shuffled_slots.sort(function(a,b){
+      var ca=0,cb=0;
+      var a_sublist=schedule[a.slot_offset][a.channel_offset];
+      var b_sublist=schedule[b.slot_offset][b.channel_offset];
+      for(var sub=0;sub<SUBSLOTS;++sub){
+        if(a_sublist[sub]==null){
+          ++ca;
+        }
+        if(b_sublist[sub]==null){
+          ++cb;
+        }
+      }
+      return ca-cb;
+    });
+    return shuffled_slots;
+  }
+
+  // LLSF scheduler, return the slot list in the left/right of its parent's uplink/downlink slot
+  this.LLSF=function(parent,type) {
+    var slot_list = []
+    var slots = []
+    if(parent == 0) {
+      return this.shuffle_slots()
+    }
+    var parent_cell = this.find_cell(parent, type)
+    if(type=="uplink") {
+      for(var i=parent_cell.slot[0]-1;i>=10;i--) slots.push(i)
+      for(var j=127-1;j>parent_cell.slot[0];j--) slots.push(j)
+    } else {
+      for(var i=parent_cell.slot[0]+1;i<127;i++) slots.push(i)
+      for(var j=10;j<parent_cell.slot[0];j++) slots.push(j)
+    }
+    for(var s=0;s<slots.length;s++) {
+      var slot = slots[s]
+      for(var ch=1;ch<17;ch++) {
+        slot_list.push({slot_offset:slot, channel_offset:ch})
+      }
+    }
+    return slot_list
+  } 
+
   this.count_used_slots=function(type, layer) {
     var cells = []
     for(var i=0;i<this.used_subslot.length;i++) {
@@ -1266,14 +1342,32 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     var checkOrder = 1
     var parent = (info.type=="uplink") ? nodes_list[1]:parent = nodes_list[0]
     var rows = [0, 1, 2]
-
-    // // move parent's row to the first
-    // if(info.layer>0) {
-    //   var parent_slot = this.find_cell(parent, info.type)   
-    //   rows.splice(rows.indexOf(parent_slot.cell.row),1)
-    //   rows.unshift(parent_slot.cell.row)
+    
+    // random
+    // slots_list=this.shuffle_slots()
+    // for(var i=0;i<slots_list.length;++i){
+    //   var slot=slots_list[i];
+    //   for(var offset=0;offset<period;++offset){
+    //     if(this.available_subslot(nodes_list,slot,{period:period,offset:offset}, info, 0)){
+    //       return {slot:slot,subslot:{offset:offset,period:period}, row:0, is_optimal:1}
+    //     }
+    //   }
     // }
+    // return
 
+    // LLSF, minimize slot gaps
+    // slots_list=this.LLSF(parent, info.type)
+    // for(var i=0;i<slots_list.length;++i){
+    //   var slot=slots_list[i];
+    //   for(var offset=0;offset<period;++offset){
+    //     if(this.available_subslot(nodes_list,slot,{period:period,offset:offset}, info, 0)){
+    //       return {slot:slot,subslot:{offset:offset,period:period}, row:0, is_optimal:1}
+    //     }
+    //   }
+    // }
+    // return
+
+    // partition
     for(var ii=0;ii<ROWS;ii++) {
       r = rows[ii]
       slots_list=this.inpartition_slots(0, info, r);

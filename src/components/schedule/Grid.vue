@@ -1,19 +1,16 @@
 <template>
-    <vs-row vs-align="flex-start" vs-w="12">
-      <vs-col style="z-index:99" vs-offset="4" vs-w="4">  
-        <vs-card>
-          <ECharts ref="chart" @click="addNoiseByClick" id="chart" autoresize :options="option" />
-          <div slot="footer">
-            <vs-row vs-justify="flex-end">
-              <vs-button color="danger" type="filled" @click="addNoiseCircleRand">Add</vs-button>
-              <vs-button color="primary" type="filled" @click="clearNoise">Clear</vs-button>
-            </vs-row>
-            
-          </div>
-          
-        </vs-card>
-      </vs-col>
-    </vs-row> 
+    
+    <vs-card>
+      <ECharts ref="chart" @click="addNoiseByClick" id="chart" autoresize :options="option" />
+      <div slot="footer">
+        <vs-row vs-justify="flex-end">
+          <vs-button color="danger" type="filled" @click="addNoiseCircleRand">Add</vs-button>
+          <vs-button color="primary" type="filled" @click="clearNoise">Clear</vs-button>
+        </vs-row>
+        
+      </div>
+      
+    </vs-card>
 </template>
 
 <script>
@@ -21,7 +18,7 @@ import ECharts from "vue-echarts/components/ECharts"
 import "echarts/lib/chart/scatter"
 import "echarts/lib/chart/effectScatter"
 import "echarts/lib/component/markLine";
-import nodes from "./nodes4.json"
+import nodes from "./topo-sim/80nodes/80nodes-8.json"
 import noiseList from "./noiseList.json"
 
 export default {
@@ -31,9 +28,9 @@ export default {
   data() {
     return {
       gwPos: [],
-      size: 20,
+      size: 25,
       kicked: [],
-      nodesNumber:201,
+      nodesNumber:1, // include gateway
       nodes: [],
       distanceTable: {},
       nonOptimal: [],
@@ -51,12 +48,12 @@ export default {
         },
         xAxis: {
           min:0,
-          max:this.size,
+          max:25,
           interval:1,
         },
         yAxis: {
           min:0,
-          max:this.size,
+          max:25,
           interval:1,
         },
         markLine: {
@@ -168,28 +165,28 @@ export default {
         }
       }
       // gen gateway and nodes
-      var xx=Math.round((this.size-8)*Math.random()+5)
-      var yy=Math.round((this.size-8)*Math.random()+5)
+      var xx=Math.round((this.size-10)*Math.random()+5)
+      var yy=Math.round((this.size-10)*Math.random()+5)
       this.gwPos = [xx,yy]
-      // this.gwPos = nodes[0]
+      this.gwPos = nodes[0]
       // this.gwPos = [10,10]
       this.nodes = {0:{parent:-1,position:this.gwPos,layer:-1,path:[0]}}
       this.option.series[3].data = [this.gwPos]
       var pos_list = {}
       pos_list[this.gwPos[0]+'-'+this.gwPos[1]] = 1
-      for(var i=1;i<this.nodesNumber;i++) {
-        var x=Math.round((this.size-2)*Math.random()+1)
-        var y=Math.round((this.size-2)*Math.random()+1)
-        while(pos_list[x+'-'+y]!=null) {
-          x=Math.round((this.size-2)*Math.random()+1)
-          y=Math.round((this.size-2)*Math.random()+1)
-        }
-        pos_list[x+'-'+y] = 1
-        this.nodes[i]={parent:-1,position:[x,y],layer:-1, path:[i]}
-      }
+      // for(var i=1;i<this.nodesNumber;i++) {
+      //   var x=Math.round((this.size-2)*Math.random()+1)
+      //   var y=Math.round((this.size-2)*Math.random()+1)
+      //   while(pos_list[x+'-'+y]!=null) {
+      //     x=Math.round((this.size-2)*Math.random()+1)
+      //     y=Math.round((this.size-2)*Math.random()+1)
+      //   }
+      //   pos_list[x+'-'+y] = 1
+      //   this.nodes[i]={parent:-1,position:[x,y],layer:-1, path:[i]}
+      // }
       window.console.log(nodes[0])
     
-      // this.nodes = nodes
+      this.nodes = nodes
     
       for(var nn=0;nn<Object.keys(this.nodes).length;nn++) {
         this.option.series[0].data.push(this.nodes[nn].position)
@@ -424,6 +421,6 @@ export default {
 
 <style lang="stylus" scoped>
 #chart
-  width: 90%
-  height 500px
+  width: 100%
+  height 553px
 </style>
