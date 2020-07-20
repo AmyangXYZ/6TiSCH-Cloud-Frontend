@@ -1,6 +1,7 @@
 <template>
   <vs-card>
     <div slot="header"><h4>Latency </h4></div>
+    Deadline Satisfication Ratio: {{1-this.dsr}}
     <ECharts autoresize :options="option"/>
   </vs-card>
 </template>
@@ -19,6 +20,7 @@ export default {
   data() {
     return {
       cells: [],
+      dsr:0,
       option: {
         grid: {
           top: "10%",
@@ -116,7 +118,6 @@ export default {
         tmp_rtt[k] = tmp_rtt[k].toFixed(3)
       }
 
-      
       yData.unshift("Average")
       this.option.series[0].data = tmp_latency.reverse()
       this.option.series[1].data = tmp_rtt.reverse()
@@ -150,6 +151,7 @@ export default {
       }
     },
     computeRTT() {
+      var over_deadline = 0
       for(var i=0;i<this.cells.length;i++) {
         if(this.cells[i].cell.type=="downlink") continue
         var rtt = 0
@@ -165,8 +167,11 @@ export default {
         else rtt += 127 - cell_d.slot[0] + this.cells[i].slot[0]
         
         rtt += this.cells[i].latency
+        if(rtt>=127) over_deadline++
         this.cells[i].rtt = rtt
       }
+      window.console.log(over_deadline, this.cells.length/2)
+      this.dsr = over_deadline/this.cells.length*2
     },
     findCell(node, type) {
       for(var i=0;i<this.cells.length;i++) {
