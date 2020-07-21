@@ -18,7 +18,7 @@ import ECharts from "vue-echarts/components/ECharts"
 import "echarts/lib/chart/scatter"
 import "echarts/lib/chart/effectScatter"
 import "echarts/lib/component/markLine";
-import nodes from "./topo-sim/80nodes/80nodes-8.json"
+import nodes from "./topo-sim/100nodes/100nodes-5.json"
 import noiseList from "./noiseList.json"
 
 export default {
@@ -28,9 +28,9 @@ export default {
   data() {
     return {
       gwPos: [],
-      size: 25,
+      size: 20,
       kicked: [],
-      nodesNumber:1, // include gateway
+      nodesNumber:101, // include gateway
       nodes: [],
       distanceTable: {},
       nonOptimal: [],
@@ -174,16 +174,16 @@ export default {
       this.option.series[3].data = [this.gwPos]
       var pos_list = {}
       pos_list[this.gwPos[0]+'-'+this.gwPos[1]] = 1
-      // for(var i=1;i<this.nodesNumber;i++) {
-      //   var x=Math.round((this.size-2)*Math.random()+1)
-      //   var y=Math.round((this.size-2)*Math.random()+1)
-      //   while(pos_list[x+'-'+y]!=null) {
-      //     x=Math.round((this.size-2)*Math.random()+1)
-      //     y=Math.round((this.size-2)*Math.random()+1)
-      //   }
-      //   pos_list[x+'-'+y] = 1
-      //   this.nodes[i]={parent:-1,position:[x,y],layer:-1, path:[i]}
-      // }
+      for(var i=1;i<this.nodesNumber;i++) {
+        var x=Math.round((this.size-2)*Math.random()+1)
+        var y=Math.round((this.size-2)*Math.random()+1)
+        while(pos_list[x+'-'+y]!=null) {
+          x=Math.round((this.size-2)*Math.random()+1)
+          y=Math.round((this.size-2)*Math.random()+1)
+        }
+        pos_list[x+'-'+y] = 1
+        this.nodes[i]={parent:-1,position:[x,y],layer:-1, path:[i]}
+      }
       window.console.log(nodes[0])
     
       this.nodes = nodes
@@ -243,7 +243,6 @@ export default {
     },
     changeParents(kicked) {
       var changed = []
-      
       for(var i=0;i<kicked.length;i++) {
         var node = kicked[i]
         // find new parent, nearest and low layer
@@ -284,13 +283,13 @@ export default {
         
         this.nodes[node].parent = nearest_parent.id
         this.nodes[node].layer = this.nodes[nearest_parent.id].layer+1
-        
         changed.push({id:node, parent:this.nodes[node].parent, layer:this.nodes[node].layer})
         this.drawLine(node,nearest_parent.id)        
       }
       this.last_nodes = JSON.parse(JSON.stringify(this.nodes))
       
       this.$EventBus.$emit('changed',changed.sort((a, b)=>(a.layer>b.layer)?1:-1))
+      // window.console.log(changed.length)
     },
     drawLine(start,end) {
       this.option.series[0].markLine.data.push([{coord:this.nodes[start].position},{coord:this.nodes[end].position}])
@@ -311,20 +310,22 @@ export default {
       } else {
         this.noisePos = param.value
         this.option.series[2].data = [param.value]
+        this.noisePosList.push(param.value)
+        window.console.log(this.noisePosList)
         this.respondToNoise('circle')
       }
     },
     addNoiseCircleRand() {
       var x = Math.round((20)*Math.random())
       var y = Math.round((20)*Math.random())
-      // if(this.noiseID<100) {
-      //   x = noiseList[this.noiseID][0]
-      //   y = noiseList[this.noiseID][1]
-      // }
+      if(this.noiseID<100) {
+        x = noiseList[this.noiseID][0]
+        y = noiseList[this.noiseID][1]
+      }
       this.noiseID++
       this.noisePos = [x, y]
-      this.noisePosList.push([x,y])
-      window.console.log(this.noiseID,noiseList.length)
+      // this.noisePosList.push([x,y])
+      // window.console.log(this.noiseID,this.noiseList)
       this.option.series[2].data = [[x, y]]
       this.respondToNoise('circle')
     },
@@ -390,9 +391,10 @@ export default {
       }
 
       this.$EventBus.$emit('kicked', this.kicked)
-      for(var j=0;j<this.kicked.length;j++) {
-        setTimeout(this.changeParents,1000*j,[ this.kicked[j] ])
-      }
+      this.changeParents(this.kicked)
+      // for(var j=0;j<this.kicked.length;j++) {
+      //   setTimeout(this.changeParents,1000*j,[ this.kicked[j] ])
+      // }
     },
     // kick the whole branch
     kickChildren(node) {
@@ -401,7 +403,7 @@ export default {
           // this.nodes[i].parent = -1
           this.kicked.push(i)
           this.eraseLine(i, node)
-          this.kickChildren(i)
+          // this.kickChildren(i)
         }
       }
     }

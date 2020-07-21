@@ -1,7 +1,7 @@
 <template>
   <vs-card>
     <div slot="header"><h4>Latency </h4></div>
-    Deadline Satisfication Ratio: {{1-this.dsr}}
+    Deadline Satisfication Ratio: {{dsr}}
     <ECharts autoresize :options="option"/>
   </vs-card>
 </template>
@@ -21,6 +21,11 @@ export default {
     return {
       cells: [],
       dsr:0,
+      result: {
+        avg_latency:[],
+        avg_rtt: [],
+        dsr: [],
+      },
       option: {
         grid: {
           top: "10%",
@@ -108,7 +113,8 @@ export default {
       }
       var avg_latency = total_latency/total_nodes
       var avg_rtt = total_rtt/total_nodes
-
+      this.result.avg_latency.push(avg_latency/100)
+      this.result.avg_rtt.push(avg_rtt/100)
       tmp_latency.unshift(avg_latency)
       tmp_rtt.unshift(avg_rtt)
       for(var k=0;k<tmp_latency.length;k++) {
@@ -170,8 +176,9 @@ export default {
         if(rtt>=127) over_deadline++
         this.cells[i].rtt = rtt
       }
-      window.console.log(over_deadline, this.cells.length/2)
-      this.dsr = over_deadline/this.cells.length*2
+      this.dsr = 1-over_deadline/this.cells.length*2
+      this.result.dsr.push(this.dsr)
+      window.console.log(this.result)
     },
     findCell(node, type) {
       for(var i=0;i<this.cells.length;i++) {

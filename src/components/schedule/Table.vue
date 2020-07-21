@@ -1,13 +1,12 @@
 <template>
-  <vs-row>
-    <vs-col style="z-index:99" vs-offset="0.6" vs-w="11.1">  
+
       <vs-card>
         <div slot="header" >
-          <h4>Partition-based Scheduler | <span style="text-decoration:underline;cursor:pointer;" @click="handleSwitch">{{simOrReal}}</span>
+          <h4>Partition Scheduler | <span style="text-decoration:underline;cursor:pointer;" @click="handleSwitch">{{simOrReal}}</span>
             <div v-if="simOrReal=='Simulation'" class="bts">
               <!-- <vs-button color="danger" type="filled" @click="handleShuffleBt">Shuffle</vs-button> -->
-              <vs-button color="primary" type="filled"  @click="handleIntraPartitionAdjustmentBt">Intra-Partition Adjustment</vs-button>
-              <vs-button color="danger" type="filled"  @click="handleInterPartitionAdjustmentBt">Inter-Partition Adjustment</vs-button>
+              <!-- <vs-button color="primary" type="filled"  @click="handleIntraPartitionAdjustmentBt">Intra-Partition Adjustment</vs-button>
+              <vs-button color="danger" type="filled"  @click="handleInterPartitionAdjustmentBt">Inter-Partition Adjustment</vs-button> -->
             </div>
           </h4>
         </div>
@@ -15,7 +14,8 @@
           
           <vs-row vs-type="flex" vs-justify="space-around" vs-w="12">
             <vs-col vs-w="2">
-              <h3>{{this.slots.length}} links, {{nonOptimalCnt}} non-aligned</h3>
+              <!-- <h3>{{this.slots.length}} links, {{nonOptimalCnt}} non-aligned</h3> -->
+              <h3>{{this.slots.length}} links</h3>
             </vs-col>
             <vs-col id="part" vs-w="0.5" v-for="(l,i) in links" :key="i">
               {{l.name}}: {{l.used-l.non_optimal}}<span class="non-optimal" v-if="l.non_optimal>0">+{{l.non_optimal}}</span>
@@ -25,8 +25,7 @@
         <vs-divider/>
         <ECharts id="sch-table" autoresize :options="option" @click="handleClickSch" />        
       </vs-card>
-    </vs-col>
-  </vs-row> 
+
 </template>
 
 <script>
@@ -153,8 +152,8 @@ export default {
         dataZoom: [
           {
             type: "inside",
-            start: 5.5,
-            end: 58,
+            start: 0,
+            end: 100,
           },
         ],
         visualMap: {
@@ -165,7 +164,7 @@ export default {
           inRange: {
             color: ['#4575b4', '#d73027']
           },
-          pieces:[{min:0,max:0,label:"Aligned"},{min:1,max:1,label:"Non-Aligned"}],
+          pieces:[{min:0,max:0,label:"Uplink"},{min:1,max:1,label:"Downlink"}],
           textStyle: {
             fontSize:15,
           },
@@ -223,6 +222,7 @@ export default {
   },
   methods: {
     drawPartition() {
+      this.slots = []
       this.option.yAxis.data = this.Channels
       this.$api.gateway.getPartition()
       .then(res=> {
@@ -324,12 +324,12 @@ export default {
           }
           this.links[name].used+=1
 
-          var tag = 0
-          if(!res.data.data[i].is_optimal) {
-            this.nonOptimalCnt++
-            this.unAligned[res.data.data[i].sender+'-'+res.data.data[i].receiver] = 1
-            this.links[name].non_optimal+=1
-            tag = 1
+          var tag = 1
+          if(res.data.data[i].type=="uplink") {
+            // this.nonOptimalCnt++
+            // this.unAligned[res.data.data[i].sender+'-'+res.data.data[i].receiver] = 1
+            // this.links[name].non_optimal+=1
+            tag = 0
           }
 
           if(res.data.data[i].type=="beacon") {
@@ -403,33 +403,6 @@ export default {
         }
       }
     },
-    getAllLatency() {
-      for(var i=1;i<160;i++) {
-        var cell = this.findSlot(i)
-
-        var l = this.getLatency(i,0)
-        if(l>60) {
-          this.option.series[0].data.push([cell.slot[0]+0.5, cell.slot[1]+0.5,1])
-        }
-      }
-      // this.nonOptimalCnt = list.length
-    },
-    getLatency(node,verbose) {
-      var latency = 0
-      var cell = this.findSlot(node)
-      
-      if(verbose) window.console.log(cell.sender+' -> '+cell.receiver, cell.slot[0],cell.slot[1])
-      while(cell.receiver!=0) {
-        var next_cell = this.findSlot(cell.receiver)
-
-        if(next_cell==0) return 0
-        if(verbose)  window.console.log(next_cell,next_cell.sender+'->'+next_cell.receiver, next_cell.slot[0],next_cell.slot[1])
-        if(next_cell.slot[0]>cell.slot[0]) latency += next_cell.slot[0]-cell.slot[0]
-        else latency+= 127-cell.slot[0]+next_cell.slot[0]
-        cell = next_cell
-      }
-      return latency
-    },
     findSlot(node) {
       for(var i=0;i<this.slots.length;i++) {
         if(this.slots[i].sender == node && this.slots[i].type=="uplink") {
@@ -451,8 +424,8 @@ export default {
       this.topo = topo.data
       this.seq = topo.seq
       this.res = init(topo.data, topo.seq)
+      this.$EventBus.$emit("cells",this.res.cells)
       this.drawPartition()
-      setTimeout(this.getAllLatency,1000)
       // setTimeout(this.getCrossRowLinks,1000)
       window.sch = get_scheduler()
     });
@@ -461,26 +434,25 @@ export default {
       kick(kicked)
       
       this.res = get_sch()
-      this.drawPartition()
+      // this.drawPartition()
     })
     this.$EventBus.$on("clear", (clear) => {
       if(clear) {
         window.console.log(1)
         this.res = init(this.topo, this.seq)
         this.drawPartition()
-        setTimeout(this.getAllLatency,1000)
       }
     })
     this.$EventBus.$on("changed", (nodes) => {
-      var node = nodes[0]
-      var is_optimal = dynamic_schedule(node)
-      if(!is_optimal) {
-        this.$EventBus.$emit("nonOptimal", node.id)
-      }
+      // var node = nodes[0]
+      for(var i=0;i<nodes.length;i++) dynamic_schedule(nodes[i])
+      // if(!is_optimal) {
+      //   this.$EventBus.$emit("nonOptimal", node.id)
+      // }
+      this.$EventBus.$emit("cells",this.res.cells)
       this.res = get_sch()
       this.drawPartition()
       if(this.selectedCell.slot.length>0) setTimeout(()=>{this.findPath(this.selectedCell)},500)
-      // setTimeout(this.getAllLatency,1000)
     });
   },
 }
