@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import results from "./results-noise"
+import results from "./results-noise-new"
 import ECharts from "vue-echarts/components/ECharts";
 import "echarts/lib/chart/line";
 import "echarts/lib/component/title";
@@ -79,7 +79,7 @@ export default {
             lineStyle: {
               width: 3
             },
-            data: []
+            data: [],
           },
           {
             name: 'LLSF',
@@ -98,9 +98,9 @@ export default {
   },
   methods: {
     drawDSR() {
-      for(var x=0;x<32;x++) this.option.xAxis.data.push(x)
-      this.option.series[0].data = results.llsf.avg_latency
-      this.option.series[1].data = results.partition.avg_latency
+      for(var x=0;x<51;x++) this.option.xAxis.data.push(x)
+      this.option.series[0].data = results.partition.avg_latency
+      this.option.series[1].data = results.llsf.avg_latency
     },
   },
   mounted() {

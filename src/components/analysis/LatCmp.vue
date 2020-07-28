@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import results from "./results"
+import results from "./results-25*8"
 import ECharts from "vue-echarts/components/ECharts";
 import "echarts/lib/chart/line";
 import "echarts/lib/component/title";
@@ -109,26 +109,9 @@ export default {
   },
   methods: {
     drawLatency() {
-      var avg_latency_partition = []
-      var avg_latency_llsf = []
-      var avg_latency_random = []
-
-      for(var i=0;i<8;i++) {
-        var tmp_latency_partition = 0
-        var tmp_latency_llsf = 0
-        var tmp_latency_random = 0
-        for(var j=i*10;j<(i+1)*10;j++) {
-          tmp_latency_partition += results.partition.avg_latency[j]
-          tmp_latency_llsf += results.llsf.avg_latency[j]
-          tmp_latency_random += results.random.avg_latency[j]
-        }
-        avg_latency_partition.push((tmp_latency_partition/10).toFixed(3))
-        avg_latency_llsf.push((tmp_latency_llsf/10).toFixed(3))
-        avg_latency_random.push((tmp_latency_random/10).toFixed(3))
-      }
-      this.option.series[0].data = avg_latency_partition
-      this.option.series[1].data = avg_latency_llsf
-      this.option.series[2].data = avg_latency_random
+      this.option.series[0].data = results.partition.latency
+      this.option.series[1].data = results.llsf.latency
+      this.option.series[2].data = results.random.latency
     },
   },
   mounted() {

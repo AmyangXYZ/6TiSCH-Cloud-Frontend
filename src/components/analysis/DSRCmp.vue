@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import results from "./results"
+import results from "./results-25*8"
 import ECharts from "vue-echarts/components/ECharts";
 import "echarts/lib/chart/line";
 import "echarts/lib/component/title";
@@ -109,27 +109,9 @@ export default {
   },
   methods: {
     drawDSR() {
-      var avg_dsr_partition = []
-      var avg_dsr_llsf = []
-      var avg_dsr_random = []
-
-      for(var i=0;i<8;i++) {
-        var tmp_dsr_partition = 0
-        var tmp_dsr_llsf = 0
-        var tmp_dsr_random = 0
-        for(var j=i*10;j<(i+1)*10;j++) {
-          tmp_dsr_partition += (results.partition.dsr[j]*100)
-          tmp_dsr_llsf += (results.llsf.dsr[j]*100)
-          tmp_dsr_random += (results.random.dsr[j]*100)
-        }
-        avg_dsr_partition.push((tmp_dsr_partition/10).toFixed(3))
-        avg_dsr_llsf.push((tmp_dsr_llsf/10).toFixed(3))
-        avg_dsr_random.push((tmp_dsr_random/10).toFixed(3))
-      }
-
-      this.option.series[0].data = avg_dsr_partition
-      this.option.series[1].data = avg_dsr_llsf
-      this.option.series[2].data = avg_dsr_random
+      this.option.series[0].data = results.partition.dsr
+      this.option.series[1].data = results.llsf.dsr
+      this.option.series[2].data = results.random.dsr
     },
   },
   mounted() {

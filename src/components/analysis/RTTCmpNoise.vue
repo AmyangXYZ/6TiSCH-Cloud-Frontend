@@ -6,11 +6,12 @@
 </template>
 
 <script>
-import results from "./results-noise"
+import results from "./results-noise-new"
 import ECharts from "vue-echarts/components/ECharts";
 import "echarts/lib/chart/line";
 import "echarts/lib/component/title";
 import "echarts/lib/component/dataZoom";
+import "echarts/lib/component/markLine";
 
 export default {
   components: {
@@ -79,7 +80,19 @@ export default {
             lineStyle: {
               width: 3
             },
-            data: []
+            data: [],
+            markLine: {
+              symbol: "none",
+              lineStyle: {
+                width: 2.5
+              },
+              label: {
+                fontSize: 15
+              },
+              data: [
+                {yAxis:1.27},
+              ]
+            }
           },
           {
             name: 'LLSF',
@@ -98,9 +111,9 @@ export default {
   },
   methods: {
     drawDSR() {
-      for(var x=0;x<32;x++) this.option.xAxis.data.push(x)
-      this.option.series[0].data = results.llsf.avg_rtt
-      this.option.series[1].data = results.partition.avg_rtt
+      for(var x=0;x<51;x++) this.option.xAxis.data.push(x)
+      this.option.series[0].data = results.partition.avg_rtt
+      this.option.series[1].data = results.llsf.avg_rtt
     },
   },
   mounted() {

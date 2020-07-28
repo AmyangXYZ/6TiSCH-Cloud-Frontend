@@ -1,16 +1,15 @@
 <template>
   <vs-card>
-    <div slot="header"><h4>RTT</h4></div>
+    <div slot="header"><h4>Noise Impact</h4></div>
     <ECharts autoresize :options="option"/>
   </vs-card>
 </template>
 
 <script>
-import results from "./results-25*8"
+import results from "./results-noise-new"
 import ECharts from "vue-echarts/components/ECharts";
 import "echarts/lib/chart/line";
 import "echarts/lib/component/title";
-import "echarts/lib/component/markLine";
 
 export default {
   components: {
@@ -32,20 +31,12 @@ export default {
             type: 'shadow'
           }
         },
-        legend: {
-          top: 10,
-          right: '20%',
-          data: ['Partitioning Scheduler', 'LLSF', 'Random Scheduler'],
-          textStyle: {
-            fontSize: 16,
-          }
-        },
         xAxis: {
-          name: "Network Size",
+          name: "Noise Event",
           nameLocation: "center",
           nameGap: 30,
           type: 'category',
-          data: [20,40,60,80,100,120,140,160],
+          data: [],
           boundaryGap: [0, 0.01],
           nameTextStyle: {
             fontSize: 17,
@@ -56,8 +47,9 @@ export default {
           }
         },
         yAxis: {
-          name: "Round Trip Time (s)",
+          name: "Number of changed parent nodes",
           nameLocation: "center",
+          boundaryGap: [0, '10%'],
           nameGap: 40,
           nameTextStyle: {
             fontSize: 17,
@@ -71,7 +63,7 @@ export default {
         },
         series: [
           {
-            name: 'Partitioning Scheduler',
+            name: 'Change parent nodes',
             type: 'bar',
             // smooth: true,
             symbol: "rect",
@@ -80,54 +72,19 @@ export default {
               width: 3
             },
             data: [],
-            markLine: {
-              symbol: "none",
-              lineStyle: {
-                width: 2.5
-              },
-              label: {
-                fontSize: 15
-              },
-              data: [
-                {yAxis:1.27},
-              ]
-            }
-          },
-          {
-            name: 'LLSF',
-            type: 'bar',
-            // smooth: true,
-            symbol: "diamond",
-            symbolSize: 14,
-            lineStyle: {
-              width: 3
-            },
-            data: [],
-          },
-          {
-            name: 'Random Scheduler',
-            type: 'bar',
-            // smooth: true,
-            symbol: "circle",
-            symbolSize: 12,
-            lineStyle: {
-              width: 3
-            },
-            data: []
           },
         ]
       }
     }
   },
   methods: {
-    drawRTT() {
-      this.option.series[0].data = results.partition.rtt
-      this.option.series[1].data = results.llsf.rtt
-      this.option.series[2].data = results.random.rtt
+    drawNoise() {
+      for(var x=0;x<51;x++) this.option.xAxis.data.push(x)
+      this.option.series[0].data = results.change_parent
     },
   },
   mounted() {
-    this.drawRTT()
+    this.drawNoise()
   }
 };
 </script>

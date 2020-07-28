@@ -2,7 +2,7 @@
 
       <vs-card>
         <div slot="header" >
-          <h4>Partition Scheduler | <span style="text-decoration:underline;cursor:pointer;" @click="handleSwitch">{{simOrReal}}</span>
+          <h4>Random Scheduler | <span style="text-decoration:underline;cursor:pointer;" @click="handleSwitch">{{simOrReal}}</span>
             <div v-if="simOrReal=='Simulation'" class="bts">
               <!-- <vs-button color="danger" type="filled" @click="handleShuffleBt">Shuffle</vs-button> -->
               <!-- <vs-button color="primary" type="filled"  @click="handleIntraPartitionAdjustmentBt">Intra-Partition Adjustment</vs-button>
@@ -10,19 +10,6 @@
             </div>
           </h4>
         </div>
-        <div class="partition-usage">
-          
-          <vs-row vs-type="flex" vs-justify="space-around" vs-w="12">
-            <vs-col vs-w="2">
-              <!-- <h3>{{this.slots.length}} links, {{nonOptimalCnt}} non-aligned</h3> -->
-              <h3>{{this.slots.length}} links</h3>
-            </vs-col>
-            <vs-col id="part" vs-w="0.5" v-for="(l,i) in links" :key="i">
-              {{l.name}}: {{l.used-l.non_optimal}}<span class="non-optimal" v-if="l.non_optimal>0">+{{l.non_optimal}}</span>
-            </vs-col>
-          </vs-row>
-        </div>
-        <vs-divider/>
         <ECharts id="sch-table" autoresize :options="option" @click="handleClickSch" />        
       </vs-card>
 
@@ -40,7 +27,7 @@ import "echarts/lib/component/markLine";
 import "echarts/lib/component/dataZoom";
 import "echarts/lib/chart/graph"
 
-import {init1,inter_partition_adjustment, intra_partition_adjustment,dynamic_schedule,kick,get_sch,get_scheduler} from './schedule-dpa-sim.js'
+import {init3,inter_partition_adjustment, intra_partition_adjustment,get_sch3,kick3,get_scheduler} from './schedule-dpa-sim.js'
 
 export default {
   components: {
@@ -207,7 +194,9 @@ export default {
             label: {
               position:"bottom"
             },
-            data: []
+            data: [[
+              {yAxis:1},{yAxis:17,itemStyle:{color:'#4575b4',opacity:0.2},}
+            ]]
           },
         }]
       },
@@ -405,46 +394,46 @@ export default {
       return 0
     },
     update_sch() {
-      this.res = get_sch()
+      this.res = get_sch3()
       this.drawPartition()
     }
   },
 
   mounted() {
     window.table = this
-    this.$EventBus.$emit("init",1)
     this.$EventBus.$on("topo", (topo) => {
       this.topo = topo.data
       this.seq = topo.seq
-      this.res = init1(topo.data, topo.seq)
-      this.$EventBus.$emit("cells1",this.res.cells)
-      this.drawPartition()
+      this.res = init3(topo.data, topo.seq)
+      this.$EventBus.$emit("cells3",this.res.cells)
+      this.drawSchedule()
       // setTimeout(this.getCrossRowLinks,1000)
       window.sch = get_scheduler()
     });
     
     this.$EventBus.$on("kicked", (kicked) => {
-      kick(kicked)
+      kick3(kicked)
       
-      this.res = get_sch()
-      // this.drawPartition()
+      this.res = get_sch3()
+      this.drawSchedule()
     })
     this.$EventBus.$on("clear", (clear) => {
       if(clear) {
         window.console.log(1)
-        this.res = init1(this.topo, this.seq)
-        this.drawPartition()
+        this.res = init3(this.topo, this.seq)
+        this.drawSchedule()
       }
     })
-    this.$EventBus.$on("changed", (nodes) => {
+    this.$EventBus.$on("changed", () => {
       // var node = nodes[0]
-      for(var i=0;i<nodes.length;i++) dynamic_schedule(nodes[i])
+      // for(var i=0;i<nodes.length;i++) dynamic_schedule(nodes[i])
       // if(!is_optimal) {
       //   this.$EventBus.$emit("nonOptimal", node.id)
       // }
-      this.$EventBus.$emit("cells1",this.res.cells)
-      this.res = get_sch()
-      this.drawPartition()
+      
+      this.res = get_sch3()
+      this.$EventBus.$emit("cells3",this.res.cells)
+      this.drawSchedule()
       if(this.selectedCell.slot.length>0) setTimeout(()=>{this.findPath(this.selectedCell)},500)
     });
   },

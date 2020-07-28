@@ -1,6 +1,6 @@
 <template>
   <vs-card>
-    <div slot="header"><h4>Latency of Partition</h4></div>
+    <div slot="header"><h4>Latency of Random Scheduler</h4></div>
     Deadline Satisfication Ratio: {{dsr}}
     <ECharts autoresize :options="option"/>
   </vs-card>
@@ -138,8 +138,8 @@ export default {
       this.history.rtt.push(avg_rtt/100)
       this.history.dsr.push(this.dsr)
       // const average = list => list.reduce((prev, curr) => prev + curr) / list.length;
-      // window.console.log("partition scheduler:", "n",this.history.dsr.length, "avg_latency",average(this.history.latency).toFixed(3),"avg_rtt", average(this.history.rtt).toFixed(3), "dsr", average(this.history.dsr).toFixed(3) )
-      window.console.log("partition scheduler:", "n",this.history.dsr.length, "latency",this.history.latency,"rtt", this.history.rtt, "dsr", this.history.dsr)
+      // window.console.log("random scheduler:", "n",this.history.dsr.length, "avg_latency",average(this.history.latency).toFixed(3),"avg_rtt", average(this.history.rtt).toFixed(3), "dsr", average(this.history.dsr).toFixed(3) )
+      window.console.log("random scheduler:", "n",this.history.dsr.length, "latency",this.history.latency,"rtt", this.history.rtt, "dsr", this.history.dsr)
     },
     computeUplinkLatency() {
       var maxLayer = 0
@@ -205,7 +205,7 @@ export default {
   mounted() {
     window.lat = this
     // cells data ready
-    this.$EventBus.$on("cells1", (cells)=>{
+    this.$EventBus.$on("cells3", (cells)=>{
       this.cells = cells
       this.computeUplinkLatency()
       this.computeRTT()

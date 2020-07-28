@@ -106,7 +106,7 @@ function partition_init(sf){
   }
 
 
-  window.console.log("patition:", partition);
+  // window.console.log("patition:", partition);
   return partition;
 }
 
@@ -136,7 +136,7 @@ function partition_scale(raw_list, size){
   return list;
 }
 
-function create_scheduler(sf,ch){
+function create_scheduler(sf,ch,algorithm){
 /*
 Slot = {slot_offset, channel}
 Subslot = {period, offset}
@@ -145,12 +145,13 @@ Cell = {type, layer, row, sender, receiver}
 used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell: cell, is_optimal:1}
 */
   if(!(this instanceof create_scheduler)){
-    return new create_scheduler(sf,ch);
+    return new create_scheduler(sf,ch,algorithm);
   }
   
-  window.console.log("create_scheduler("+sf+","+ch+")");
+  // window.console.log("create_scheduler("+sf+","+ch+")", algorithm);
   this.slotFrameLength=sf;
   this.channels=ch;
+  this.algorithm = algorithm
   this.schedule = new Array(sf);
   // { parent: [children] }, mainly for count subtree size
   this.topology = {0:[]}
@@ -1344,29 +1345,31 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     var rows = [0, 1, 2]
     
     // random
-    // slots_list=this.shuffle_slots()
-    // for(var i=0;i<slots_list.length;++i){
-    //   var slot=slots_list[i];
-    //   for(var offset=0;offset<period;++offset){
-    //     if(this.available_subslot(nodes_list,slot,{period:period,offset:offset}, info, 0)){
-    //       return {slot:slot,subslot:{offset:offset,period:period}, row:0, is_optimal:1}
-    //     }
-    //   }
-    // }
-    // return
-
+    if(this.algorithm == "random") {
+      slots_list=this.shuffle_slots()
+      for(var i=0;i<slots_list.length;++i){
+        var slot=slots_list[i];
+        for(var offset=0;offset<period;++offset){
+          if(this.available_subslot(nodes_list,slot,{period:period,offset:offset}, info, 0)){
+            return {slot:slot,subslot:{offset:offset,period:period}, row:0, is_optimal:1}
+          }
+        }
+      }
+      return
+    }
     // LLSF, minimize slot gaps
-    // slots_list=this.LLSF(parent, info.type)
-    // for(var i=0;i<slots_list.length;++i){
-    //   var slot=slots_list[i];
-    //   for(var offset=0;offset<period;++offset){
-    //     if(this.available_subslot(nodes_list,slot,{period:period,offset:offset}, info, 0)){
-    //       return {slot:slot,subslot:{offset:offset,period:period}, row:0, is_optimal:1}
-    //     }
-    //   }
-    // }
-    // return
-
+    if(this.algorithm == "LLSF") {
+      slots_list=this.LLSF(parent, info.type)
+      for(var i=0;i<slots_list.length;++i){
+        var slot=slots_list[i];
+        for(var offset=0;offset<period;++offset){
+          if(this.available_subslot(nodes_list,slot,{period:period,offset:offset}, info, 0)){
+            return {slot:slot,subslot:{offset:offset,period:period}, row:0, is_optimal:1}
+          }
+        }
+      }
+      return
+    }
     // partition
     for(var ii=0;ii<ROWS;ii++) {
       r = rows[ii]

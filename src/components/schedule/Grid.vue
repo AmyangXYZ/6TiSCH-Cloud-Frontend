@@ -4,6 +4,7 @@
       <ECharts ref="chart" @click="addNoiseByClick" id="chart" autoresize :options="option" />
       <div slot="footer">
         <vs-row vs-justify="flex-end">
+          <vs-button color="green" type="filled" @click="draw">Draw</vs-button>
           <vs-button color="danger" type="filled" @click="addNoiseCircleRand">Add</vs-button>
           <vs-button color="primary" type="filled" @click="clearNoise">Clear</vs-button>
         </vs-row>
@@ -18,7 +19,7 @@ import ECharts from "vue-echarts/components/ECharts"
 import "echarts/lib/chart/scatter"
 import "echarts/lib/chart/effectScatter"
 import "echarts/lib/component/markLine";
-import nodes from "./topo-sim/100nodes/100nodes-5.json"
+// import nodes from "./topo-sim/100nodes/100nodes-5.json"
 import noiseList from "./noiseList.json"
 
 export default {
@@ -28,8 +29,10 @@ export default {
   data() {
     return {
       gwPos: [],
-      size: 20,
+      size: 22,
       kicked: [],
+      history_cp: [],
+      history_cl: [],
       nodesNumber:101, // include gateway
       nodes: [],
       distanceTable: {},
@@ -168,7 +171,7 @@ export default {
       var xx=Math.round((this.size-10)*Math.random()+5)
       var yy=Math.round((this.size-10)*Math.random()+5)
       this.gwPos = [xx,yy]
-      this.gwPos = nodes[0]
+      // this.gwPos = nodes[0]
       // this.gwPos = [10,10]
       this.nodes = {0:{parent:-1,position:this.gwPos,layer:-1,path:[0]}}
       this.option.series[3].data = [this.gwPos]
@@ -184,9 +187,9 @@ export default {
         pos_list[x+'-'+y] = 1
         this.nodes[i]={parent:-1,position:[x,y],layer:-1, path:[i]}
       }
-      window.console.log(nodes[0])
+      // window.console.log(nodes[0])
     
-      this.nodes = nodes
+      // this.nodes = nodes
     
       for(var nn=0;nn<Object.keys(this.nodes).length;nn++) {
         this.option.series[0].data.push(this.nodes[nn].position)
@@ -243,6 +246,8 @@ export default {
     },
     changeParents(kicked) {
       var changed = []
+      var cnt_cp = 0
+      var cnt_cl = 0
       for(var i=0;i<kicked.length;i++) {
         var node = kicked[i]
         // find new parent, nearest and low layer
@@ -280,7 +285,10 @@ export default {
             nearest_parent = distance_list.sort((a, b)=>(a.d>b.d)?1:-1)[0]
           }
         }
-        
+        var old_parent = this.nodes[node].parent
+        var old_layer = this.nodes[node].layer
+        if(nearest_parent.id!=old_parent) cnt_cp++
+        if((this.nodes[nearest_parent.id].layer+1) != old_layer) cnt_cl++
         this.nodes[node].parent = nearest_parent.id
         this.nodes[node].layer = this.nodes[nearest_parent.id].layer+1
         changed.push({id:node, parent:this.nodes[node].parent, layer:this.nodes[node].layer})
@@ -288,8 +296,12 @@ export default {
       }
       this.last_nodes = JSON.parse(JSON.stringify(this.nodes))
       
+      this.history_cp.push(cnt_cp)
+      this.history_cl.push(cnt_cl)
+      window.console.log(this.history_cp, " nodes changed parent")
+      window.console.log(this.history_cl, " nodes changed layer")
       this.$EventBus.$emit('changed',changed.sort((a, b)=>(a.layer>b.layer)?1:-1))
-      // window.console.log(changed.length)
+      
     },
     drawLine(start,end) {
       this.option.series[0].markLine.data.push([{coord:this.nodes[start].position},{coord:this.nodes[end].position}])
@@ -304,14 +316,13 @@ export default {
       }
     },
     addNoiseByClick(param) {
-      this.$EventBus.$emit('topo', this.nodes)
       if(this.noisePos[0]==param.value[0] && this.noisePos[1]==param.value[1]) {
         this.clearNoise()
       } else {
         this.noisePos = param.value
         this.option.series[2].data = [param.value]
         this.noisePosList.push(param.value)
-        window.console.log(this.noisePosList)
+        // window.console.log(this.noisePosList)
         this.respondToNoise('circle')
       }
     },
@@ -424,5 +435,5 @@ export default {
 <style lang="stylus" scoped>
 #chart
   width: 100%
-  height 553px
+  height 577px
 </style>

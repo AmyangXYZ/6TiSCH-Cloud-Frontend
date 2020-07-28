@@ -1,6 +1,6 @@
 <template>
   <vs-card>
-    <div slot="header"><h4>Latency of Partition</h4></div>
+    <div slot="header"><h4>Latency of LLSF</h4></div>
     Deadline Satisfication Ratio: {{dsr}}
     <ECharts autoresize :options="option"/>
   </vs-card>
@@ -133,13 +133,13 @@ export default {
       this.option.series[0].data = tmp_latency.reverse()
       this.option.series[1].data = tmp_rtt.reverse()
       this.option.yAxis.data = yData.reverse()
-
+      
       this.history.latency.push(avg_latency/100)
       this.history.rtt.push(avg_rtt/100)
       this.history.dsr.push(this.dsr)
       // const average = list => list.reduce((prev, curr) => prev + curr) / list.length;
-      // window.console.log("partition scheduler:", "n",this.history.dsr.length, "avg_latency",average(this.history.latency).toFixed(3),"avg_rtt", average(this.history.rtt).toFixed(3), "dsr", average(this.history.dsr).toFixed(3) )
-      window.console.log("partition scheduler:", "n",this.history.dsr.length, "latency",this.history.latency,"rtt", this.history.rtt, "dsr", this.history.dsr)
+      // window.console.log("llsf scheduler:", "n",this.history.dsr.length, "avg_latency",average(this.history.latency).toFixed(3),"avg_rtt", average(this.history.rtt).toFixed(3), "dsr", average(this.history.dsr).toFixed(3) )
+      window.console.log("llsf scheduler:", "n",this.history.dsr.length, "latency",this.history.latency,"rtt", this.history.rtt, "dsr", this.history.dsr)
     },
     computeUplinkLatency() {
       var maxLayer = 0
@@ -205,7 +205,7 @@ export default {
   mounted() {
     window.lat = this
     // cells data ready
-    this.$EventBus.$on("cells1", (cells)=>{
+    this.$EventBus.$on("cells2", (cells)=>{
       this.cells = cells
       this.computeUplinkLatency()
       this.computeRTT()
