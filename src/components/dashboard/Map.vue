@@ -16,16 +16,18 @@
           </vs-button>
         </vs-col>
       </vs-row>
-      <GmapMap ref="mymap" id="gmap" :center="center" v-model="zoom" :zoom="zoom">
+      <GmapMap ref="mymap" id="gmap" :center="center" v-model="zoom" :zoom="zoom" :options="opt">
         <GmapMarker :key="i" v-for="(m,i) in markers" :position="m.position" :label="m.label" :icon="m.icon" :clickable="true" @click="handleClick(m)"/><GmapInfoWindow :opened="infoWindowActive" :options="infoWindowOpt" :position="infoWindowPos" @closeclick="infoWindowActive=false"><PowerChart/></GmapInfoWindow>
-        <GmapPolyline v-for="(line,i) in lines" :key="'l'+i" :path="line.path" :options="line.option"/> 
+        <GmapPolyline v-for="(line,i) in lines" :key="'l'+i" :path="line.path" :options="line.option"/>
       </GmapMap>
+      
     </div>
   </vs-card>
 </template>
 
 <script>
 import PowerChart from '@/components/dashboard/PowerChart'
+// import topoRes from './topology_121_part.json'
 
 export default {
   components: {
@@ -47,11 +49,24 @@ export default {
       infoWindowActive:false,
       infoWindowPos: {lat:0,lng:0},
       infoWindowOpt: {},
-      zoom: 21,
-      center: {lat:41.806611, lng:-72.252733}, // ITEB
+      zoom: 21.61,
+      center: {lat:41.806617, lng:-72.252749}, // ITEB
       sensors : [],
       markers: [],
       lines:[],
+      opt:{
+        styles: [{
+            "featureType": "poi",
+                "stylers": [{
+                "visibility": "off"
+            }]
+        },{
+            "featureType": "transit",
+                "stylers": [{
+                "visibility": "off"
+            }]
+        }]
+      }
     }
   },
   methods: {
@@ -61,9 +76,14 @@ export default {
         .then(res=> {
           this.markers = []
           this.lines = []
+          
+          // res.data = topoRes
+          // window.console.log(res,topoRes)
           if (res.data.flag==0||res.data.data.length==0){
             return
           }
+          
+          
           this.$EventBus.$emit('sensorCnt', res.data.data.length-1)
           
           for(var i=0;i<res.data.data.length;i++) {
@@ -87,6 +107,7 @@ export default {
               path: [res.data.data[i].position, parentPos],
               option: {
                 strokeColor: 'rgba(102,102,102, 0.5)',
+                strokeWeight: 2,
               },
             })
           }
@@ -95,15 +116,14 @@ export default {
             return a.sensor_id - b.sensor_id
           });
           this.markers = this.sensors
-         
           
           for(var k=0;k<this.markers.length;k++) {            
              var icon = {
               path: window.google.maps.SymbolPath.CIRCLE,
               scale: 7,
-              fillColor: "#58B2EC",
+              fillColor: "#FE7E28",
               fillOpacity: 1,
-              strokeColor: "#58B2EC",
+              strokeColor: "#FE7E28",
             }
             var text = ""
             if(this.markers[k].sensor_id==1) {
@@ -329,6 +349,6 @@ export default {
 #gmap
   margin-top 8px
   width 100%
-  height 688px
+  height 912px
 .gm-style-iw + button {display: none;}  
 </style>

@@ -1,6 +1,6 @@
 <template>
   <vs-card style="margin-top:22px">
-    <div slot="header"><h4>Latency </h4></div>
+    <div slot="header"><h4>RTT </h4></div>
     <ECharts autoresize :options="option" @click="handleClick"/>
     <h3>Total Success Ratio: {{(successCnt/totalCnt).toFixed(3)}}</h3> 
   </vs-card>
@@ -21,10 +21,11 @@ export default {
   data() {
     return {
       sensors: [],
-      selectedLayer: -1,
-      data: [],
       successCnt: 0,
       totalCnt:0,
+      selectedLayer: -1,
+      layersNo: 0,
+      data: [],
       option: {
         tooltip: {
           trigger: 'axis',
@@ -69,21 +70,21 @@ export default {
         ],
         yAxis: [
           {
-            name: "Latency per layer",
+            name: "RTT per layer",
             nameTextStyle: {
               fontSize: 18,
               fontWeight: "bold",
               align: "center"
             },
             type: 'category',
-            data: [],
+            data: ['Average RTT'],
             gridIndex: 0,
             axisLabel: {
                fontSize: 15
             }
           },
           {
-            name: "Latency per node (s)",
+            name: "RTT per node",
             nameTextStyle: {
               fontSize: 18,
               fontWeight: "bold",
@@ -91,11 +92,10 @@ export default {
             },
             type: 'value',
             gridIndex: 1,
-            boundaryGap: [0, 0.05],
+            boundaryGap: [0, 1.2],
           },
           {
-            // name: "Success Ratio",
-            name: "",
+            name: "Success Ratio",
             max:1,
             nameTextStyle: {
               fontSize: 18,
@@ -104,7 +104,7 @@ export default {
             },
             type: 'value',
             gridIndex: 1,
-            boundaryGap: [0.5, 0.2],
+            // boundaryGap: [0, 0.2],
           }
         ],
         series: [
@@ -128,12 +128,11 @@ export default {
                   fontSize: 15
                 },
                 data: [
-                  {xAxis:2.54},
+                  {xAxis:1.27*3},
                 ]
               }
             },
             {
-              name: "average latency",
               silent:true,
               data: [],
               type: 'bar',
@@ -150,7 +149,7 @@ export default {
                   fontSize: 15
                 },
                 data: [
-                  {yAxis:1.28},
+                  {yAxis:1.27*3},
                 ]
               }
             },
@@ -169,14 +168,14 @@ export default {
   },
   methods: {
     draw() {
-      var latencyPerLayer = {}
-      this.option.yAxis[0].data = ['Average Latency']
+      var RTTPerLayer = {}
+      this.option.yAxis[0].data = ["Average RTT"]
       this.option.xAxis[1].data = []
       this.option.series[1].data = []
       this.option.series[2].data = []
       for(var l=0;l<this.layersNo;l++) {
         this.option.yAxis[0].data.unshift("Layer "+l)
-        latencyPerLayer[l] = {latency:0, nodes:0}
+        RTTPerLayer[l] = {rtt:0, nodes:0}
       }
 
       var xData = []
@@ -185,39 +184,40 @@ export default {
       var total = 0
       for(var i=0;i<this.sensors.length;i++) {
         xData.push(this.sensors[i].sensor_id)
-        this.successCnt+=this.sensors[i].uplink_latency_success
-        this.totalCnt+=this.sensors[i].uplink_latency_cnt
-        values1.push(this.sensors[i].uplink_latency_avg.toFixed(3))
-        // values2.push(this.sensors[i].uplink_latency_sr.toFixed(3))
-        total += this.sensors[i].uplink_latency_avg
+        this.successCnt+=this.sensors[i].e2e_latency_success
+        this.totalCnt+=this.sensors[i].e2e_latency_cnt
+        values1.push(this.sensors[i].e2e_latency_avg.toFixed(3))
+        // values2.push(this.sensors[i].e2e_latency_sr.toFixed(3))
+        total += this.sensors[i].e2e_latency_avg
         if(this.sensors[i].hop!=null) {
-          if(latencyPerLayer[this.sensors[i].hop-1]==null) latencyPerLayer[this.sensors[i].hop-1] = {latency:0, nodes:0}
-          latencyPerLayer[this.sensors[i].hop-1].latency += this.sensors[i].uplink_latency_avg
-          latencyPerLayer[this.sensors[i].hop-1].nodes++
+          if(RTTPerLayer[this.sensors[i].hop-1]==null) RTTPerLayer[this.sensors[i].hop-1] = {rtt:0, nodes:0}
+          RTTPerLayer[this.sensors[i].hop-1].rtt += this.sensors[i].e2e_latency_avg
+          RTTPerLayer[this.sensors[i].hop-1].nodes++
         }
       }
       this.option.xAxis[1].data = xData
       this.option.series[1].data = values1
+      window.console.log(values2)
       this.option.series[2].data = values2
       var values0 = []
       for(var j=this.layersNo-1;j>=0;j--) {
-        values0.push((latencyPerLayer[j].latency/latencyPerLayer[j].nodes).toFixed(3))
+        values0.push((RTTPerLayer[j].rtt/RTTPerLayer[j].nodes).toFixed(3))
       }
       values0.push((total/this.sensors.length).toFixed(3))
       this.option.series[0].data = values0
     },
     handleClick(item) {
-      if(item.name=="Average Latency") {
+      if(item.name=="Average RTT") {
         this.selectedLayer == -1
-        this.option.yAxis[1].name = "Latency per node"
+        this.option.yAxis[1].name = "RTT per node"
       }
       else {
         this.selectedLayer = item.name
-        this.option.yAxis[1].name = "Latency per node | "+this.selectedLayer
+        this.option.yAxis[1].name = "RTT per node | "+this.selectedLayer
       }
-      this.drawNodesLatency()
+      this.drawNodesRTT()
     },
-    drawNodesLatency() {
+    drawNodesRTT() {
       var xData = []
       var values1 = []
       var cnt = 0
@@ -225,19 +225,18 @@ export default {
         if(this.selectedLayer!=-1) 
           if((this.sensors[i].hop-1) != this.selectedLayer[6])
             continue
-        xData.push(this.sensors[i].sensor_id)
-        values1.push(this.sensors[i].uplink_latency_avg.toFixed(3))
         cnt++
+        xData.push(this.sensors[i].sensor_id)
+        values1.push(this.sensors[i].e2e_latency_avg.toFixed(3))
       }
       this.option.xAxis[1].data = xData
       this.option.series[1].data = values1
       this.option.yAxis[1].name+=" ("+cnt+" nodes)"
-      window.console.log(values1)
     }
   },
   mounted() {
-    window.latencyChart = this
     // data from NWTable is ready
+    window.rttChart = this
     this.$EventBus.$on("sensors", (sensors)=>{
       this.selectedSensor = sensors[0].sensor_id
       this.sensors = sensors.sort((a, b) => {
@@ -246,6 +245,7 @@ export default {
       })
       // this.layersNo = this.sensors[this.sensors.length-1].hop
       this.layersNo = 5
+      window.console.log(this.layersNo)
       this.draw()
     })
 

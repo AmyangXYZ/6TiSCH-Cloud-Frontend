@@ -21,25 +21,34 @@
         <vs-th sort-key="sensor_id">
           ID
         </vs-th>
-        <vs-th sort-key="gateway">
+        <!-- <vs-th sort-key="gateway">
           GATEWAY
-        </vs-th>
+        </vs-th> -->
         <vs-th sort-key="hop">
           HOP
         </vs-th>
-        <vs-th sort-key="children">
+        <!-- <vs-th sort-key="parent">
+          PARENT
+        </vs-th> -->
+        <!-- <vs-th sort-key="children">
           CHILDREN
+        </vs-th> -->
+        <vs-th sort-key="uplink_latency_avg">
+          UPLINK LAT(s)
         </vs-th>
-        <vs-th sort-key="avg_latency">
-          LATENCY(s)
+        <vs-th sort-key="uplink_latency_sr">
+          UPLINK LAT SR(%)
         </vs-th>
-        <vs-th sort-key="avg_rtt">
-          RTT(s)
+        <vs-th sort-key="e2e_latency_avg">
+          E2E LAT(s)
         </vs-th>
-        <vs-th sort-key="mac_per">
+        <vs-th sort-key="e2e_latency_sr">
+          E2E LAT SR(%)
+        </vs-th>
+        <vs-th sort-key="per_mac">  
           MAC PER(%)
         </vs-th>
-        <vs-th sort-key="app_per">
+        <vs-th sort-key="per_app">
           APP PER(%)
         </vs-th>
       </template>
@@ -49,25 +58,34 @@
           <vs-td :data="data[index].sensor_id">
             {{data[index].sensor_id}}
           </vs-td>
-          <vs-td :data="data[index].gateway">
+          <!-- <vs-td :data="data[index].gateway">
             {{data[index].gateway}}
-          </vs-td>
+          </vs-td> -->
           <vs-td :data="data[index].hop">
             {{data[index].hop}}
           </vs-td>
-          <vs-td :data="data[index].children">
+          <!-- <vs-td :data="data[index].parent">
+            {{data[index].parent}}
+          </vs-td> -->
+          <!-- <vs-td :data="data[index].children">
             {{data[index].children}}
+          </vs-td> -->
+          <vs-td :data="data[index].uplink_latency_avg">
+            {{data[index].uplink_latency_avg.toFixed(2)}}
           </vs-td>
-          <vs-td :data="data[index].avg_latency">
-            {{data[index].avg_latency.toFixed(3)}}
+          <vs-td :data="data[index].uplink_latency_sr">
+            {{(data[index].uplink_latency_sr*100).toFixed(2)}}
           </vs-td>
-          <vs-td :data="data[index].avg_rtt">
-            {{data[index].avg_rtt.toFixed(3)}}
+          <vs-td :data="data[index].e2e_latency_avg">
+            {{data[index].e2e_latency_avg.toFixed(2)}}
           </vs-td>
-          <vs-td :data="data[index].mac_per">
+          <vs-td :data="data[index].e2e_latency_sr">
+            {{(data[index].e2e_latency_sr*100).toFixed(2)}}
+          </vs-td>
+          <vs-td :data="data[index].per_mac">
             {{data[index].mac_per.toFixed(3)}}
           </vs-td>
-          <vs-td :data="data[index].app_per">
+          <vs-td :data="data[index].per_app">
             {{data[index].app_per.toFixed(3)}}
           </vs-td> 
         </vs-tr>
@@ -76,7 +94,10 @@
   </div>
 </template>
 
+
+
 <script>
+// import topoRes from './topology_121_part.json'
 export default {
   data() {
     return {
@@ -87,7 +108,7 @@ export default {
       maxItems: 10,
       currentPage: 0,
       selectedRange: 'day',
-      ranges: ['hour','day','week','month']
+      ranges: ['hour',"4hours",'day','week','month']
     }
   },
   methods: {
@@ -112,6 +133,7 @@ export default {
         this.$api.gateway.getTopology(gw, range)
         .then(res=>{
           var nodes = res.data.data
+          // nodes = topoRes.data
           for(var n=0;n<nodes.length;n++) {
             // links: [[child, parent]]
             links.push([nodes[n].sensor_id,nodes[n].parent])
@@ -133,21 +155,22 @@ export default {
             }
           }
           
-          for(var nnn=0;nnn<nodes.length;nnn++) {
-            var children = 0
-            for(var l=0;l<links.length;l++) {
-              // is someone's parent
-              if(nodes[nnn].sensor_id==links[l][1])
-                children++
-            }
-            nodes[nnn].children=children
-          }
+          // for(var nnn=0;nnn<nodes.length;nnn++) {
+          //   var children = 0
+          //   for(var l=0;l<links.length;l++) {
+          //     // is someone's parent
+          //     if(nodes[nnn].sensor_id==links[l][1])
+          //       children++
+          //   }
+          //   nodes[nnn].children=children
+          // }
           
           for(var x=0;x<sensors.length;x++) {
             for(var y=0;y<nodes.length;y++) {
               if(sensors[x].sensor_id==nodes[y].sensor_id) {
                 sensors[x].hop = nodes[y].hop
-                sensors[x].children = nodes[y].children
+                sensors[x].parent = nodes[y].parent
+                // sensors[x].children = nodes[y].children
               }
             }
           }

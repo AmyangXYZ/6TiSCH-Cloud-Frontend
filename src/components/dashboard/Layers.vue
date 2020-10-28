@@ -18,7 +18,7 @@
         <vs-col vs-w="3"  vs-type="flex" vs-justify="center">
           <vs-button color="primary" :type="buttonTypes[currentBtType.layer3]" @click="showLayer3" 
             icon-pack="fa" icon="fa-cookie" size="small">
-            Layer 3
+            Latency Heatmap
           </vs-button>
         </vs-col>
         <!-- <vs-col vs-w="2"  vs-type="flex" vs-justify="center" vs-align="center" >

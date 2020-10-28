@@ -19,6 +19,7 @@
 import ECharts from "vue-echarts/components/ECharts";
 import "echarts/lib/chart/heatmap";
 import "echarts/lib/component/visualMap";
+import "echarts/lib/component/toolbox";
 import "echarts/lib/component/legend";
 import "echarts/lib/component/tooltip";
 import "echarts/lib/component/title";
@@ -53,6 +54,11 @@ export default {
       nonOptimalList: [],
       unAligned: {},
       option: {
+        toolbox:{
+          feature:{
+            saveAsImage:{}
+          }
+        },
         tooltip: {
           formatter: (item) => {
             for(var i=0;i<this.slots.length;i++) {
@@ -80,11 +86,11 @@ export default {
           }
         },
         grid: {
-          top: '15%',
+          top: '18%',
           // height: '78%',
           left: '2.5%',
           right: '1%',
-          bottom: "8%",
+          bottom: "5%",
         },
         xAxis: {
           min:0,
@@ -142,15 +148,15 @@ export default {
           show:true,
           type: 'piecewise',
           inRange: {
-            color: ['#4575b4', '#d73027']
+            color: ["green",'#4575b4', '#d73027']
           },
-          pieces:[{min:0,max:0,label:"Uplink"},{min:1,max:1,label:"Downlink"}],
+          pieces:[{min:-1,max:-1,label:"Beacon"},{min:0,max:0,label:"Uplink"},{min:1,max:1,label:"Downlink"},],
           textStyle: {
             fontSize:15,
           },
           position: 'top',
           orient: "horizontal",
-          top: -3,
+          top: 6,
           right:"1%",
         },
         series: [{
@@ -175,9 +181,9 @@ export default {
             }
           },
           itemStyle: {
-            borderWidth: 0.3,
+            borderWidth: 1.1,
             borderType: "solid",
-            borderColor: "#E2E2E2"
+            borderColor: "white"
           },
           markLine: {
             data: [],
@@ -313,10 +319,13 @@ export default {
             // this.links[name].non_optimal+=1
             tag = 0
           }
-
           if(res.data.data[i].type=="beacon") {
-            this.bcnSubslots[res.data.data[i].slot[0]][res.data.data[i].subslot[0]]=res.data.data[i].sender
+            tag = -1
           }
+
+          // if(res.data.data[i].type=="beacon") {
+          //   this.bcnSubslots[res.data.data[i].slot[0]][res.data.data[i].subslot[0]]=res.data.data[i].sender
+          // }
 
           cellsTmp.push([res.data.data[i].slot[0]+0.5,res.data.data[i].slot[1]+0.5,tag])
           // cellsTmp.push([res.data.data[i].slot[0]+0.5,Math.floor(res.data.data[i].slot[1]/2),tag])
@@ -460,5 +469,5 @@ export default {
     margin-top 4px
 #sch-table
   width 100%
-  height 350px
+  height 450px
 </style>

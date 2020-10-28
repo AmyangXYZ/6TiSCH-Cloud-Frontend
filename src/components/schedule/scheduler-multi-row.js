@@ -42,6 +42,7 @@
 const RESERVED=0; //Number of reserved
 const SUBSLOTS=16;
 const ROWS=3;
+const ALGORITHM="partition"
 const partition_config = require("./partition.json");
 
 function partition_init(sf){
@@ -73,12 +74,7 @@ function partition_init(sf){
     partition[r] = {uplink:{}, downlink:{}}
   }
 
-  // Reserved beacon
-  partition.broadcast={start:cur_r0, end:cur_r0+partition_config.beacon};
-  cur_r0+=partition_config.beacon;
-  cur_r1 = cur_r0
-  cur_r2 = cur_r0
-
+  
   // uplink
   for(var u=uplink.length-1; u>=0; --u){
     partition[0].uplink[u]={start:cur_r0, end:cur_r0+uplink_row0[u]};
@@ -90,6 +86,13 @@ function partition_init(sf){
     cur_r2+=uplink_row2[u];
   }
   
+  // Reserved beacon
+  partition.broadcast={start:cur_r0, end:cur_r0+partition_config.beacon};
+  cur_r0+=partition_config.beacon;
+  cur_r1 = cur_r0
+  cur_r2 = cur_r0
+
+
   // downlink
   cur_r0 = sf
   cur_r1 = sf
@@ -171,7 +174,8 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
 
   //initialize partition
   this.partition = partition_init(sf);
-  this.channelRows = {0:[1,2,3,4,5,6,7,8], 1:[9,10,11,12], 2:[13,14,15,16]}
+  console.log(this.partition)
+  this.channelRows = {0:[1,2,3,4,5,6], 1:[7,8,9,10,11,12],2:[13,14,15,16]}
 
   this.setTopology=function(topo) {
     this.topo = topo
@@ -278,8 +282,8 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
       for(var sub = sub_start; sub < sub_end; ++sub){
         if(this.schedule[slot.slot_offset][ch][sub]==null)
           continue;
-        if(info.type=="beacon")//if allocating beacon, must be a dedicated slot, no freq reuse (potential conflict)
-          return false;
+        // if(info.type=="beacon")//if allocating beacon, must be a dedicated slot, no freq reuse (potential conflict)
+        //   return false;
         //KILBYIIOT-6, beacon is no longer monitored after association:  
         //Tao: this is added back, since it can cause potential conflict
         if(this.schedule[slot.slot_offset][ch][sub].type=="beacon")
@@ -384,25 +388,58 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     }
 
     //generate slot list
-    for(var i=0;i<end-start;++i){
-      var slot=partition_slot_list[i];
-      if(flag==0 || flag==2) {
+    var slot_range = 14
+    if(info.layer==1) slot_range = 6
+    if(info.layer==2) slot_range = 7
+    if(info.layer==3) slot_range = 6
+    if(info.layer==4) slot_range = 4
+    if(flag==0 || flag==2) {
         if(info.type=="beacon"){
-          inpartition_slots.push({slot_offset:slot, channel_offset:this.channels[0]});
+          for(var i=0;i<slot_range;++i){
+            var slot=partition_slot_list[i];
+            inpartition_slots.push({slot_offset:slot, channel_offset:this.channels[0]});
+          }
+          
         }else{
           for(var c in this.channelRows[row]) {
             var ch = this.channelRows[row][c]
-            inpartition_slots.push({slot_offset:slot, channel_offset:ch});
+            for(var i=0;i<slot_range;++i){
+              var slot=partition_slot_list[i];
+              inpartition_slots.push({slot_offset:slot, channel_offset:ch});
+            }
           }
         }
       // find available slots in reserved area (layer 0 other channels)
       } else if(flag==1) {
         for(var k=1;k<this.channels.length-1;k++){
           var ch=this.channels[k];
-          inpartition_slots.push({slot_offset:slot, channel_offset:ch});
+          for(var i=0;i<slot_range;++i){
+            var slot=partition_slot_list[i];
+            inpartition_slots.push({slot_offset:slot, channel_offset:ch});
+          }
+          
         }
       }
-    }
+    
+    // for(var i=0;i<slot_range;++i){
+    //   var slot=partition_slot_list[i];
+    //   if(flag==0 || flag==2) {
+    //     if(info.type=="beacon"){
+    //       inpartition_slots.push({slot_offset:slot, channel_offset:this.channels[0]});
+    //     }else{
+    //       for(var c in this.channelRows[row]) {
+    //         var ch = this.channelRows[row][c]
+    //         inpartition_slots.push({slot_offset:slot, channel_offset:ch});
+    //       }
+    //     }
+    //   // find available slots in reserved area (layer 0 other channels)
+    //   } else if(flag==1) {
+    //     for(var k=1;k<this.channels.length-1;k++){
+    //       var ch=this.channels[k];
+    //       inpartition_slots.push({slot_offset:slot, channel_offset:ch});
+    //     }
+    //   }
+    // }
     return inpartition_slots;
   }
   
@@ -635,6 +672,7 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
         }
       }
     }
+    console.log("cannot find this cell", node, type)
   }
 
   // get subtree size (get children and children's children number)
@@ -1101,120 +1139,141 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
 
   }
 
+  // see minimized_used_slots section of the paper
   this.minimize_used_slots=function(type, layer) {
-    if(layer == 0) return
-    var schedule_backup = JSON.parse(JSON.stringify(this.schedule))
-    var used_subslot_backup = JSON.parse(JSON.stringify(this.used_subslot))
-    var old_used_slots_cnt = this.count_used_slots(type, layer)
-    var parents = []
-    for(var i=0;i<this.used_subslot.length;i++) {
-      if(this.used_subslot[i].cell.type==type && this.used_subslot[i].cell.layer==(layer-1)) {
-        if(this.topo[this.used_subslot[i].sender]!=null)
-          parents.push(this.used_subslot[i].sender)
-      }
-    }
-    var children = []
-    for(var j=0;j<parents.length;j++) {
-      children.push(this.topo[parents[j]])
-    }
-    // reset schedule
-    for(var ii=0;ii<used_subslot_backup.length;ii++) {
-      if(used_subslot_backup[ii].cell.type==type && used_subslot_backup[ii].cell.layer==layer) {
-        var cell = used_subslot_backup[ii]
-        // reset this.schedule[slot][ch]
-        this.schedule[cell.slot[0]][cell.slot[1]] = new Array(SUBSLOTS)
-      }
-    }
-
-    // schedule larger branches first
-    children.sort((a, b) => (a.length < b.length) ? 1 : -1)
-    // the minimum used slots list
-    var new_slot_list = []
-
-    for(var k=0;k<children.length;k++) {
-      for(var l=0;l<children[k].length;l++) {
-        var cell = this.find_cell(children[k][l], type).cell
-        // reset this.used_subslot[i]
-        this.remove_usedsubslot(cell.sender, cell.receiver, cell.type)
-        var ret = this.find_empty_subslot([cell.sender, cell.receiver], 1, {type: cell.type, layer: cell.layer})        
-        sch.add_subslot(ret.slot, ret.subslot, {row:ret.row,type:type,layer:layer,sender:cell.sender,receiver:cell.receiver}, ret.is_optimal)
-        new_slot_list.push(ret.slot.slot_offset)
-      }
-    }
-    new_slot_list = Array.from(new Set(new_slot_list)).sort()
-    var new_used_slots_cnt = this.count_used_slots(type, layer)
-
-    // restore old schedule
-    this.schedule = JSON.parse(JSON.stringify(schedule_backup))
-    this.used_subslot = JSON.parse(JSON.stringify(used_subslot_backup))
-
-    // not using minimum slots, need adjustment,
-    // adjust cells not in the new_slot_list, still in the order of branch size
     var edits = 0
-
-    if(new_used_slots_cnt < old_used_slots_cnt) {
-      for(var k=0;k<children.length;k++) {
-        for(var l=0;l<children[k].length;l++) {
-          var old_cell = this.find_cell(children[k][l], type)
-          
-          if(new_slot_list.indexOf(old_cell.slot[0]) == -1) {
-            var ret = this.find_empty_subslot([old_cell.cell.sender, old_cell.cell.receiver], 1, {type:old_cell.cell.type, layer:old_cell.cell.layer})
-
-            // able to move to the right place
-            if(new_slot_list.indexOf(ret.slot.slot_offset) != -1) {
-              this.add_subslot(ret.slot, ret.subslot, {type:old_cell.cell.type,layer:old_cell.cell.layer,row:ret.row,sender:old_cell.cell.sender,receiver:old_cell.cell.receiver}, ret.is_optimal);
-              this.remove_slot({slot_offset:old_cell.slot[0], channel_offset:old_cell.slot[1]})
-              edits++
-            // need to move a cell away
-            } else {
-              var brothers = JSON.parse(JSON.stringify(this.topo[old_cell.cell.receiver]))
-              brothers.splice(brothers.indexOf(old_cell.cell.sender), 1)
-              var brothers_used_slots = {}
-              // no brothers occupied slots
-              var available_slots = []
-              for(var b=0;b<brothers.length;b++)
-                brothers_used_slots[this.find_cell(brothers[b], type).slot[0]] = 1
-            
-              for(var s=0;s<new_slot_list.length;s++)
-                if(brothers_used_slots[new_slot_list[s]] == null)
-                  available_slots.push(new_slot_list[s])
-              available_slots.sort((a, b) => b - a)
-
-              var done = 0
-              // find the cell to be moved
-              for(var ss=0;ss<available_slots.length;ss++) {
-                var slot = available_slots[ss]
-                var channels = []
-                for(var r=0;r<ROWS;r++)
-                  if(slot>=this.partition[r][type][layer].start && slot<this.partition[r][type][layer].end)
-                    channels.push.apply(channels, this.channelRows[r])
-                for(var c=0;c<channels.length;c++) {
-                  var ch = channels[c]
-                  var cell = this.find_cell(this.schedule[slot][ch][0].sender, type)
-                  var ret = this.find_empty_subslot([cell.cell.sender, cell.cell.receiver], 1, {type:cell.cell.type, layer:cell.cell.layer})
-                  if(new_slot_list.indexOf(ret.slot.slot_offset) != -1) {
-                    // move away
-                    this.add_subslot(ret.slot, ret.subslot, {type:cell.cell.type,layer:cell.cell.layer,row:ret.row,sender:cell.cell.sender,receiver:cell.cell.receiver}, ret.is_optimal);
-                    this.remove_slot({slot_offset:cell.slot[0], channel_offset:cell.slot[1]})
-                    // move old_cell here
-                    this.add_subslot({slot_offset:cell.slot[0], channel_offset:cell.slot[1]}, {offset:0, period:1}, {type:old_cell.cell.type,layer:old_cell.cell.layer,row:cell.cell.row,sender:old_cell.cell.sender,receiver:old_cell.cell.receiver}, ret.is_optimal)
-                    this.remove_slot({slot_offset:old_cell.slot[0], channel_offset:old_cell.slot[1]})
-                    done = 1
-                    edits += 2
-                    break
-                  }
-                }
-                if(done) break
-              }
-            }  
-          }
-        }
+    if(layer == 0) return edits
+    // nodes in last layer
+    var cells = []
+    var groups = {}
+    var n = 0
+    for(var i=0;i<this.used_subslot.length;i++) {
+      if(this.used_subslot[i].cell.type==type && this.used_subslot[i].cell.layer==layer) {
+        n++
+        var cell = this.used_subslot[i]
+        var parent = (type=="uplink") ? cell.cell.receiver : cell.cell.sender
+        if(groups[parent]==null) groups[parent] = [cell]
+        else groups[parent].push(cell)
       }
-      console.log("    minimize used slots: "+edits+" edits")
-    } else {
-      console.log("    already using minimum slots")
     }
-    return edits
+    if(n==0) return edits
+
+    for(var i in groups) cells.push(groups[i])
+    cells.sort((a, b) => (a.length < b.length) ? 1 : -1)
+    
+    var alpha = cells[0].length
+    var beta = Math.ceil(n/6)
+    var rho = Math.max(alpha, beta)
+    var cur_slots = this.count_used_slots(type,layer)
+    console.log("minimum needed slots is "+rho+", using "+cur_slots+" now")
+    if(rho<cur_slots) {
+      console.log("perform used slots minimization"); 
+      return edits
+    }
+
+    var min_slot_list = []
+    if(rho<(this.partition[0][type][layer].end-this.partition[0][type][layer].start)) {
+      for(var r=0;r<rho;r++) 
+        min_slot_list.push(this.partition[0][type][layer].end-1-r)
+    } else {
+      // if(rho<)
+    }
+    
+
+    // // schedule larger branches first
+    // children.sort((a, b) => (a.length < b.length) ? 1 : -1)
+    // // the minimum used slots list
+    // var new_slot_list = []
+    // var alpha = children[0].length
+    // // assume row 0 is enough for now, 8 channels
+    // var beta = Math.ceil(n/8)
+    // var rho = Math.max(alpha, beta)
+    // for(var r=0;r<rho;r++) new_slot_list.push(this.partition[0][type][layer].end-1-r)
+
+    // for(var k=0;k<children.length;k++) {
+    //   for(var l=0;l<children[k].length;l++) {
+    //     var cell = this.find_cell(children[k][l], type).cell
+    //     // reset this.used_subslot[i]
+    //     this.remove_usedsubslot(cell.sender, cell.receiver, cell.type)
+    //     var ret = this.find_empty_subslot([cell.sender, cell.receiver], 1, {type: cell.type, layer: cell.layer})        
+    //     sch.add_subslot(ret.slot, ret.subslot, {row:ret.row,type:type,layer:layer,sender:cell.sender,receiver:cell.receiver}, ret.is_optimal)
+    //     new_slot_list.push(ret.slot.slot_offset)
+    //   }
+    // }
+    // new_slot_list = Array.from(new Set(new_slot_list)).sort()
+    // var new_used_slots_cnt = this.count_used_slots(type, layer)
+
+    // // restore old schedule
+    // this.schedule = JSON.parse(JSON.stringify(schedule_backup))
+    // this.used_subslot = JSON.parse(JSON.stringify(used_subslot_backup))
+
+    // // not using minimum slots, need adjustment,
+    // // adjust cells not in the new_slot_list, still in the order of branch size
+    // var edits = 0
+
+    // if(new_used_slots_cnt < old_used_slots_cnt) {
+    //   for(var k=0;k<children.length;k++) {
+    //     for(var l=0;l<children[k].length;l++) {
+    //       var old_cell = this.find_cell(children[k][l], type)
+          
+    //       if(new_slot_list.indexOf(old_cell.slot[0]) == -1) {
+    //         var ret = this.find_empty_subslot([old_cell.cell.sender, old_cell.cell.receiver], 1, {type:old_cell.cell.type, layer:old_cell.cell.layer})
+
+    //         // able to move to the right place
+    //         if(new_slot_list.indexOf(ret.slot.slot_offset) != -1) {
+    //           this.add_subslot(ret.slot, ret.subslot, {type:old_cell.cell.type,layer:old_cell.cell.layer,row:ret.row,sender:old_cell.cell.sender,receiver:old_cell.cell.receiver}, ret.is_optimal);
+    //           this.remove_slot({slot_offset:old_cell.slot[0], channel_offset:old_cell.slot[1]})
+    //           edits++
+    //         // need to move a cell away
+    //         } else {
+    //           var brothers = JSON.parse(JSON.stringify(this.topo[old_cell.cell.receiver]))
+    //           brothers.splice(brothers.indexOf(old_cell.cell.sender), 1)
+    //           var brothers_used_slots = {}
+    //           // no brothers occupied slots
+    //           var available_slots = []
+    //           for(var b=0;b<brothers.length;b++)
+    //             brothers_used_slots[this.find_cell(brothers[b], type).slot[0]] = 1
+            
+    //           for(var s=0;s<new_slot_list.length;s++)
+    //             if(brothers_used_slots[new_slot_list[s]] == null)
+    //               available_slots.push(new_slot_list[s])
+    //           available_slots.sort((a, b) => b - a)
+
+    //           var done = 0
+    //           // find the cell to be moved
+    //           for(var ss=0;ss<available_slots.length;ss++) {
+    //             var slot = available_slots[ss]
+    //             var channels = []
+    //             for(var r=0;r<ROWS;r++)
+    //               if(slot>=this.partition[r][type][layer].start && slot<this.partition[r][type][layer].end)
+    //                 channels.push.apply(channels, this.channelRows[r])
+    //             for(var c=0;c<channels.length;c++) {
+    //               var ch = channels[c]
+    //               var cell = this.find_cell(this.schedule[slot][ch][0].sender, type)
+    //               var ret = this.find_empty_subslot([cell.cell.sender, cell.cell.receiver], 1, {type:cell.cell.type, layer:cell.cell.layer})
+    //               if(new_slot_list.indexOf(ret.slot.slot_offset) != -1) {
+    //                 // move away
+    //                 this.add_subslot(ret.slot, ret.subslot, {type:cell.cell.type,layer:cell.cell.layer,row:ret.row,sender:cell.cell.sender,receiver:cell.cell.receiver}, ret.is_optimal);
+    //                 this.remove_slot({slot_offset:cell.slot[0], channel_offset:cell.slot[1]})
+    //                 // move old_cell here
+    //                 this.add_subslot({slot_offset:cell.slot[0], channel_offset:cell.slot[1]}, {offset:0, period:1}, {type:old_cell.cell.type,layer:old_cell.cell.layer,row:cell.cell.row,sender:old_cell.cell.sender,receiver:old_cell.cell.receiver}, ret.is_optimal)
+    //                 this.remove_slot({slot_offset:old_cell.slot[0], channel_offset:old_cell.slot[1]})
+    //                 done = 1
+    //                 edits += 2
+    //                 break
+    //               }
+    //             }
+    //             if(done) break
+    //           }
+    //         }  
+    //       }
+    //     }
+    //   }
+    //   console.log("    minimize used slots: "+edits+" edits")
+    // } else {
+    //   console.log("    already using minimum slots")
+    // }
+    // return edits
   }
   
   //generate a shuffled slot list to iterate
@@ -1256,6 +1315,7 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
   this.LLSF=function(parent,type) {
     var slot_list = []
     var slots = []
+    // gateway is 0 in simulation, 1 in testbed
     if(parent == 0) {
       return this.shuffle_slots()
     }
@@ -1277,16 +1337,15 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
   } 
 
   this.count_used_slots=function(type, layer) {
-    var cells = []
+    var slots = {}
     for(var i=0;i<this.used_subslot.length;i++) {
       if(this.used_subslot[i].is_optimal && this.used_subslot[i].cell.type==type && this.used_subslot[i].cell.layer==layer) {
-        cells.push(this.used_subslot[i])
+        var cell = this.used_subslot[i]
+        if(slots[cell.slot[0]]==null) slots[cell.slot[0]] = [cell]
+        else slots[cell.slot[0]].push(cell)
       }
     }
-    if(cells.length == 0) return 0
-    cells.sort((a, b) => (a.slot[0] > b.slot[0]) ? 1 : -1)
-    var used_slots_number = cells[cells.length-1].slot[0] - cells[0].slot[0] + 1
-    return used_slots_number
+    return Object.keys(slots).length
   }
   
   // put unaligned links back
@@ -1346,7 +1405,8 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     
     // random
     if(this.algorithm == "random") {
-      slots_list=this.shuffle_slots()
+      if(info.type == "beacon") slots_list = this.inpartition_slots(0, info, 0)
+      else slots_list=this.shuffle_slots()
       for(var i=0;i<slots_list.length;++i){
         var slot=slots_list[i];
         for(var offset=0;offset<period;++offset){
@@ -1359,7 +1419,8 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     }
     // LLSF, minimize slot gaps
     if(this.algorithm == "LLSF") {
-      slots_list=this.LLSF(parent, info.type)
+      if(info.type == "beacon") slots_list = this.inpartition_slots(0, info, 0)
+      else slots_list=this.LLSF(parent, info.type)
       for(var i=0;i<slots_list.length;++i){
         var slot=slots_list[i];
         for(var offset=0;offset<period;++offset){
@@ -1399,7 +1460,7 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
       }
     }
     
-    console.log(nodes_list,info,"No emplty slot found");
+    console.log(nodes_list,info,"No empty slot found");
     this.isFull=true;
     return  {slot:{slot_offset:5,channel_offset:10},row:0,subslot:{offset:0,period:16}, is_optimal:0};
   }

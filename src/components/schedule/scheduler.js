@@ -556,7 +556,7 @@ Cell = {type, sender, receiver}
 
     return count
   }
-
+  
   // adjust the partition and its neighbour's size
   // side: 'left' or 'right'
   // offset >0 expand, <0 shrink
