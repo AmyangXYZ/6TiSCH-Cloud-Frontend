@@ -35,7 +35,7 @@ export default {
   font-weight 500
   font-size 1.6rem
   margin-left 90px
-  margin-bottom 30px
+  margin-bottom 15px
   #subtitle  
     font-size 1.4rem
 #nbar

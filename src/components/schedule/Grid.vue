@@ -19,7 +19,8 @@ import ECharts from "vue-echarts/components/ECharts"
 import "echarts/lib/chart/scatter"
 import "echarts/lib/chart/effectScatter"
 import "echarts/lib/component/markLine";
-// import nodes from "./topo-sim/100nodes/100nodes-5.json"
+import "echarts/lib/component/toolbox";
+import nodes from "./nodes2.json"
 import noiseList from "./noiseList.json"
 
 export default {
@@ -29,7 +30,7 @@ export default {
   data() {
     return {
       gwPos: [],
-      size: 22,
+      size: 25,
       kicked: [],
       history_cp: [],
       history_cl: [],
@@ -43,6 +44,11 @@ export default {
       noiseID: 0,
       blacklist: [],
       option: {
+        toolbox:{
+          feature:{
+            saveAsImage:{}
+          }
+        },
         grid: {
           top: '5%',
           left: '5%',
@@ -70,7 +76,7 @@ export default {
             },
             data: [],
             label: {
-              show: true,
+              show: false,
               color: "black",
               fontSize: 17,
               formatter: (item)=> {
@@ -168,10 +174,10 @@ export default {
         }
       }
       // gen gateway and nodes
-      var xx=Math.round((this.size-10)*Math.random()+5)
-      var yy=Math.round((this.size-10)*Math.random()+5)
-      this.gwPos = [xx,yy]
-      // this.gwPos = nodes[0]
+      // var xx=Math.round((this.size-10)*Math.random()+5)
+      // var yy=Math.round((this.size-10)*Math.random()+5)
+      // this.gwPos = [xx,yy]
+      this.gwPos = nodes[0]
       // this.gwPos = [10,10]
       this.nodes = {0:{parent:-1,position:this.gwPos,layer:-1,path:[0]}}
       this.option.series[3].data = [this.gwPos]
@@ -187,9 +193,9 @@ export default {
         pos_list[x+'-'+y] = 1
         this.nodes[i]={parent:-1,position:[x,y],layer:-1, path:[i]}
       }
-      // window.console.log(nodes[0])
+      window.console.log(nodes[0])
     
-      // this.nodes = nodes
+      this.nodes = nodes
     
       for(var nn=0;nn<Object.keys(this.nodes).length;nn++) {
         this.option.series[0].data.push(this.nodes[nn].position)

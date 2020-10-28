@@ -49,7 +49,7 @@ export default {
       infoWindowActive:false,
       infoWindowPos: {lat:0,lng:0},
       infoWindowOpt: {},
-      zoom: 21.61,
+      zoom: 21,
       center: {lat:41.806617, lng:-72.252749}, // ITEB
       sensors : [],
       markers: [],
@@ -58,12 +58,12 @@ export default {
         styles: [{
             "featureType": "poi",
                 "stylers": [{
-                "visibility": "off"
+                // "visibility": "off"
             }]
         },{
             "featureType": "transit",
                 "stylers": [{
-                "visibility": "off"
+                // "visibility": "off"
             }]
         }]
       }
@@ -271,8 +271,8 @@ export default {
       this.$EventBus.$emit("showLayersPanel", 0)
       this.clearNoiseLayer()
       this.drawTopology(this.selectedGW, this.selectedRange)
-      this.zoom = 21
-      this.panTo({lat:41.806611, lng:-72.252733})
+      this.zoom = this.zoom
+      this.panTo(this.center)
     }
   },
   mounted() {
@@ -295,7 +295,7 @@ export default {
       this.drawTopology(this.selectedGW, this.selectedRange)
       this.infoWindowActive = false
       this.panTo({lat:41.806611, lng:-72.252733})
-      this.zoom = 21
+      this.zoom = 21.61
     });
     this.$EventBus.$on("selectedRange", (range)=>{
       this.selectedRange = range
@@ -304,7 +304,7 @@ export default {
       if(this.noiseLayerFlag) {this.clearNoiseLayer();this.drawNoiseLayer()}
       this.infoWindowActive = false
       this.panTo({lat:41.806611, lng:-72.252733})
-      this.zoom = 21
+      this.zoom = 21.61
     })
 
     this.$EventBus.$on("filterRes", (res)=>{
