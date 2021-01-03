@@ -1,5 +1,6 @@
 /*eslint-disable*/
 var scheduler = require('./scheduler-multi-row')
+var scheduler1row = require('./scheduler')
 
 function get_partition() {
   var p = []
@@ -11,6 +12,17 @@ function get_partition() {
     }
   }
   // console.log(sch.partition)
+  return p
+}
+
+function get_partition1row() {
+  var p = []
+  p.push({type:"beacon", layer:0, range:[sch2.partition.broadcast.start,sch2.partition.broadcast.end]})
+  for(var l=0;l<Object.keys(sch2.partition.uplink).length;l++) {
+      p.push({type:'uplink',layer:l, range:[sch2.partition.uplink[l].start,sch2.partition.uplink[l].end]})
+      p.push({type:'downlink',layer:l, range:[sch2.partition.downlink[l].start,sch2.partition.downlink[l].end]})
+     
+  }
   return p
 }
 
@@ -27,13 +39,13 @@ function static_schedule1() {
     var parent = topo[node].parent
     var layer = topo[node].layer
 
-    // var ret=sch.find_empty_subslot([node],16,{type:"beacon",layer:0});
-    // sch.add_subslot(ret.slot, ret.subslot, {type:"beacon",layer:layer,row:ret.row, sender:node,receiver:0xffff}, ret.is_optimal);
+    // var ret=sch1.find_empty_subslot([node],8,{type:"beacon",layer:0});
+    // sch1.add_subslot(ret.slot, ret.subslot, {type:"beacon",layer:layer,row:ret.row, sender:node,receiver:0xffff}, ret.is_optimal);
 
     var ret=sch1.find_empty_subslot([node,parent],1,{type:"uplink",layer:layer});
     sch1.add_subslot(ret.slot, ret.subslot, {type:"uplink",layer:layer,row:ret.row,sender:node,receiver:parent}, ret.is_optimal);    
-    var ret=sch1.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer});
-    sch1.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer,row:ret.row,sender:parent,receiver:node}, ret.is_optimal);
+    // var ret=sch1.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer});
+    // sch1.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer,row:ret.row,sender:parent,receiver:node}, ret.is_optimal);
   }
 }
 
@@ -43,13 +55,14 @@ function static_schedule2() {
     var parent = topo[node].parent
     var layer = topo[node].layer
 
-    // var ret=sch.find_empty_subslot([node],16,{type:"beacon",layer:0});
-    // sch.add_subslot(ret.slot, ret.subslot, {type:"beacon",layer:layer,row:ret.row, sender:node,receiver:0xffff}, ret.is_optimal);
+    // var ret=sch2.find_empty_subslot([node],8,{type:"beacon",layer:0});
+    // sch2.add_subslot(ret.slot, ret.subslot, {type:"beacon",layer:layer,row:ret.row, sender:node,receiver:0xffff}, ret.is_optimal);
 
     var ret=sch2.find_empty_subslot([node,parent],1,{type:"uplink",layer:layer});
-    sch2.add_subslot(ret.slot, ret.subslot, {type:"uplink",layer:layer,row:ret.row,sender:node,receiver:parent}, ret.is_optimal);    
-    var ret=sch2.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer});
-    sch2.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer,row:ret.row,sender:parent,receiver:node}, ret.is_optimal);
+    if(ret!=null)
+      sch2.add_subslot(ret.slot, ret.subslot, {type:"uplink",layer:layer,row:ret.row,sender:node,receiver:parent}, ret.is_optimal);    
+    // var ret=sch2.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer});
+    // sch2.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer,row:ret.row,sender:parent,receiver:node}, ret.is_optimal);
   }
 }
 
@@ -59,8 +72,8 @@ function static_schedule3() {
     var parent = topo[node].parent
     var layer = topo[node].layer
 
-    // var ret=sch.find_empty_subslot([node],16,{type:"beacon",layer:0});
-    // sch.add_subslot(ret.slot, ret.subslot, {type:"beacon",layer:layer,row:ret.row, sender:node,receiver:0xffff}, ret.is_optimal);
+    var ret=sch3.find_empty_subslot([node],8,{type:"beacon",layer:0});
+    sch3.add_subslot(ret.slot, ret.subslot, {type:"beacon",layer:layer,row:ret.row, sender:node,receiver:0xffff}, ret.is_optimal);
 
     var ret=sch3.find_empty_subslot([node,parent],1,{type:"uplink",layer:layer});
     sch3.add_subslot(ret.slot, ret.subslot, {type:"uplink",layer:layer,row:ret.row,sender:node,receiver:parent}, ret.is_optimal);    
@@ -75,14 +88,14 @@ function dynamic_schedule(node) {
   var ret=sch1.find_empty_subslot([node.id,node.parent],1,{type:"uplink",layer:node.layer});
   sch1.add_subslot(ret.slot, ret.subslot, {row:ret.row,type:"uplink",layer:node.layer,sender:node.id,receiver:node.parent}, ret.is_optimal);
 
-  ret=sch1.find_empty_subslot([node.parent, node.id],1,{type:"downlink",layer:node.layer});
-  sch1.add_subslot(ret.slot, ret.subslot, {row:ret.row, type:"downlink",layer:node.layer,sender:node.parent,receiver:node.id}, ret.is_optimal);
+  // ret=sch1.find_empty_subslot([node.parent, node.id],1,{type:"downlink",layer:node.layer});
+  // sch1.add_subslot(ret.slot, ret.subslot, {row:ret.row, type:"downlink",layer:node.layer,sender:node.parent,receiver:node.id}, ret.is_optimal);
   
-  var ret=sch2.find_empty_subslot([node.id,node.parent],1,{type:"uplink",layer:node.layer});
-  sch2.add_subslot(ret.slot, ret.subslot, {row:ret.row,type:"uplink",layer:node.layer,sender:node.id,receiver:node.parent}, ret.is_optimal);
+  // var ret=sch2.find_empty_subslot([node.id,node.parent],1,{type:"uplink",layer:node.layer});
+  // sch2.add_subslot(ret.slot, ret.subslot, {row:ret.row,type:"uplink",layer:node.layer,sender:node.id,receiver:node.parent}, ret.is_optimal);
 
-  ret=sch2.find_empty_subslot([node.parent, node.id],1,{type:"downlink",layer:node.layer});
-  sch2.add_subslot(ret.slot, ret.subslot, {row:ret.row, type:"downlink",layer:node.layer,sender:node.parent,receiver:node.id}, ret.is_optimal);
+  // ret=sch2.find_empty_subslot([node.parent, node.id],1,{type:"downlink",layer:node.layer});
+  // sch2.add_subslot(ret.slot, ret.subslot, {row:ret.row, type:"downlink",layer:node.layer,sender:node.parent,receiver:node.id}, ret.is_optimal);
 
   // var ret=sch3.find_empty_subslot([node.id,node.parent],1,{type:"uplink",layer:node.layer});
   // sch3.add_subslot(ret.slot, ret.subslot, {row:ret.row,type:"uplink",layer:node.layer,sender:node.id,receiver:node.parent}, ret.is_optimal);
@@ -139,7 +152,6 @@ function kick3(nodes) {
 
 function init1(topology,seq) {
   sch1 = scheduler.create_scheduler(127,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],"partition")
-  
   topo = topology
   // topo for scheduler, {parent: [children]}
   var sch_topo = {0:[]}
@@ -147,28 +159,34 @@ function init1(topology,seq) {
     if(sch_topo[topo[n].parent]!=null) sch_topo[topo[n].parent].push(n)
     else sch_topo[topo[n].parent] = [n]
   }
-  sch1.setTopology(sch_topo)
+  // sch1.setTopology(sch_topo)
   join_seq = seq
   static_schedule1()
+  var n1 = sch1.count_used_slotss()
+  var n2 = sch1.count_multi_ch_slots()
+  console.log("2D PART uses", n1, "slots, and", n2,"slots","("+(n2/n1*100.0).toFixed(2)+"%)", "use multiple channels")
   // sch.dynamic_partition_adjustment()
-  return {cells:sch1.used_subslot, partitions: get_partition()}
+  return {cells:sch1.used_subslot, partitions: get_partition(), n1:n1, n2:n2}
 }
 
 function init2(topology,seq) {
-  sch2 = scheduler.create_scheduler(127,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],"LLSF")
+  sch2 = scheduler1row.create_scheduler(127,[1,2,3,4,5,6,7])
   
-  topo = topology
+  // topo = topology
   // topo for scheduler, {parent: [children]}
-  var sch_topo = {0:[]}
-  for(var n=1;n<Object.keys(topo).length;n++) {
-    if(sch_topo[topo[n].parent]!=null) sch_topo[topo[n].parent].push(n)
-    else sch_topo[topo[n].parent] = [n]
-  }
-  sch2.setTopology(sch_topo)
+  // var sch_topo = {0:[]}
+  // for(var n=1;n<Object.keys(topo).length;n++) {
+  //   if(sch_topo[topo[n].parent]!=null) sch_topo[topo[n].parent].push(n)
+  //   else sch_topo[topo[n].parent] = [n]
+  // }
+  // sch2.setTopology(sch_topo)
   join_seq = seq
   static_schedule2()
+  var n1 = sch2.count_used_slots()
+  var n2 = sch2.count_multi_ch_slots()
+  console.log("1D PART uses", n1, "slots, and", n2,"slots","("+(n2/n1*100.0).toFixed(2)+"%)", "use multiple channels")
   // sch.dynamic_partition_adjustment()
-  return {cells:sch2.used_subslot, partitions: get_partition()}
+  return {cells:sch2.used_subslot, partitions: get_partition1row(), n1:n1, n2:n2}
 }
 
 function init3(topology,seq) {
@@ -192,7 +210,7 @@ function get_sch() {
   return {cells:sch1.used_subslot, partitions: get_partition()}
 }
 function get_sch2() {
-  return {cells:sch2.used_subslot, partitions: get_partition()}
+  return {cells:sch2.used_subslot, partitions: get_partition1row()}
 }
 function get_sch3() {
   return {cells:sch3.used_subslot, partitions: get_partition()}
@@ -211,21 +229,21 @@ function intra_partition_adjustment(topology) {
     if(sch_topo[topology[n].parent]!=null) sch_topo[topology[n].parent].push(n)
     else sch_topo[topology[n].parent] = [n]
   }
-  sch.setTopology(sch_topo)
+  sch1.setTopology(sch_topo)
   
   l++
-  edits += sch.intra_partition_adjustment("uplink", l)
+  edits += sch1.intra_partition_adjustment("uplink", l)
   
   if(l==5) l = -1
   
   // // console.log(sch.get_idles_all())
   // sch.dynamic_partition_adjustment()
-  return {cells:sch.used_subslot, partitions: get_partition(), edits}
+  return {cells:sch1.used_subslot, partitions: get_partition(), edits}
 }
 
 function inter_partition_adjustment() {
-  sch.adjust_unaligned_cells()
-  return {cells:sch.used_subslot, partitions: get_partition()}
+  sch1.adjust_unaligned_cells()
+  return {cells:sch1.used_subslot, partitions: get_partition()}
 }
 
 function get_scheduler() {

@@ -88,7 +88,7 @@ function partition_init(sf){
   var downlink = partition_config.downlink.slice();
   partition_scale(downlink, b_u_d[2]);*/
   //Beacon reserved version
-  var u_d = [partition_config.uplink_total, partition_config.downlink_total];
+  var u_d = [Math.floor(sf-partition_config.beacon)/2, Math.floor(sf-partition_config.beacon)/2];
   partition_scale(u_d, sf-RESERVED-partition_config.beacon);
   var uplink = partition_config.uplink.slice();
   partition_scale(uplink, u_d[0]);
@@ -103,8 +103,7 @@ function partition_init(sf){
   cur+=b_u_d[0];*/
 
   //Beacon reserved version
-  partition.broadcast={start:cur, end:cur+partition_config.beacon};
-  cur+=partition_config.beacon;
+  
 
   partition.uplink={};
   partition.downlink={};
@@ -112,6 +111,7 @@ function partition_init(sf){
     partition.uplink[i.toString()]={start:cur, end:cur+uplink[i]};
     cur+=uplink[i];
   }
+  
   //FIXME: swap the placement of uplink[0] and downlink[0]
   if(algorithm == PARTPLUS){
     partition.downlink["0"]={start:cur, end:cur+downlink[0]};
@@ -121,6 +121,8 @@ function partition_init(sf){
   }else{
     partition.uplink["0"]={start:cur, end:cur+uplink[0]};
     cur+=uplink[0];
+    partition.broadcast={start:cur, end:cur+partition_config.beacon};
+  cur+=partition_config.beacon;
     partition.downlink["0"]={start:cur, end:cur+downlink[0]};
     cur+=downlink[0];
   }
@@ -129,7 +131,7 @@ function partition_init(sf){
     cur+=downlink[i];
   }
 
-  console.log("patition:", partition);
+  // console.log("patition:", partition);
   return partition;
 }
 function create_scheduler(sf,ch){
@@ -143,7 +145,7 @@ Cell = {type, sender, receiver}
     return new create_scheduler(sf,ch);
   }
   
-  console.log("create_scheduler("+sf+","+ch+")");
+  // console.log("create_scheduler("+sf+","+ch+")");
   this.slotFrameLength=sf;
   this.channels=ch;
   this.schedule = new Array(sf);
@@ -355,14 +357,15 @@ Cell = {type, sender, receiver}
       // higher layers
       if(info.layer>0){
         if(info.type=="uplink") {
-          // as early as possible
-          for(var i=0;i<end-start;++i){
-            partition_slot_list[i]=start+i;
-          }
-        } else {
           // as late as possible
-          for(var i=0;i<end-start;i++){
+           for(var i=0;i<end-start;i++){
             partition_slot_list[i]=end-1-i;
+          }
+          
+        } else {
+          // as early as possible
+         for(var i=0;i<end-start;++i){
+            partition_slot_list[i]=start+i;
           }
         }
         
@@ -678,7 +681,7 @@ Cell = {type, sender, receiver}
     // assign a random slot
     // slots_list=this.shuffle_slots();
     // assign in reserved area
-    slots_list = this.inpartition_slots(1, {type:info.type, layer: 0});
+    slots_list = this.inpartition_slots(1, {type:"downlink", layer: 0});
     for(var i=0;i<slots_list.length;++i){
       var slot=slots_list[i];
       for(var offset=0;offset<period;++offset){
@@ -690,9 +693,39 @@ Cell = {type, sender, receiver}
       }
     }
     
-    console.log("No emplty slot found");
+    // console.log("No empty slot found");
     this.isFull=true;
     return null;
+  }
+  this.count_used_slots=function() {
+    var cnt = 0;
+    for(var slot=0;slot<127;slot++) {
+      var flag = 0;
+      for(var ch=1;ch<8;ch++) {
+        if(this.schedule[slot][ch][0]!=null) {
+          flag = 1
+          break
+        }
+      }
+      if(flag == 1)
+        cnt++
+    }
+    return cnt
+  }
+
+  this.count_multi_ch_slots=function() {
+    var cnt = 0;
+    for(var slot=0;slot<127;slot++) {
+      var tmp = 0;
+      for(var ch=1;ch<8;ch++) {
+        if(this.schedule[slot][ch][0]!=null) {
+          tmp++
+        }
+      }
+      if(tmp>1)
+        cnt++
+    }
+    return cnt
   }
 
   this.remove_node=function(node){

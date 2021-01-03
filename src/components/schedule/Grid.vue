@@ -30,7 +30,7 @@ export default {
   data() {
     return {
       gwPos: [],
-      size: 25,
+      size: 20,
       kicked: [],
       history_cp: [],
       history_cl: [],
@@ -174,10 +174,10 @@ export default {
         }
       }
       // gen gateway and nodes
-      // var xx=Math.round((this.size-10)*Math.random()+5)
-      // var yy=Math.round((this.size-10)*Math.random()+5)
-      // this.gwPos = [xx,yy]
-      this.gwPos = nodes[0]
+      var xx=Math.round((this.size-10)*Math.random()+5)
+      var yy=Math.round((this.size-10)*Math.random()+5)
+      this.gwPos = [xx,yy]
+      // this.gwPos = nodes[0]
       // this.gwPos = [10,10]
       this.nodes = {0:{parent:-1,position:this.gwPos,layer:-1,path:[0]}}
       this.option.series[3].data = [this.gwPos]
@@ -193,9 +193,9 @@ export default {
         pos_list[x+'-'+y] = 1
         this.nodes[i]={parent:-1,position:[x,y],layer:-1, path:[i]}
       }
-      window.console.log(nodes[0])
+      window.console.log(nodes[0]==true)
     
-      this.nodes = nodes
+      // this.nodes = nodes
     
       for(var nn=0;nn<Object.keys(this.nodes).length;nn++) {
         this.option.series[0].data.push(this.nodes[nn].position)

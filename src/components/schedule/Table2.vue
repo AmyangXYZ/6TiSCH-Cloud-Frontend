@@ -2,10 +2,24 @@
 
       <vs-card>
         <div slot="header" >
-          <h4>LLSF Scheduler | <span style="text-decoration:underline;cursor:pointer;" @click="handleSwitch">{{simOrReal}}</span>
+          <h4>1D Partition Scheduler | <span style="text-decoration:underline;cursor:pointer;" @click="handleSwitch">{{simOrReal}}</span>
           
           </h4>
         </div>
+        <div class="partition-usage">
+          
+          <!-- <vs-row vs-type="flex" vs-justify="space-around" vs-w="12">
+            <vs-col vs-w="2">
+              <h3>{{this.slots.length}} links, {{nonOptimalCnt}} non-aligned</h3>
+              <h3>{{this.slots.length}} links</h3>
+            </vs-col>
+            <vs-col id="part" vs-w="0.5" v-for="(l,i) in links" :key="i">
+              {{l.name}}: {{l.used-l.non_optimal}}<span class="non-optimal" v-if="l.non_optimal>0">+{{l.non_optimal}}</span>
+            </vs-col>
+          </vs-row> -->
+          {{this.res.n1}} slots used, {{this.res.n2}} slots use multiple channels
+        </div>
+        <vs-divider/>
         <ECharts id="sch-table" autoresize :options="option" @click="handleClickSch" />        
       </vs-card>
 
@@ -216,10 +230,20 @@ export default {
 
         this.partitions = res.data.data
         var markAreaTmp = []
-        var colors = ['#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
-
-        var colorMap = {B:"#313695"}
-        var color_index = 0
+        var colorMap = {
+          "B":{'rgb':"#ffa000", opacity:0.5},
+          "U1":{'rgb':"#1d71f2", opacity:0.6},
+          "D1":{'rgb':"#ffff00", opacity:0.6},
+          "U2":{'rgb':"#4e92f5", opacity:0.5},
+          "D2":{'rgb':"#ffff60", opacity:0.6},
+          "U3":{'rgb':"#80b3f8", opacity:0.5},
+          "D3":{'rgb':"#ffff80", opacity:0.5},
+          "U4":{'rgb':"#b1d3fb", opacity:0.5},
+          "D4":{'rgb':"#ffffc0", opacity:0.5},
+          "U5":{'rgb':"#e3f4fe", opacity:0.5},
+          "D5":{'rgb':"#ffffee", opacity:0.5},
+        }
+        // var color_index = 0
         for(var i=0;i<res.data.data.length;i++) {
           // init beacon subslots
           if(res.data.data[i].type=="beacon") {
@@ -228,27 +252,18 @@ export default {
             }            
           }
           // partition size > 0
+          res.data.data[i].layer++
           if(res.data.data[i].range[0]<res.data.data[i].range[1]) {
             var name = res.data.data[i].type[0].toUpperCase()
             if(name!="B") name+=res.data.data[i].layer
-            if(colorMap[name]==null) {
-              colorMap[name] = colors[color_index%colors.length]
-              color_index+=1
-            }
-            
+            // if(colorMap[name]==null) {
+            //   colorMap[name] = colors[color_index%colors.length]
+            //   color_index+=1
+            // }
             var y1 = 1
             var y2 = 17
             var pos = "insideBottom"
-            if(res.data.data[i].row==0) {
-              y1 = 1
-              y2 =9
-            } else if(res.data.data[i].row==1) {
-              y1 = 9
-              y2 = 13
-            } else if(res.data.data[i].row==2) {
-              y1 = 13
-              y2 = 17
-            }
+            
             if(res.data.data[i].type=="uplink") {
               pos = "insideBottomLeft"
             } else {
@@ -264,7 +279,7 @@ export default {
               {
                 xAxis:res.data.data[i].range[1], 
                 yAxis: y2,
-                itemStyle:{color:colorMap[name],opacity:0.5},
+                itemStyle:{color:colorMap[name].rgb, opacity:colorMap[name].opacity,borderColor:"black",borderWidth:0.1},
                 label:{color:"black",fontWeight:"bold",fontSize:16, position:pos}
               },
             ])
@@ -316,6 +331,10 @@ export default {
             tag = 0
           }
           if(res.data.data[i].type=="beacon") {
+            tag = -1
+          }
+        
+          if(res.data.data[i].is_optimal != 1) {
             tag = -1
           }
 
@@ -405,13 +424,13 @@ export default {
   },
 
   mounted() {
-    window.table = this
+    // window.table = this
     this.$EventBus.$on("topo", (topo) => {
       this.topo = topo.data
       this.seq = topo.seq
       this.res = init2(topo.data, topo.seq)
       this.$EventBus.$emit("cells2",this.res.cells)
-      this.drawSchedule()
+      this.drawPartition()
       // setTimeout(this.getCrossRowLinks,1000)
       // window.sch = get_scheduler()
     });
@@ -458,7 +477,8 @@ export default {
   font-weight 600
   color red
 .partition-usage
-  font-size 0.9rem
+  font-size 1.2rem
+  text-align center
   #part
     margin-top 4px
 #sch-table

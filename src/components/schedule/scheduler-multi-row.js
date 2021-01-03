@@ -174,7 +174,7 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
 
   //initialize partition
   this.partition = partition_init(sf);
-  console.log(this.partition)
+  // console.log(this.partition)
   this.channelRows = {0:[1,2,3,4,5,6], 1:[7,8,9,10,11,12],2:[13,14,15,16]}
 
   this.setTopology=function(topo) {
@@ -317,7 +317,7 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
   // flag=1: assign non-optimal slots in layer 0 reserved area
   // flag=2: return huge slots list to find the needed size to 
   //         assign all its non-optimal slots back.
-  this.inpartition_slots=function(flag,info,row){
+this.inpartition_slots=function(flag,info,row){
     // console.log("Partition schedule locating: "+info.type+", layer="+info.layer)
     var inpartition_slots=[];//result slot list
 
@@ -388,58 +388,25 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     }
 
     //generate slot list
-    var slot_range = 14
-    if(info.layer==1) slot_range = 6
-    if(info.layer==2) slot_range = 7
-    if(info.layer==3) slot_range = 6
-    if(info.layer==4) slot_range = 4
-    if(flag==0 || flag==2) {
+    for(var i=0;i<end-start;++i){
+      var slot=partition_slot_list[i];
+      if(flag==0 || flag==2) {
         if(info.type=="beacon"){
-          for(var i=0;i<slot_range;++i){
-            var slot=partition_slot_list[i];
-            inpartition_slots.push({slot_offset:slot, channel_offset:this.channels[0]});
-          }
-          
+          inpartition_slots.push({slot_offset:slot, channel_offset:this.channels[0]});
         }else{
           for(var c in this.channelRows[row]) {
             var ch = this.channelRows[row][c]
-            for(var i=0;i<slot_range;++i){
-              var slot=partition_slot_list[i];
-              inpartition_slots.push({slot_offset:slot, channel_offset:ch});
-            }
+            inpartition_slots.push({slot_offset:slot, channel_offset:ch});
           }
         }
       // find available slots in reserved area (layer 0 other channels)
       } else if(flag==1) {
         for(var k=1;k<this.channels.length-1;k++){
           var ch=this.channels[k];
-          for(var i=0;i<slot_range;++i){
-            var slot=partition_slot_list[i];
-            inpartition_slots.push({slot_offset:slot, channel_offset:ch});
-          }
-          
+          inpartition_slots.push({slot_offset:slot, channel_offset:ch});
         }
       }
-    
-    // for(var i=0;i<slot_range;++i){
-    //   var slot=partition_slot_list[i];
-    //   if(flag==0 || flag==2) {
-    //     if(info.type=="beacon"){
-    //       inpartition_slots.push({slot_offset:slot, channel_offset:this.channels[0]});
-    //     }else{
-    //       for(var c in this.channelRows[row]) {
-    //         var ch = this.channelRows[row][c]
-    //         inpartition_slots.push({slot_offset:slot, channel_offset:ch});
-    //       }
-    //     }
-    //   // find available slots in reserved area (layer 0 other channels)
-    //   } else if(flag==1) {
-    //     for(var k=1;k<this.channels.length-1;k++){
-    //       var ch=this.channels[k];
-    //       inpartition_slots.push({slot_offset:slot, channel_offset:ch});
-    //     }
-    //   }
-    // }
+    }
     return inpartition_slots;
   }
   
@@ -994,6 +961,8 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
     return this.total_edits
   }
 
+
+
   // adjust the order of cells of one partition by subtree size
   // determine the order by size and then do a `rejoin` process to compute the optimal schedule
   this.adjust_subtree_distribution_v0=function(type, layer) {
@@ -1309,6 +1278,37 @@ used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell
       return ca-cb;
     });
     return shuffled_slots;
+  }
+    
+  this.count_used_slotss=function() {
+    var cnt = 0;
+    for(var slot=0;slot<127;slot++) {
+      var flag = 0;
+      for(var ch=1;ch<17;ch++) {
+        if(this.schedule[slot][ch][0]!=null) {
+          flag = 1
+          break
+        }
+      }
+      if(flag == 1)
+        cnt++
+    }
+    return cnt
+  }
+
+  this.count_multi_ch_slots=function() {
+    var cnt = 0;
+    for(var slot=0;slot<127;slot++) {
+      var tmp = 0;
+      for(var ch=1;ch<8;ch++) {
+        if(this.schedule[slot][ch][0]!=null) {
+          tmp++
+        }
+      }
+      if(tmp>1)
+        cnt++
+    }
+    return cnt
   }
 
   // LLSF scheduler, return the slot list in the left/right of its parent's uplink/downlink slot
