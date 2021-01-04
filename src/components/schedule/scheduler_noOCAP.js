@@ -314,23 +314,17 @@ Cell = {type, sender, receiver}
     this.topo = topo
     this.sch_topo = sch_topo
     this.maxNeededSlotPerLayer = []
-    this.nodesPerLayer = [0,0,0,0,0]
     for(var l=0;l<5;l++) {
       var tmp = 0;
       for(var i=1;i<Object.keys(this.topo).length;i++) {
         if(this.topo[i].layer == l) {
-          this.nodesPerLayer[l]++
           var broNumber = this.sch_topo[this.topo[i].parent].length
           if(broNumber>tmp) 
             tmp = broNumber
         }
       }
-      console.log(tmp, Math.ceil(this.nodesPerLayer[l]/this.channels.length))
-      if(tmp<Math.ceil(this.nodesPerLayer[l]/this.channels.length))
-        tmp = Math.ceil(this.nodesPerLayer[l]/this.channels.length)
       this.maxNeededSlotPerLayer.push(tmp)
     }
-    console.log(this.nodesPerLayer)
   }
 
   // generate a slot list inside the partition.
@@ -375,7 +369,7 @@ Cell = {type, sender, receiver}
     if(flag==3) {
       var partition_slot_list=[];
       var tmp = (start>end-this.maxNeededSlotPerLayer[info.layer])?start:end-this.maxNeededSlotPerLayer[info.layer]
-      for(var i=end-1;i>=tmp;i--) {
+      for(var i=end-1;i>=start;i--) {
         partition_slot_list.push(i)
       }
 
@@ -707,7 +701,7 @@ Cell = {type, sender, receiver}
 
     //This part is the partitioned scheduler
     if((algorithm == PART || algorithm == PARTPLUS ) && info!=null){
-      slots_list=this.inpartition_slots(3,info);
+      slots_list=this.inpartition_slots(0,info);
       for(var i=0;i<slots_list.length;++i){
         var slot=slots_list[i];
 
@@ -746,7 +740,7 @@ Cell = {type, sender, receiver}
     var cnt = 0;
     for(var slot=0;slot<127;slot++) {
       var flag = 0;
-      for(var ch=1;ch<this.channels.length+1;ch++) {
+      for(var ch=1;ch<this.channels.length;ch++) {
         if(this.schedule[slot][ch][0]!=null) {
           flag = 1
           break

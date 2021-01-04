@@ -1,6 +1,9 @@
 /*eslint-disable*/
 var scheduler = require('./scheduler-multi-row')
 var scheduler1row = require('./scheduler')
+var scheduler1rowNoOCAP = require('./scheduler_noOCAP')
+// const { sort } = require('core-js/fn/array')
+// const { sort } = require('core-js/fn/array')
 
 function get_partition() {
   var p = []
@@ -21,6 +24,18 @@ function get_partition1row() {
   for(var l=0;l<Object.keys(sch2.partition.uplink).length;l++) {
       p.push({type:'uplink',layer:l, range:[sch2.partition.uplink[l].start,sch2.partition.uplink[l].end]})
       p.push({type:'downlink',layer:l, range:[sch2.partition.downlink[l].start,sch2.partition.downlink[l].end]})
+     
+  }
+  return p
+}
+
+
+function get_partition1rowNoOCAP() {
+  var p = []
+  p.push({type:"beacon", layer:0, range:[sch4.partition.broadcast.start,sch4.partition.broadcast.end]})
+  for(var l=0;l<Object.keys(sch4.partition.uplink).length;l++) {
+      p.push({type:'uplink',layer:l, range:[sch4.partition.uplink[l].start,sch4.partition.uplink[l].end]})
+      p.push({type:'downlink',layer:l, range:[sch4.partition.downlink[l].start,sch4.partition.downlink[l].end]})
      
   }
   return p
@@ -50,8 +65,28 @@ function static_schedule1() {
 }
 
 function static_schedule2() {
-  for(var i=0;i<join_seq.length;i++) {
-    var node = join_seq[i]
+  var seqq= []
+
+  for(var l=0;l<5;l++) {
+    var parentTreeSize = {}
+    for(var i=1;i<Object.keys(topo).length;i++) {
+      if(topo[i].layer == l) {
+        if(parentTreeSize[topo[i].parent]==null)
+          parentTreeSize[topo[i].parent] = 0
+        parentTreeSize[topo[i].parent]++
+      }
+    }
+    var sorted = Object.keys(parentTreeSize).sort(function(a,b){return -parentTreeSize[a]+parentTreeSize[b]})
+
+    for(var j=0;j<sorted.length;j++) {
+      for(var k=0;k<sch_topo[sorted[j]].length;k++) {
+        seqq.push(sch_topo[sorted[j]][k])
+      }
+    }
+  }
+
+  for(var i=0;i<seqq.length;i++) {
+    var node = seqq[i]
     var parent = topo[node].parent
     var layer = topo[node].layer
 
@@ -79,6 +114,43 @@ function static_schedule3() {
     sch3.add_subslot(ret.slot, ret.subslot, {type:"uplink",layer:layer,row:ret.row,sender:node,receiver:parent}, ret.is_optimal);    
     var ret=sch3.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer});
     sch3.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer,row:ret.row,sender:parent,receiver:node}, ret.is_optimal);
+  }
+}
+
+function static_schedule4() {
+  var seqq= []
+
+  for(var l=0;l<5;l++) {
+    var parentTreeSize = {}
+    for(var i=1;i<Object.keys(topo).length;i++) {
+      if(topo[i].layer == l) {
+        if(parentTreeSize[topo[i].parent]==null)
+          parentTreeSize[topo[i].parent] = 0
+        parentTreeSize[topo[i].parent]++
+      }
+    }
+    var sorted = Object.keys(parentTreeSize).sort(function(a,b){return parentTreeSize[a]-parentTreeSize[b]})
+    for(var j=0;j<sorted.length;j++) {
+      for(var k=0;k<sch_topo[sorted[j]].length;k++) {
+        seqq.push(sch_topo[sorted[j]][k])
+      }
+    }
+  }
+  console.log(join_seq)
+  console.log(seqq)
+  for(var i=0;i<seqq.length;i++) {
+    var node = seqq[i]
+    var parent = topo[node].parent
+    var layer = topo[node].layer
+
+    // var ret=sch2.find_empty_subslot([node],8,{type:"beacon",layer:0});
+    // sch2.add_subslot(ret.slot, ret.subslot, {type:"beacon",layer:layer,row:ret.row, sender:node,receiver:0xffff}, ret.is_optimal);
+
+    var ret=sch4.find_empty_subslot([node,parent],1,{type:"uplink",layer:layer});
+    if(ret!=null)
+      sch4.add_subslot(ret.slot, ret.subslot, {type:"uplink",layer:layer,row:ret.row,sender:node,receiver:parent}, ret.is_optimal);    
+    // var ret=sch2.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer});
+    // sch2.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer,row:ret.row,sender:parent,receiver:node}, ret.is_optimal);
   }
 }
 
@@ -149,42 +221,38 @@ function kick3(nodes) {
     }
   }
 }
-
+var sch_topo = {0:[]}
 function init1(topology,seq) {
   sch1 = scheduler.create_scheduler(127,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],"partition")
   topo = topology
+
   // topo for scheduler, {parent: [children]}
-  var sch_topo = {0:[]}
   for(var n=1;n<Object.keys(topo).length;n++) {
     if(sch_topo[topo[n].parent]!=null) sch_topo[topo[n].parent].push(n)
     else sch_topo[topo[n].parent] = [n]
   }
-  // sch1.setTopology(sch_topo)
+  console.log(topo,sch_topo)
+  sch1.setTopology(topo,sch_topo)
   join_seq = seq
   static_schedule1()
   var n1 = sch1.count_used_slotss()
   var n2 = sch1.count_multi_ch_slots()
-  console.log("2D PART uses", n1, "slots, and", n2,"slots","("+(n2/n1*100.0).toFixed(2)+"%)", "use multiple channels")
+  // console.log("2D PART uses", n1, "slots, and", n2,"slots","("+(n2/n1*100.0).toFixed(2)+"%)", "use multiple channels")
   // sch.dynamic_partition_adjustment()
   return {cells:sch1.used_subslot, partitions: get_partition(), n1:n1, n2:n2}
 }
 
+// 1 row with OCAP
 function init2(topology,seq) {
-  sch2 = scheduler1row.create_scheduler(127,[1,2,3,4,5,6,7])
+  sch2 = scheduler1row.create_scheduler(127,[1,2,3,4,5,6])
   
-  // topo = topology
-  // topo for scheduler, {parent: [children]}
-  // var sch_topo = {0:[]}
-  // for(var n=1;n<Object.keys(topo).length;n++) {
-  //   if(sch_topo[topo[n].parent]!=null) sch_topo[topo[n].parent].push(n)
-  //   else sch_topo[topo[n].parent] = [n]
-  // }
-  // sch2.setTopology(sch_topo)
-  join_seq = seq
+  sch2.setTopology(topo, sch_topo)
+  console.log(sch_topo)
+
   static_schedule2()
   var n1 = sch2.count_used_slots()
   var n2 = sch2.count_multi_ch_slots()
-  console.log("1D PART uses", n1, "slots, and", n2,"slots","("+(n2/n1*100.0).toFixed(2)+"%)", "use multiple channels")
+  // console.log("1D PART uses", n1, "slots, and", n2,"slots","("+(n2/n1*100.0).toFixed(2)+"%)", "use multiple channels")
   // sch.dynamic_partition_adjustment()
   return {cells:sch2.used_subslot, partitions: get_partition1row(), n1:n1, n2:n2}
 }
@@ -206,6 +274,20 @@ function init3(topology,seq) {
   return {cells:sch3.used_subslot, partitions: get_partition()}
 }
 
+function init4(topology,seq) {
+  sch4 = scheduler1rowNoOCAP.create_scheduler(127,[1,2,3,4,5,6])
+  
+  sch4.setTopology(topo, sch_topo)
+  console.log(sch_topo)
+  join_seq = seq
+  static_schedule4()
+  var n1 = sch4.count_used_slots()
+  var n2 = sch4.count_multi_ch_slots()
+  // console.log("1D PART uses", n1, "slots, and", n2,"slots","("+(n2/n1*100.0).toFixed(2)+"%)", "use multiple channels")
+  // sch.dynamic_partition_adjustment()
+  return {cells:sch4.used_subslot, partitions: get_partition1rowNoOCAP(), n1:n1, n2:n2}
+}
+
 function get_sch() {
   return {cells:sch1.used_subslot, partitions: get_partition()}
 }
@@ -214,6 +296,9 @@ function get_sch2() {
 }
 function get_sch3() {
   return {cells:sch3.used_subslot, partitions: get_partition()}
+}
+function get_sch4() {
+  return {cells:sch4.used_subslot, partitions: get_partition1row()}
 }
 
 function foo() {
@@ -254,6 +339,7 @@ module.exports={
   init1: init1,
   init2: init2,
   init3: init3,
+  init4: init4,
   intra_partition_adjustment: intra_partition_adjustment,
   inter_partition_adjustment: inter_partition_adjustment,
   kick: kick,
@@ -264,5 +350,6 @@ module.exports={
   get_sch: get_sch,
   get_sch2: get_sch2,
   get_sch3: get_sch3,
+  get_sch4: get_sch4,
   foo: foo
 };

@@ -20,11 +20,11 @@
         <SchTable/>
       </vs-col>
       <vs-col style="z-index:99" vs-offset="0.6" vs-w="11.1">  
+        <SchTable4/>
+      </vs-col>
+      <vs-col style="z-index:99" vs-offset="0.6" vs-w="11.1">  
         <SchTable2/>
       </vs-col>
-      <!-- <vs-col style="z-index:99" vs-offset="0.6" vs-w="11.1">  
-        <SchTable3/>
-      </vs-col> -->
     </vs-row>
 
   </div>
@@ -34,6 +34,7 @@
 import Grid from '../components/schedule/Grid'
 import SchTable from '../components/schedule/Table'
 import SchTable2 from '../components/schedule/Table2'
+import SchTable4 from '../components/schedule/Table4'
 // import SchTable3 from '../components/schedule/Table3'
 // import Latency from '../components/schedule/Latency'
 // import Latency2 from '../components/schedule/Latency2'
@@ -45,6 +46,7 @@ export default {
       Grid,
       SchTable,
       SchTable2,
+      SchTable4,
       // SchTable3,
       // Latency,
       // Latency2,
