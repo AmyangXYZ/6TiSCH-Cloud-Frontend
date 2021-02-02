@@ -1,6 +1,6 @@
 <template>
   <vs-card style="margin-top:22px">
-    <div slot="header"><h4>Latency </h4></div>
+    <div slot="header"><h4>Uplink Latency </h4></div>
     <ECharts autoresize :options="option" @click="handleClick"/>
     <h3>Total Success Ratio: {{(successCnt/totalCnt).toFixed(3)}}</h3> 
   </vs-card>
@@ -69,7 +69,7 @@ export default {
         ],
         yAxis: [
           {
-            name: "Latency per layer",
+            name: "Uplink latency per layer",
             nameTextStyle: {
               fontSize: 18,
               fontWeight: "bold",
@@ -83,7 +83,7 @@ export default {
             }
           },
           {
-            name: "Latency per node (s)",
+            name: "Uplink latency per node (s)",
             nameTextStyle: {
               fontSize: 18,
               fontWeight: "bold",

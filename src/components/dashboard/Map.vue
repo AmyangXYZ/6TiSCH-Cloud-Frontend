@@ -271,7 +271,7 @@ export default {
       this.$EventBus.$emit("showLayersPanel", 0)
       this.clearNoiseLayer()
       this.drawTopology(this.selectedGW, this.selectedRange)
-      this.zoom = this.zoom
+      this.zoom = 21
       this.panTo(this.center)
     }
   },
@@ -294,8 +294,8 @@ export default {
       this.selectedGW = gw
       this.drawTopology(this.selectedGW, this.selectedRange)
       this.infoWindowActive = false
-      this.panTo({lat:41.806611, lng:-72.252733})
-      this.zoom = 21.61
+      this.panTo(this.center)
+      this.zoom = 21
     });
     this.$EventBus.$on("selectedRange", (range)=>{
       this.selectedRange = range
@@ -303,8 +303,8 @@ export default {
       if(this.powerLayerFlag) this.drawPowerLayer()
       if(this.noiseLayerFlag) {this.clearNoiseLayer();this.drawNoiseLayer()}
       this.infoWindowActive = false
-      this.panTo({lat:41.806611, lng:-72.252733})
-      this.zoom = 21.61
+      this.panTo(this.center)
+      this.zoom = 21
     })
 
     this.$EventBus.$on("filterRes", (res)=>{

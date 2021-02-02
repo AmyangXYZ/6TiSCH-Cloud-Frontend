@@ -1,6 +1,6 @@
 <template>
   <vs-card style="margin-top:22px">
-    <div slot="header"><h4>RTT </h4></div>
+    <div slot="header"><h4>E2E Latency</h4></div>
     <ECharts autoresize :options="option" @click="handleClick"/>
     <h3>Total Success Ratio: {{(successCnt/totalCnt).toFixed(3)}}</h3> 
   </vs-card>
@@ -70,21 +70,21 @@ export default {
         ],
         yAxis: [
           {
-            name: "RTT per layer",
+            name: "E2E latency per layer",
             nameTextStyle: {
               fontSize: 18,
               fontWeight: "bold",
               align: "center"
             },
             type: 'category',
-            data: ['Average RTT'],
+            data: ['Average E2E'],
             gridIndex: 0,
             axisLabel: {
                fontSize: 15
             }
           },
           {
-            name: "RTT per node",
+            name: "E2E latency per node",
             nameTextStyle: {
               fontSize: 18,
               fontWeight: "bold",
@@ -95,7 +95,7 @@ export default {
             boundaryGap: [0, 1.2],
           },
           {
-            name: "Success Ratio",
+            // name: "Success Ratio",
             max:1,
             nameTextStyle: {
               fontSize: 18,
@@ -128,7 +128,7 @@ export default {
                   fontSize: 15
                 },
                 data: [
-                  {xAxis:1.27*3},
+                  {xAxis:1.27},
                 ]
               }
             },
@@ -149,7 +149,7 @@ export default {
                   fontSize: 15
                 },
                 data: [
-                  {yAxis:1.27*3},
+                  {yAxis:1.27},
                 ]
               }
             },
@@ -168,14 +168,14 @@ export default {
   },
   methods: {
     draw() {
-      var RTTPerLayer = {}
-      this.option.yAxis[0].data = ["Average RTT"]
+      var E2EPerLayer = {}
+      this.option.yAxis[0].data = ["Average"]
       this.option.xAxis[1].data = []
       this.option.series[1].data = []
       this.option.series[2].data = []
       for(var l=0;l<this.layersNo;l++) {
         this.option.yAxis[0].data.unshift("Layer "+l)
-        RTTPerLayer[l] = {rtt:0, nodes:0}
+        E2EPerLayer[l] = {E2E:0, nodes:0}
       }
 
       var xData = []
@@ -190,9 +190,9 @@ export default {
         // values2.push(this.sensors[i].e2e_latency_sr.toFixed(3))
         total += this.sensors[i].e2e_latency_avg
         if(this.sensors[i].hop!=null) {
-          if(RTTPerLayer[this.sensors[i].hop-1]==null) RTTPerLayer[this.sensors[i].hop-1] = {rtt:0, nodes:0}
-          RTTPerLayer[this.sensors[i].hop-1].rtt += this.sensors[i].e2e_latency_avg
-          RTTPerLayer[this.sensors[i].hop-1].nodes++
+          if(E2EPerLayer[this.sensors[i].hop-1]==null) E2EPerLayer[this.sensors[i].hop-1] = {E2E:0, nodes:0}
+          E2EPerLayer[this.sensors[i].hop-1].E2E += this.sensors[i].e2e_latency_avg
+          E2EPerLayer[this.sensors[i].hop-1].nodes++
         }
       }
       this.option.xAxis[1].data = xData
@@ -201,23 +201,23 @@ export default {
       this.option.series[2].data = values2
       var values0 = []
       for(var j=this.layersNo-1;j>=0;j--) {
-        values0.push((RTTPerLayer[j].rtt/RTTPerLayer[j].nodes).toFixed(3))
+        values0.push((E2EPerLayer[j].E2E/E2EPerLayer[j].nodes).toFixed(3))
       }
       values0.push((total/this.sensors.length).toFixed(3))
       this.option.series[0].data = values0
     },
     handleClick(item) {
-      if(item.name=="Average RTT") {
+      if(item.name=="Average E2E") {
         this.selectedLayer == -1
-        this.option.yAxis[1].name = "RTT per node"
+        this.option.yAxis[1].name = "E2E per node"
       }
       else {
         this.selectedLayer = item.name
-        this.option.yAxis[1].name = "RTT per node | "+this.selectedLayer
+        this.option.yAxis[1].name = "E2E per node | "+this.selectedLayer
       }
-      this.drawNodesRTT()
+      this.drawNodesE2E()
     },
-    drawNodesRTT() {
+    drawNodesE2E() {
       var xData = []
       var values1 = []
       var cnt = 0
@@ -236,7 +236,7 @@ export default {
   },
   mounted() {
     // data from NWTable is ready
-    window.rttChart = this
+    window.E2EChart = this
     this.$EventBus.$on("sensors", (sensors)=>{
       this.selectedSensor = sensors[0].sensor_id
       this.sensors = sensors.sort((a, b) => {

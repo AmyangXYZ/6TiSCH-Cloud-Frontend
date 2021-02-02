@@ -52,7 +52,7 @@ export default {
 
 <style lang="stylus" scoped>
 #uptime
-  height 103px
+  height 99px
 #r
   margin-top 3px
   font-size 1.32rem

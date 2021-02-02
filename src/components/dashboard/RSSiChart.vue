@@ -11,6 +11,7 @@ import "echarts/lib/chart/line";
 import "echarts/lib/chart/heatmap";
 import "echarts/lib/component/visualMap";
 import "echarts/lib/component/title";
+import "echarts/lib/component/toolbox";
 import "echarts/lib/component/dataZoom";
 
 export default {
@@ -30,6 +31,13 @@ export default {
       min: 0,
       max: 0,
       option: {
+        toolbox:{
+          feature:{
+            saveAsImage:{
+              name: "rssi_sensor_"
+            }
+          }
+        },
         grid: [{
           top: '30',
           height: '28%'
@@ -197,6 +205,7 @@ export default {
         this.option.xAxis[1].data = this.xData
         this.option.yAxis[1].data = this.yData
         this.option.series[1].data = this.dataCh
+        this.option.toolbox.feature.saveAsImage.name = "rssi_sensor_"+id
       })
     }
   },
@@ -224,5 +233,5 @@ export default {
 <style lang="stylus" scoped>
 .echarts 
   width 100%
-  height 375px
+  height 398px
 </style>

@@ -45,7 +45,7 @@ export default {
           }
         },
         legend: {
-          data: ['Average Latency', 'Average RTT'],
+          data: ['Average UL', 'Average EL'],
           textStyle: {
             fontSize: 16,
           }
@@ -64,7 +64,7 @@ export default {
         },
         series: [
           {
-            name: 'Average Latency',
+            name: 'Average UL',
             type: 'bar',
             data: [],
             label: {
@@ -74,7 +74,7 @@ export default {
             },
           },
           {
-            name: 'Average RTT',
+            name: 'Average EL',
             type: 'bar',
             label: {
               show: true,
@@ -139,7 +139,7 @@ export default {
       this.history.dsr.push(this.dsr)
       // const average = list => list.reduce((prev, curr) => prev + curr) / list.length;
       // window.console.log("partition scheduler:", "n",this.history.dsr.length, "avg_latency",average(this.history.latency).toFixed(3),"avg_rtt", average(this.history.rtt).toFixed(3), "dsr", average(this.history.dsr).toFixed(3) )
-      window.console.log("partition scheduler:", "n",this.history.dsr.length, "latency",this.history.latency,"rtt", this.history.rtt, "dsr", this.history.dsr)
+      window.console.log("partition scheduler:", "n",this.history.dsr.length, "rtt", this.history.rtt, "dsr", this.history.dsr)
     },
     computeUplinkLatency() {
       var maxLayer = 0
@@ -219,5 +219,5 @@ export default {
 <style lang="stylus" scoped>
 .echarts 
   width 100%
-  height 530px
+  height 584px
 </style>

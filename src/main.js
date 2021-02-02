@@ -14,7 +14,7 @@ Vue.prototype.$api = api
 Vue.use(Vuesax)
 Vue.use(VueGoogleMaps, {
   load: {
-    key: 'AIzaSyCsrBs8pBphKLsiDQHTrSVLgnIp3oTE-S0',
+    key: 'AIzaSyCxlmDq-hB_CguPXR3OH_tTkf0X2HO3XdU',
     libraries: 'places,drawing,visualization', 
   },
   installComponents: true

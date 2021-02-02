@@ -105,10 +105,10 @@ export default {
       sensors: [],
       selectedGW: 'any',
       selectedSensor: {},
-      maxItems: 10,
+      maxItems: 9,
       currentPage: 0,
-      selectedRange: 'day',
-      ranges: ['hour',"4hours",'day','week','month']
+      selectedRange: '4hr',
+      ranges: ['15min','30min','1hr',"4hr",'day','week','month']
     }
   },
   methods: {

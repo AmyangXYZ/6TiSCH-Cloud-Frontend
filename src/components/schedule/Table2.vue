@@ -2,7 +2,7 @@
 
       <vs-card>
         <div slot="header" >
-          <h4>1D Partition Scheduler | <span style="text-decoration:underline;cursor:pointer;" @click="handleSwitch">{{simOrReal}}</span>
+          <h4>LLSF | <span style="text-decoration:underline;cursor:pointer;" @click="handleSwitch">{{simOrReal}}</span>
           
           </h4>
         </div>
@@ -17,9 +17,9 @@
               {{l.name}}: {{l.used-l.non_optimal}}<span class="non-optimal" v-if="l.non_optimal>0">+{{l.non_optimal}}</span>
             </vs-col>
           </vs-row> -->
-          {{this.res.n1}} slots used, {{this.res.n2}} slots use multiple channels
+          <!-- {{this.res.n1}} slots used, {{this.res.n2}} slots use multiple channels -->
         </div>
-        <vs-divider/>
+        <!-- <vs-divider/> -->
         <ECharts id="sch-table" autoresize :options="option" @click="handleClickSch" />        
       </vs-card>
 
@@ -430,7 +430,7 @@ export default {
       this.seq = topo.seq
       this.res = init2(topo.data, topo.seq)
       this.$EventBus.$emit("cells2",this.res.cells)
-      this.drawPartition()
+      this.drawSchedule()
       // setTimeout(this.getCrossRowLinks,1000)
       // window.sch = get_scheduler()
     });
@@ -483,5 +483,5 @@ export default {
     margin-top 4px
 #sch-table
   width 100%
-  height 450px
+  height 350px
 </style>
