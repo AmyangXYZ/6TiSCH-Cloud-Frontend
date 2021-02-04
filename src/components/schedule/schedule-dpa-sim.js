@@ -40,8 +40,8 @@ function static_schedule1() {
     var parent = topo[node].parent
     var layer = topo[node].layer
 
-    // var ret=sch1.find_empty_subslot([node],8,{type:"beacon",layer:0});
-    // sch1.add_subslot(ret.slot, ret.subslot, {type:"beacon",layer:layer,row:ret.row, sender:node,receiver:0xffff}, ret.is_optimal);
+    var ret=sch1.find_empty_subslot([node],8,{type:"beacon",layer:0});
+    sch1.add_subslot(ret.slot, ret.subslot, {type:"beacon",layer:layer,row:ret.row, sender:node,receiver:0xffff}, ret.is_optimal);
 
     var ret=sch1.find_empty_subslot([node,parent],1,{type:"uplink",layer:layer});
     sch1.add_subslot(ret.slot, ret.subslot, {type:"uplink",layer:layer,row:ret.row,sender:node,receiver:parent}, ret.is_optimal);    
@@ -115,11 +115,11 @@ function dynamic_schedule(node) {
   ret=sch1.find_empty_subslot([node.parent, node.id],1,{type:"downlink",layer:node.layer});
   sch1.add_subslot(ret.slot, ret.subslot, {row:ret.row, type:"downlink",layer:node.layer,sender:node.parent,receiver:node.id}, ret.is_optimal);
   
-  var ret=sch2.find_empty_subslot([node.id,node.parent],1,{type:"uplink",layer:node.layer});
-  sch2.add_subslot(ret.slot, ret.subslot, {row:ret.row,type:"uplink",layer:node.layer,sender:node.id,receiver:node.parent}, ret.is_optimal);
+  // var ret=sch2.find_empty_subslot([node.id,node.parent],1,{type:"uplink",layer:node.layer});
+  // sch2.add_subslot(ret.slot, ret.subslot, {row:ret.row,type:"uplink",layer:node.layer,sender:node.id,receiver:node.parent}, ret.is_optimal);
 
-  ret=sch2.find_empty_subslot([node.parent, node.id],1,{type:"downlink",layer:node.layer});
-  sch2.add_subslot(ret.slot, ret.subslot, {row:ret.row, type:"downlink",layer:node.layer,sender:node.parent,receiver:node.id}, ret.is_optimal);
+  // ret=sch2.find_empty_subslot([node.parent, node.id],1,{type:"downlink",layer:node.layer});
+  // sch2.add_subslot(ret.slot, ret.subslot, {row:ret.row, type:"downlink",layer:node.layer,sender:node.parent,receiver:node.id}, ret.is_optimal);
 
   // var ret=sch3.find_empty_subslot([node.id,node.parent],1,{type:"uplink",layer:node.layer});
   // sch3.add_subslot(ret.slot, ret.subslot, {row:ret.row,type:"uplink",layer:node.layer,sender:node.id,receiver:node.parent}, ret.is_optimal);
@@ -127,11 +127,11 @@ function dynamic_schedule(node) {
   // ret=sch3.find_empty_subslot([node.parent, node.id],1,{type:"downlink",layer:node.layer});
   // sch3.add_subslot(ret.slot, ret.subslot, {row:ret.row, type:"downlink",layer:node.layer,sender:node.parent,receiver:node.id}, ret.is_optimal);
 
-  var ret=sch4.find_empty_subslot([node.id,node.parent],1,{type:"uplink",layer:node.layer});
-  sch4.add_subslot(ret.slot, ret.subslot, {row:ret.row,type:"uplink",layer:node.layer,sender:node.id,receiver:node.parent}, ret.is_optimal);
+  // var ret=sch4.find_empty_subslot([node.id,node.parent],1,{type:"uplink",layer:node.layer});
+  // sch4.add_subslot(ret.slot, ret.subslot, {row:ret.row,type:"uplink",layer:node.layer,sender:node.id,receiver:node.parent}, ret.is_optimal);
 
-  ret=sch4.find_empty_subslot([node.parent, node.id],1,{type:"downlink",layer:node.layer});
-  sch4.add_subslot(ret.slot, ret.subslot, {row:ret.row, type:"downlink",layer:node.layer,sender:node.parent,receiver:node.id}, ret.is_optimal);
+  // ret=sch4.find_empty_subslot([node.parent, node.id],1,{type:"downlink",layer:node.layer});
+  // sch4.add_subslot(ret.slot, ret.subslot, {row:ret.row, type:"downlink",layer:node.layer,sender:node.parent,receiver:node.id}, ret.is_optimal);
 
   return ret.is_optimal
 }

@@ -249,8 +249,8 @@ function create_scheduler(sf, ch, algorithm) {
   //flag=1: check order
   this.available_subslot = function (nodes_list, slot, subslot, info, flag) {
     if (slot.slot_offset < RESERVED) return false;
-    this.partition.broadcast.start = 125
-    this.partition.broadcast.end = 127
+    // this.partition.broadcast.start = 125
+    // this.partition.broadcast.end = 127
     //if is beacon, we want it always the first channel in the list;
     //it actually doesn't matter since hardware-wise it's hardcoded to beacon channel
     //but to make it consistant in scheduler table...
@@ -1552,6 +1552,15 @@ function create_scheduler(sf, ch, algorithm) {
     }
 
     console.log(nodes_list, info, "No empty slot found");
+    slots_list=this.shuffle_slots()
+    for(var i=0;i<slots_list.length;++i){
+      var slot=slots_list[i];
+      for(var offset=0;offset<period;++offset){
+        if(this.available_subslot(nodes_list,slot,{period:period,offset:offset}, info, 0)){
+          return {slot:slot,subslot:{offset:offset,period:period}, row:0, is_optimal:0}
+        }
+      }
+    }
     this.isFull = true;
     return { slot: { slot_offset: 5, channel_offset: 10 }, row: 0, subslot: { offset: 0, period: 16 }, is_optimal: 0 };
   }

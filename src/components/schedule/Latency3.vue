@@ -168,23 +168,30 @@ export default {
         }
       }
     },
+    // e2e latency
     computeRTT() {
       var over_deadline = 0
+      window.console.log(this.cells)
       for(var i=0;i<this.cells.length;i++) {
-        if(this.cells[i].cell.type=="downlink") continue
-        var rtt = 0
+        if(this.cells[i].cell.type!="uplink") continue
+        var rtt = this.cells[i].latency
+        var cell_d_0 = this.findCell(this.cells[0].cell.sender, "downlink")
+        var cell_u_0 = this.findCell(this.cells[0].cell.sender, "uplink")
+
+        if(cell_u_0.slot[0] > cell_d_0.slot[0]) rtt += 127 - cell_u_0.slot[0] + cell_d_0.slot[0]
+        else rtt += cell_d_0.slot[0] - cell_u_0.slot[0]
+
+
         var last_cell = this.findCell(this.cells[i].path[0], "downlink")
         for(var j=0;j<this.cells[i].path.length;j++) {
           var cell = this.findCell(this.cells[i].path[j], "downlink")
+          
           if(cell.slot[0] >= last_cell.slot[0]) rtt += cell.slot[0] - last_cell.slot[0]
           else rtt += 127 - last_cell.slot[0] + cell.slot[0]
           last_cell = cell
         }
-        var cell_d = this.findCell(this.cells[i].cell.sender, "downlink")
-        if(this.cells[i].slot[0] > cell_d.slot[0]) rtt += this.cells[i].slot[0] - cell_d.slot[0]
-        else rtt += 127 - cell_d.slot[0] + this.cells[i].slot[0]
         
-        rtt += this.cells[i].latency
+ 
         if(rtt>=127) over_deadline++
         this.cells[i].rtt = rtt
       }

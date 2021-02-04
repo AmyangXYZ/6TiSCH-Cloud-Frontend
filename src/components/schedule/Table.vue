@@ -102,7 +102,7 @@ export default {
         grid: {
           top: '15%',
           // height: '78%',
-          left: '2.5%',
+          left: '3%',
           right: '1%',
           bottom: "5%",
         },
@@ -170,7 +170,7 @@ export default {
           },
           position: 'top',
           orient: "horizontal",
-          top: 28,
+          top: 5,
           right:"1%",
         },
         series: [{

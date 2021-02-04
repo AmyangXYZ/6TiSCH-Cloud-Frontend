@@ -2,17 +2,19 @@
   <vs-card>
     <div slot="header"><h4>Topology Generator</h4></div>
     <vs-row vs-w="12" vs-type="flex" vs-justify="center">
-      <vs-col vs-w="3">
+      <vs-col vs-w="3.8">
         <vs-input
-          label="grid size"
+          size="small"
+          label="Size"
           class="inputx"
           placeholder="20"
-          v-model="size"
+          v-model.lazy="size"
         />
       </vs-col>
-      <vs-col vs-offset="0.3" vs-w="3">
+      <vs-col vs-w="3">
         <vs-input
-          label="nodes number"
+          size="small"
+          label="Nodes"
           class="inputx"
           placeholder="100"
           v-model="nodesNumber"
@@ -29,9 +31,9 @@
     /> -->
     <div slot="footer">
       <vs-row vs-justify="flex-end">
-        <vs-button color="green" type="filled" @click="draw">New</vs-button>
+        <vs-button color="green" type="filled" @click="draw">ReDraw</vs-button>
         <vs-button color="danger" type="filled" @click="addNoiseCircleRand"
-          >Add</vs-button
+          >Interfer</vs-button
         >
         <vs-button color="primary" type="filled" @click="clearNoise"
           >Clear</vs-button
@@ -49,7 +51,8 @@ import "echarts/lib/component/markLine";
 import "echarts/lib/component/toolbox";
 import nodes from "./nodes2.json";
 import noiseList from "./noiseList.json";
-import _ from "lodash"
+// import _ from "lodash"
+
 
 export default {
   components: {
@@ -59,10 +62,14 @@ export default {
     return {
       gwPos: [],
       size: 25,
+      nodesNumber: 81, // include gateway
+      maxHop: 8,
+      txRange: 16, // in square
+      childrenCnt: {0:0},
+      parent_capacity:8,
       kicked: [],
       history_cp: [],
       history_cl: [],
-      nodesNumber: 101, // include gateway
       nodes: [],
       distanceTable: {},
       nonOptimal: [],
@@ -102,11 +109,12 @@ export default {
             itemStyle: {
               color: "deepskyblue",
             },
+            silent: true,
             data: [],
             label: {
               show: true,
               color: "black",
-              fontSize: 15,
+              fontSize: 14,
               formatter: (item) => {
                 for (var i = 0; i < Object.keys(this.nodes).length; i++) {
                   if (
@@ -197,8 +205,12 @@ export default {
   },
   methods: {
     draw() {
-      if(this.size*this.size < this.nodesNumber)
+      this.size = parseInt(this.size)
+      this.nodesNumber = parseInt(this.nodesNumber)
+      if((this.size-1)*(this.size-1) < this.nodesNumber)
         return
+      
+
       this.option.series[0].data = [];
       // gen invisible node for click event
       for (var a = 0; a <= this.size; a++) {
@@ -222,11 +234,12 @@ export default {
         var x = Math.round((this.size - 2) * Math.random() + 1);
         var y = Math.round((this.size - 2) * Math.random() + 1);
         while (pos_list[x + "-" + y] != null) {
-          x = Math.round((this.size - 2) * Math.random() + 1);
-          y = Math.round((this.size - 2) * Math.random() + 1);
+          x = Math.round((this.size - 1) * Math.random() + 1);
+          y = Math.round((this.size - 1) * Math.random() + 1);
         }
         pos_list[x + "-" + y] = 1;
         this.nodes[i] = { parent: -1, position: [x, y], layer: -1, path: [i] };
+        this.childrenCnt[i] = 0
       }
 
       if (nodes[0]) {
@@ -243,66 +256,77 @@ export default {
 
       // find parents
       this.findParents();
-
-      setTimeout(() => {
-        this.$EventBus.$emit("topo", { data: this.nodes, seq: this.join_seq });
-      }, 100);
     },
     findParents() {
       // reset
+      for(var k=0;k<=this.nodesNumber;k++)
+        this.childrenCnt[k]=0
+      var loopCnt = 0
       this.option.series[0].markLine.data = [];
       for (var ii = 0; ii < Object.keys(this.nodes).length; ii++) {
         this.nodes[ii].parent = -1;
       }
       // find parents
       var layers = { "-1": [0] };
-      var cur_layer = 0;
+      
       var cnt = 1;
       this.join_seq = [];
-      while (cnt < Object.keys(this.nodes).length) {
-        var threshold = 20;
-        layers[cur_layer] = [];
-        while (layers[cur_layer].length < 1) {
-          for (var j = 1; j < Object.keys(this.nodes).length; j++) {
+      var threshold = this.txRange;
+      while (cnt < this.nodesNumber && loopCnt < 2000) {
+
+        for(var cur_layer=0;cur_layer<this.maxHop;cur_layer++) {
+          if(layers[cur_layer]==null)
+            layers[cur_layer] = [];
+          
+          for (var j = 1; j < this.nodesNumber; j++) {
             // assigned
             if (this.nodes[j].parent != -1) continue;
             // distance to possible parents
             var distance_list = [];
-            for (var p = 0; p < layers[cur_layer - 1].length; p++) {
-              var pp = layers[cur_layer - 1][p];
+            for (var p_i = 0; p_i < layers[cur_layer - 1].length; p_i++) {
+              var p = layers[cur_layer - 1][p_i];
               var distance =
                 Math.pow(
-                  this.nodes[j].position[0] - this.nodes[pp].position[0],
+                  this.nodes[j].position[0] - this.nodes[p].position[0],
                   2
                 ) +
                 Math.pow(
-                  this.nodes[j].position[1] - this.nodes[pp].position[1],
+                  this.nodes[j].position[1] - this.nodes[p].position[1],
                   2
                 );
-              distance_list.push({ id: pp, d: distance });
+              distance_list.push({ id: p, d: distance });
             }
-            var nearest_parent = distance_list.sort((a, b) =>
+            var parent_candidates = distance_list.sort((a, b) =>
               a.d > b.d ? 1 : -1
-            )[0];
-            if (nearest_parent.d <= threshold) {
-              this.nodes[j].parent = nearest_parent.id;
-              this.nodes[j].layer = cur_layer;
-              this.nodes[j].path = this.nodes[j].path.concat(
-                this.nodes[nearest_parent.id].path
-              );
-
-              layers[cur_layer].push(j);
-              this.join_seq.push(j);
-              cnt++;
-              this.drawLine(j, nearest_parent.id);
+            );
+     
+            for(var i=0;i<parent_candidates.length;i++) {
+              if ((parent_candidates[i].d <= threshold) && (this.childrenCnt[parent_candidates[i].id]<=this.parent_capacity)) {
+                this.nodes[j].parent = parent_candidates[i].id;
+                this.nodes[j].layer = cur_layer;
+                this.nodes[j].path = this.nodes[j].path.concat(
+                  this.nodes[parent_candidates[i].id].path
+                );
+                this.childrenCnt[parent_candidates[i].id]++
+                layers[cur_layer].push(j);
+                this.join_seq.push(j);
+                cnt++;
+                this.drawLine(j, parent_candidates[i].id,cur_layer);
+                break
+              }
             }
+            
           }
-
-          // not found, increase threshold
-          threshold += 20;
         }
-        cur_layer++;
+        // not found, increase threshold
+        threshold += this.txRange;
+        window.console.log("increase tx range to "+threshold)
+        loopCnt++
       }
+
+      setTimeout(()=>{
+        this.$EventBus.$emit("topo", { data: this.nodes, seq: this.join_seq });
+      },100)
     },
     changeParents(kicked) {
       var changed = [];
@@ -351,9 +375,9 @@ export default {
               );
             distance_list.push({ id: j, d: distance });
           }
+
           // cannot find, don't change
           // layer 0 nodes
-
           if (distance_list.length < 1) {
             nearest_parent = { id: this.nodes[node].parent, d: 1 };
           } else {
@@ -388,9 +412,9 @@ export default {
     },
     drawLine(start, end) {
       this.option.series[0].markLine.data.push([
-        { coord: this.nodes[start].position },
-        { coord: this.nodes[end].position },
-      ]);
+      { coord: this.nodes[start].position },
+      { coord: this.nodes[end].position },
+      ])
     },
     eraseLine(start, end) {
       for (var i = 0; i < this.option.series[0].markLine.data.length; i++) {
@@ -545,16 +569,20 @@ export default {
     });
   },
   watch: {
-    size: {
-      handler: _.debounce(function(){
-        this.draw()
-      }, 200)
-    },
-    nodesNumber: {
-      handler: _.debounce(function(){
-        this.draw()
-      }, 200)
-    },
+    // size: {
+    //   handler: (size)=>{
+    //     window.console.log(size)
+    //   }
+      // handler: _.debounce(function(){
+        // this.draw()
+
+      // }, 200)
+    // },
+    // nodesNumber: {
+    //   handler: _.debounce(function(){
+    //     this.draw()
+    //   }, 200)
+    // },
   },
 };
 </script>
