@@ -4,8 +4,9 @@
     <vs-row class="panel" vs-w="12" vs-type="flex" vs-justify="center">
       <vs-col vs-w="2.5">
         <vs-input
+          type="number"
           size="small"
-          label="Size"
+          label="Grid Size"
           class="inputx"
           placeholder="20"
           v-model="size"
@@ -13,6 +14,7 @@
       </vs-col>
       <vs-col vs-w="2.5">
         <vs-input
+          type="number"
           size="small"
           label="Nodes"
           class="inputx"
@@ -22,8 +24,9 @@
       </vs-col>
       <vs-col vs-w="2.5">
         <vs-input
+          type="number"
           size="small"
-          label="Tx Range"
+          label="Tx Range (^2)"
           class="inputx"
           placeholder="100"
           v-model="txRange"
@@ -31,6 +34,7 @@
       </vs-col>
       <vs-col vs-w="2.5">
         <vs-input
+          type="number"
           size="small"
           label="Max Hop"
           class="inputx"
@@ -225,6 +229,8 @@ export default {
     draw() {
       this.size = parseInt(this.size)
       this.nodesNumber = parseInt(this.nodesNumber)
+      this.txRange = parseInt(this.txRange)
+      this.maxHop = parseInt(this.maxHop)
       if((this.size-1)*(this.size-1) < this.nodesNumber)
         return
       
