@@ -223,7 +223,9 @@ export default {
   methods: {
     drawPartition() {
       this.slots = []
-      this.links = {}
+      for(var k in this.links) {
+        this.links[k] = {name:k, used:0, non_optimal:0}
+      }
       this.option.yAxis.data = this.Channels
       this.$api.gateway.getPartition()
       .then(res=> {
@@ -261,6 +263,7 @@ export default {
           // partition size > 0
           res.data.data[i].layer++
           if(res.data.data[i].range[0]<res.data.data[i].range[1]) {
+            
             var name = res.data.data[i].type[0].toUpperCase()
             if(name!="B") name+=res.data.data[i].layer
             // if(colorMap[name]==null) {
@@ -332,8 +335,10 @@ export default {
           var name = res.data.data[i].type[0].toUpperCase()
           if(res.data.data[i].type == "beacon") {
             res.data.data[i].layer = ""
-          } 
-          name+=res.data.data[i].layer
+          } else {
+            name+=res.data.data[i].layer+=1
+          }
+          
           // if(res.data.data[i].layer>2) continue
           if(this.links[name] == null) {
             this.links[name] = {name:name, used:0, non_optimal:0}
@@ -360,6 +365,11 @@ export default {
           // cellsTmp.push([res.data.data[i].slot[0]+0.5,Math.floor(res.data.data[i].slot[1]/2),tag])
         }
         this.option.series[0].data = cellsTmp
+
+        for(var k in this.links) {
+          if(this.links[k].used==0)
+            delete this.links[k]
+        }
       })
     },
     handleIntraPartitionAdjustmentBt() {
