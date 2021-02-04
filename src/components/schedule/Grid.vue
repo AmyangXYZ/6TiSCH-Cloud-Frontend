@@ -1,8 +1,8 @@
 <template>
   <vs-card>
     <div slot="header"><h4>Topology Generator</h4></div>
-    <vs-row class="panel" vs-w="12" vs-type="flex" vs-justify="center">
-      <vs-col vs-w="2.5">
+    <vs-row class="panel" vs-w="12" vs-type="flex" vs-justify="space-between">
+      <vs-col vs-w="2">
         <vs-input
           type="number"
           size="small"
@@ -12,7 +12,7 @@
           v-model="size"
         />
       </vs-col>
-      <vs-col vs-w="2.5">
+      <vs-col vs-w="2">
         <vs-input
           type="number"
           size="small"
@@ -22,24 +22,34 @@
           v-model="nodesNumber"
         />
       </vs-col>
-      <vs-col vs-w="2.5">
+      <vs-col vs-w="2">
         <vs-input
           type="number"
           size="small"
-          label="Tx Range (^2)"
+          label="Tx Range ^2"
           class="inputx"
-          placeholder="100"
+          placeholder="20"
           v-model="txRange"
         />
       </vs-col>
-      <vs-col vs-w="2.5">
+      <vs-col vs-w="2">
         <vs-input
           type="number"
           size="small"
           label="Max Hop"
           class="inputx"
-          placeholder="100"
+          placeholder="8"
           v-model="maxHop"
+        />
+      </vs-col>
+      <vs-col vs-w="2">
+        <vs-input
+          type="number"
+          size="small"
+          label="Max Children"
+          class="inputx"
+          placeholder="10"
+          v-model="parent_capacity"
         />
       </vs-col>
     </vs-row>
@@ -231,6 +241,7 @@ export default {
       this.nodesNumber = parseInt(this.nodesNumber)
       this.txRange = parseInt(this.txRange)
       this.maxHop = parseInt(this.maxHop)
+      this.parent_capacity = parseInt(this.parent_capacity)
       if((this.size-1)*(this.size-1) < this.nodesNumber)
         return
       
@@ -613,7 +624,7 @@ export default {
 
 <style lang="stylus" scoped>
 .vs-input
-  width 120px
+  width 110px
 #chart {
   width: 100%;
   height: 577px;
