@@ -27,6 +27,9 @@
         <vs-th sort-key="hop">
           HOP
         </vs-th>
+        <vs-th sort-key="tx_rate">
+          TX RATE(pps)
+        </vs-th>
         <!-- <vs-th sort-key="parent">
           PARENT
         </vs-th> -->
@@ -34,23 +37,27 @@
           CHILDREN
         </vs-th> -->
         <vs-th sort-key="uplink_latency_avg">
-          UPLINK LAT(s)
+          LATENCY(s)
         </vs-th>
-        <vs-th sort-key="uplink_latency_sr">
+        <!-- <vs-th sort-key="uplink_latency_sr">
           UPLINK LAT SR(%)
-        </vs-th>
+        </vs-th> -->
         <vs-th sort-key="e2e_latency_avg">
-          E2E LAT(s)
+          RTT(s)
         </vs-th>
-        <vs-th sort-key="e2e_latency_sr">
-          E2E LAT SR(%)
+        <vs-th sort-key="sr">
+          DSR(%)
         </vs-th>
-        <vs-th sort-key="per_mac">  
-          MAC PER(%)
+        <!-- <vs-th sort-key="e2e_latency_sr">
+          LAT SR(%)
+        </vs-th> -->
+        
+        <vs-th sort-key="per">  
+          PER(%)
         </vs-th>
-        <vs-th sort-key="per_app">
+        <!-- <vs-th sort-key="per_app">
           APP PER(%)
-        </vs-th>
+        </vs-th> -->
       </template>
 
       <template slot-scope="{data}">
@@ -70,24 +77,32 @@
           <!-- <vs-td :data="data[index].children">
             {{data[index].children}}
           </vs-td> -->
+
+          <vs-td :data="data[index].avg_mac_tx_total_diff">
+            {{(data[index].avg_mac_tx_total_diff/120).toFixed(3)}}
+          </vs-td>
           <vs-td :data="data[index].uplink_latency_avg">
             {{data[index].uplink_latency_avg.toFixed(2)}}
           </vs-td>
-          <vs-td :data="data[index].uplink_latency_sr">
+          <!-- <vs-td :data="data[index].uplink_latency_sr">
             {{(data[index].uplink_latency_sr*100).toFixed(2)}}
-          </vs-td>
+          </vs-td> -->
           <vs-td :data="data[index].e2e_latency_avg">
-            {{data[index].e2e_latency_avg.toFixed(2)}}
+            {{(data[index].e2e_latency_avg).toFixed(2)}}
           </vs-td>
-          <vs-td :data="data[index].e2e_latency_sr">
+          <vs-td :data="data[index].sr">
+            {{(data[index].sr*100).toFixed(2)}}
+          </vs-td>
+          <!-- <vs-td :data="data[index].e2e_latency_sr">
             {{(data[index].e2e_latency_sr*100).toFixed(2)}}
+          </vs-td> -->
+           
+          <vs-td :data="data[index].per">
+            {{(data[index].per).toFixed(3)}}
           </vs-td>
-          <vs-td :data="data[index].per_mac">
-            {{data[index].mac_per.toFixed(3)}}
-          </vs-td>
-          <vs-td :data="data[index].per_app">
+          <!-- <vs-td :data="data[index].per_app">
             {{data[index].app_per.toFixed(3)}}
-          </vs-td> 
+          </vs-td>  -->
         </vs-tr>
       </template>
     </vs-table>
@@ -120,8 +135,10 @@ export default {
           return
         }
         for(var i=0;i<res.data.data.length;i++){
+          res.data.data[i].sr = (res.data.data[i].uplink_latency_success+res.data.data[i].e2e_latency_success) / (res.data.data[i].uplink_latency_cnt+res.data.data[i].e2e_latency_cnt)
           res.data.data[i].mac_per = res.data.data[i].avg_mac_tx_noack_diff/(res.data.data[i].avg_mac_tx_total_diff+0.000001)*100.0
           res.data.data[i].app_per = res.data.data[i].avg_app_per_lost_diff/(res.data.data[i].avg_app_per_sent_diff+0.000001)*100.0
+          res.data.data[i].per = res.data.data[i].mac_per + res.data.data[i].app_per
         }
 
         var sensors = res.data.data.sort(function(a,b) {
@@ -135,6 +152,9 @@ export default {
           var nodes = res.data.data
           // nodes = topoRes.data
           for(var n=0;n<nodes.length;n++) {
+            
+
+
             // links: [[child, parent]]
             links.push([nodes[n].sensor_id,nodes[n].parent])
 
