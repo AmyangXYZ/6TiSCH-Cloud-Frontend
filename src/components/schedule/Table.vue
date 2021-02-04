@@ -6,7 +6,7 @@
           <!-- <h4>Partition Scheduler -->
             <div v-if="simOrReal=='Simulation'" class="bts">
               <!-- <vs-button color="danger" type="filled" @click="handleShuffleBt">Shuffle</vs-button> -->
-              <vs-button color="primary" type="filled"  @click="handleIntraPartitionAdjustmentBt">Intra-Partition Adjustment</vs-button>
+              <!-- <vs-button color="primary" type="filled"  @click="handleIntraPartitionAdjustmentBt">Intra-Partition Adjustment</vs-button> -->
               <!-- <vs-button color="danger" type="filled"  @click="handleInterPartitionAdjustmentBt">Inter-Partition Adjustment</vs-button> -->
             </div>
           </h4>
@@ -223,6 +223,7 @@ export default {
   methods: {
     drawPartition() {
       this.slots = []
+      this.links = {}
       this.option.yAxis.data = this.Channels
       this.$api.gateway.getPartition()
       .then(res=> {

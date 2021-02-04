@@ -1,23 +1,41 @@
 <template>
   <vs-card>
     <div slot="header"><h4>Topology Generator</h4></div>
-    <vs-row vs-w="12" vs-type="flex" vs-justify="center">
-      <vs-col vs-w="3.8">
+    <vs-row class="panel" vs-w="12" vs-type="flex" vs-justify="center">
+      <vs-col vs-w="2.5">
         <vs-input
           size="small"
           label="Size"
           class="inputx"
           placeholder="20"
-          v-model.lazy="size"
+          v-model="size"
         />
       </vs-col>
-      <vs-col vs-w="3">
+      <vs-col vs-w="2.5">
         <vs-input
           size="small"
           label="Nodes"
           class="inputx"
           placeholder="100"
           v-model="nodesNumber"
+        />
+      </vs-col>
+      <vs-col vs-w="2.5">
+        <vs-input
+          size="small"
+          label="Tx Range"
+          class="inputx"
+          placeholder="100"
+          v-model="txRange"
+        />
+      </vs-col>
+      <vs-col vs-w="2.5">
+        <vs-input
+          size="small"
+          label="Max Hop"
+          class="inputx"
+          placeholder="100"
+          v-model="maxHop"
         />
       </vs-col>
     </vs-row>
@@ -62,9 +80,9 @@ export default {
     return {
       gwPos: [],
       size: 25,
-      nodesNumber: 81, // include gateway
-      maxHop: 8,
-      txRange: 16, // in square
+      nodesNumber: 101, // include gateway
+      maxHop: 6,
+      txRange: 20, // in square
       childrenCnt: {0:0},
       parent_capacity:8,
       kicked: [],
@@ -588,6 +606,8 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+.vs-input
+  width 120px
 #chart {
   width: 100%;
   height: 577px;
