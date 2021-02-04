@@ -1,13 +1,13 @@
 <template>
   <div>
     <vs-row vs-align="flex-start" vs-w="12">
-      <vs-col style="z-index:99;margin-top:10px" vs-offset="0.8" vs-w="4.5">
+      <vs-col style="z-index:99;margin-top:0px" vs-offset="0.8" vs-w="4.5">
         <DeviceCnt/>
         <NWTable/>
         <RSSiChart/>
         
       </vs-col>
-      <vs-col style="z-index:99;margin-top:10px" vs-offset="0.3" vs-w="6">
+      <vs-col style="z-index:99;margin-top:0px" vs-offset="0.3" vs-w="6">
         <Uptime/>
         <Slider/>
         <Layers/>

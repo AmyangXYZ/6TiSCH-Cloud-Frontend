@@ -1,5 +1,6 @@
 <template>
   <vs-card>
+    <div slot="header"><h4>Topology Generator</h4></div>
     <vs-row vs-w="12" vs-type="flex" vs-justify="center">
       <vs-col vs-w="3">
         <vs-input
@@ -28,7 +29,7 @@
     /> -->
     <div slot="footer">
       <vs-row vs-justify="flex-end">
-        <vs-button color="green" type="filled" @click="draw">Draw</vs-button>
+        <vs-button color="green" type="filled" @click="draw">New</vs-button>
         <vs-button color="danger" type="filled" @click="addNoiseCircleRand"
           >Add</vs-button
         >
@@ -237,6 +238,8 @@ export default {
       for (var nn = 0; nn < Object.keys(this.nodes).length; nn++) {
         this.option.series[0].data.push(this.nodes[nn].position);
       }
+      this.option.xAxis.max = this.size
+      this.option.yAxis.max = this.size
 
       // find parents
       this.findParents();

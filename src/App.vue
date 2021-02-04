@@ -1,10 +1,12 @@
 <template>
   <div id="app">
-    <Navbar/>
-    <Sidebar/>
-    <keep-alive>
-      <router-view style="min-height:80vh"/>
-    </keep-alive>
+    <div id="content-wrap">
+      <Navbar/>
+      <Sidebar/>
+      <keep-alive>
+        <router-view/>
+      </keep-alive>
+    </div>
     <Footer/>
   </div>
   
@@ -27,7 +29,8 @@ export default {
 
 <style>
 html, body {
-  max-height: 100%;
+  max-height: 120%;
+  
   width: 100%;
   margin: 0;
   padding: 0;
@@ -36,11 +39,18 @@ html, body {
 }
 
 #app {
+  position: relative;
+  min-height: calc(100vh - 100px);
   font-family: "Noto Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
-  margin-top: 10vh;
-  height: 100%;
+  margin-top: 100px;
+  /* height: 100%; */
+}
+
+#content-wrap {
+  padding-bottom: 120px;
+  overflow: hidden;
 }
 </style>

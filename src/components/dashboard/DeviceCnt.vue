@@ -2,11 +2,12 @@
   <vs-row vs-align="flex-start"> 
     <vs-col style="z-index:99" vs-w="5.7">
       <vs-card>
-          <vs-row vs-align="center">
+          <vs-row s-align="center">
             <vs-col vs-w="3">
-              <vs-icon size="75px" icon="router" color="#B4A3DB"></vs-icon>
+              <vs-icon size="65px" icon="router" color="#B4A3DB"></vs-icon>
             </vs-col>
-            <vs-col class="cnt" vs-offset="4" vs-w="5">
+
+            <vs-col class="cnt" vs-offset="4.5" vs-w="4.5">
               <h5>Gateways</h5>
               <h3>{{gateways.length}}</h3>
             </vs-col>
@@ -18,8 +19,9 @@
       <vs-card>
           <vs-row vs-align="center">
             <vs-col vs-w="3">
-              <vs-icon size="75px" icon="memory" color="#58B2EC"></vs-icon>
+              <vs-icon size="65px" icon="memory" color="#58B2EC"></vs-icon>
             </vs-col>
+
             <vs-col class="cnt" vs-offset="4.5" vs-w="4.5">
               <h5>Sensors</h5>
               <h3>{{sensorCnt}}</h3>
@@ -68,10 +70,10 @@ export default {
 
 <style lang="stylus" scoped>
 .cnt
-  font-size 1.32rem
-  overflow hidden
+  font-size 1.22rem
+  
   >h3
-    font-size 2.1rem
+    font-size 1.9rem
   >h5
     color #3B4F63
 </style>

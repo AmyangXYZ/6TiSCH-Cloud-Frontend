@@ -43,6 +43,7 @@ export default {
       macPERRange: [],
       appPERRange: [],
       noiseLayer: {},
+      trafficLayerFlag: 0,
       noiseLayerFlag: 0,
       powerLayerFlag: 0,
       label: {},
@@ -195,6 +196,13 @@ export default {
 
       })
     },
+    drawTrafficLayer() {
+      
+    },
+    clearTrafficLayer() {
+      if(this.trafficLayerFlag)
+        return
+    },
     clearPowerLayer() {
       this.powerLayerFlag = 0
       for(var i=0;i<this.markers.length;i++) {
@@ -320,6 +328,11 @@ export default {
       }
       this.markers = tmp
       this.lines = []
+    })
+
+    this.$EventBus.$on("showTrafficLayer", (sig) => {
+      if(sig) this.drawPowerLayer()
+      else this.clearPowerLayer()
     })
 
     this.$EventBus.$on("showPowerLayer", (sig) => {

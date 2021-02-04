@@ -244,8 +244,10 @@ export default {
           "D3":{'rgb':"#ffff80", opacity:0.5},
           "U4":{'rgb':"#b1d3fb", opacity:0.5},
           "D4":{'rgb':"#ffffc0", opacity:0.5},
-          "U5":{'rgb':"#e3f4fe", opacity:0.5},
-          "D5":{'rgb':"#ffffee", opacity:0.5},
+          "U5":{'rgb':"#e3f4fe", opacity:0.6},
+          "D5":{'rgb':"#ffffee", opacity:0.6},
+          "U6":{'rgb':"#e3f4fe", opacity:0.4},
+          "D6":{'rgb':"#ffffee", opacity:0.4},
         }
         // var color_index = 0
         for(var i=0;i<res.data.data.length;i++) {

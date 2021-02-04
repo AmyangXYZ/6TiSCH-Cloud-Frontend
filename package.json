@@ -10,7 +10,7 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.14.0",
     "async": "^3.2.0",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "browserify-fs": "^1.0.0",
     "core-js": "^3.6.5",
     "coroutine": "^0.3.1",

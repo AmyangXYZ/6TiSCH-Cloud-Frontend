@@ -33,9 +33,9 @@ export default {
       option: {
         toolbox:{
           feature:{
-            saveAsImage:{
-              name: "rssi_sensor_"
-            }
+            // saveAsImage:{
+            //   name: "rssi_sensor_"
+            // }
           }
         },
         grid: [{

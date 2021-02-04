@@ -3,10 +3,10 @@
   <vs-card v-if="show" class="layers">
     <div slot="header">
       <vs-row vs-type="flex" vs-align="flex-start" vs-justify="space-around">
-        <vs-col vs-w="3" vs-type="flex" vs-justify="center" vs-align="center">
-          <vs-button color="success" :type="buttonTypes[currentBtType.power]" @click="showPowerLayer" 
-            icon-pack="fa" icon="fa-car-battery" size="small">
-            Power Usage
+        <vs-col vs-w="3"  vs-type="flex" vs-justify="center">
+          <vs-button color="primary" :type="buttonTypes[currentBtType.traffic]" @click="showTrafficLayer" 
+            icon-pack="fa" icon="fa-cookie" size="small">
+            Traffic Rate
           </vs-button>
         </vs-col>
         <vs-col vs-w="3"  vs-type="flex" vs-justify="center" vs-align="center" >
@@ -15,10 +15,10 @@
             Noise Level
           </vs-button>
         </vs-col>
-        <vs-col vs-w="3"  vs-type="flex" vs-justify="center">
-          <vs-button color="primary" :type="buttonTypes[currentBtType.layer3]" @click="showLayer3" 
-            icon-pack="fa" icon="fa-cookie" size="small">
-            Latency Heatmap
+        <vs-col vs-w="3" vs-type="flex" vs-justify="center" vs-align="center">
+          <vs-button color="success" :type="buttonTypes[currentBtType.power]" @click="showPowerLayer" 
+            icon-pack="fa" icon="fa-car-battery" size="small">
+            Power Usage
           </vs-button>
         </vs-col>
         <!-- <vs-col vs-w="2"  vs-type="flex" vs-justify="center" vs-align="center" >
@@ -42,7 +42,7 @@ export default {
       currentBtType: {
         power: 0,
         noiseLv: 0,
-        layer3: 0,
+        traffic: 0,
         layer4: 0,
       },
       // all sensors
@@ -62,8 +62,8 @@ export default {
       this.currentBtType.noiseLv = 1-this.currentBtType.noiseLv
       this.$EventBus.$emit("showNoiseLayer", this.currentBtType.noiseLv)
     },
-    showLayer3() {
-      this.currentBtType.layer3 = 1-this.currentBtType.layer3
+    showTrafficLayer() {
+      this.currentBtType.traffic = 1-this.currentBtType.traffic
     }
   },
   mounted() {
