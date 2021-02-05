@@ -2,7 +2,9 @@
 
   <div class="parentx">
 
-    <vs-sidebar :reduce="reduce" :reduce-not-rebound="reduceNotRebound" :reduce-not-hover-expand="notExpand" :hidden-background="hiddenBG" parent="body" default-index="1"  color="danger" class="sidebarx" spacer v-model="active" >
+    <vs-sidebar :reduce="reduce" :reduce-not-rebound="reduceNotRebound" :reduce-not-hover-expand="notExpand" 
+      :hidden-background="hiddenBG" parent="body" 
+      :default-index="cur_index"  color="danger" class="sidebarx" spacer v-model="active" >
 
       <div class="header-sidebar" slot="header">
         <vs-avatar size="70px" src="https://upload.wikimedia.org/wikipedia/commons/5/5a/MRT_Singapore_Destination_6.png"/>
@@ -36,26 +38,39 @@
 export default {
   data() {
     return {
+      cur_index: 1,
       active: true,
+      paths: ["/dashboard", "/schedule", "/analysis"],
       notExpand: false,
       hiddenBG: true,
       reduce: true,
       reduceNotRebound: true,
-    }
+    };
   },
-}
+  methods: {
+    biu() {
+      this.cur_index = this.paths.indexOf(this.$route.path)+1
+    },
+  },
+  created() {
+    this.biu();
+  },
+};
 </script>
 
 <style lang="stylus" scoped>
-.header-sidebar
-  display flex
-  align-items center
-  justify-content center
-  flex-direction column
-  width 100%
-  h4
-    display flex
-    align-items center
-    justify-content center
-    width 100%
+.header-sidebar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  width: 100%;
+
+  h4 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+}
 </style>

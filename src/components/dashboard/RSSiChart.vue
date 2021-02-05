@@ -205,7 +205,7 @@ export default {
         this.option.xAxis[1].data = this.xData
         this.option.yAxis[1].data = this.yData
         this.option.series[1].data = this.dataCh
-        this.option.toolbox.feature.saveAsImage.name = "rssi_sensor_"+id
+        // this.option.toolbox.feature.saveAsImage.name = "rssi_sensor_"+id
       })
     }
   },
@@ -233,5 +233,5 @@ export default {
 <style lang="stylus" scoped>
 .echarts 
   width 100%
-  height 398px
+  height 388px
 </style>
