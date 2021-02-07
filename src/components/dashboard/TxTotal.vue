@@ -37,7 +37,7 @@ export default {
       then((res) => {
         if(res.data.flag != 1) return
         this.txTotal = res.data.data
-        this.txTotal_disp = res.data.data
+        if(this.txTotal_disp==0) this.txTotal_disp = res.data.data
       })
     }
   },
