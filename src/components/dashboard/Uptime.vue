@@ -3,15 +3,15 @@
   <vs-col style="z-index:99" vs-w="12">
     <vs-card id="uptime">
       <vs-row id="r" vs-type="flex" vs-align="center">
-        <vs-col style="" vs-w="1.2">
+        <vs-col style="" vs-w="2.4">
           <vs-icon size="65px" icon="power_settings_new" color="#B4A3DB"></vs-icon>
         </vs-col>
-        <vs-col vs-w="2">
+        <vs-col vs-w="2.5">
           <h3 style="color:#3B4F63">Uptime</h3>
         </vs-col>
         
-        <vs-col vs-offset="4.8" vs-w="4">
-          <h3> {{d}} day<span v-if="d>1">s</span>, {{h.toString().padStart(2,'0')}}:{{m.toString().padStart(2,'0')}}:{{s.toString().padStart(2,'0')}}</h3>
+        <vs-col vs-offset="3" vs-w="4">
+          <h3> {{d}} day<span v-if="d>1">s</span> {{h.toString().padStart(2,'0')}}:{{m.toString().padStart(2,'0')}}:{{s.toString().padStart(2,'0')}}</h3>
         </vs-col>
       </vs-row>
     </vs-card>

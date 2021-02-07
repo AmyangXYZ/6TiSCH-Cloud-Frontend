@@ -33,6 +33,9 @@ const gateway = {
     },
     getNoiseLevel(gw, range) {
         return axios.get(`/api/${gw}/noise?range=${range}`)
+    },
+    getTxTotal() {
+        return axios.get(`/api/any/txtotal?range=year`)
     }
 }
 

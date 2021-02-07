@@ -1,14 +1,24 @@
 <template>
   <div>
-    <vs-row vs-align="flex-start" vs-w="12">
-      <vs-col style="z-index:99;margin-top:0px" vs-offset="0.8" vs-w="4.5">
+    <vs-row>
+      <vs-col  vs-offset="0.8" vs-w="5">
         <DeviceCnt/>
+      </vs-col>
+      <vs-col vs-offset="0.3" vs-w="2.6125">
+        <Uptime/>
+      </vs-col>
+      <vs-col  vs-offset="0.25"  vs-w="2.6125">
+        <TxTotal/>
+      </vs-col>
+    </vs-row>
+    <vs-row vs-align="flex-start" vs-w="12">
+      <vs-col vs-offset="0.8" vs-w="5">
+        
         <NWTable/>
         <RSSiChart/>
         
       </vs-col>
-      <vs-col style="z-index:99;margin-top:0px" vs-offset="0.3" vs-w="6">
-        <Uptime/>
+      <vs-col vs-offset="0.3" vs-w="5.5">
         <Slider/>
         <Layers/>
         <Map/>
@@ -27,6 +37,7 @@
 import DeviceCnt from '../components/dashboard/DeviceCnt'
 import Uptime from '../components/dashboard/Uptime'
 import NWTable from '../components/dashboard/NWTable'
+import TxTotal from "../components/dashboard/TxTotal"
 // import LatencyChart from '../components/dashboard/LatencyChart'
 // import RTTChart from '../components/dashboard/RTTChart'
 import RSSiChart from '../components/dashboard/RSSiChart'
@@ -34,17 +45,19 @@ import Map from '../components/dashboard/Map'
 import Slider from '../components/dashboard/Slider'
 import Layers from '../components/dashboard/Layers'
 
+
 export default {
     components: {
       DeviceCnt,
       Uptime,
+      TxTotal,
       NWTable,
       // LatencyChart,
       // RTTChart,
       RSSiChart,
       Map,
       Slider,
-      Layers,
+      Layers
     },
 }
 </script>

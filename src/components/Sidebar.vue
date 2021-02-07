@@ -7,7 +7,7 @@
       :default-index="cur_index"  color="danger" class="sidebarx" spacer v-model="active" >
 
       <div class="header-sidebar" slot="header">
-        <vs-avatar size="70px" src="https://upload.wikimedia.org/wikipedia/commons/5/5a/MRT_Singapore_Destination_6.png"/>
+        <vs-avatar size="small" src="https://upload.wikimedia.org/wikipedia/en/thumb/5/56/University_of_Connecticut_seal.svg/1200px-University_of_Connecticut_seal.svg.png"/>
       </div>
       <vs-sidebar-group open title="Application" align="left">
         <vs-sidebar-item to="/dashboard" index="1" icon="dashboard">

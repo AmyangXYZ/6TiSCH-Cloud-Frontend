@@ -27,8 +27,12 @@
         <vs-th sort-key="hop">
           HOP
         </vs-th>
-        <vs-th sort-key="tx_rate">
+        
+        <vs-th sort-key="avg_mac_tx_total_diff">
           TX RATE(pps)
+        </vs-th>
+        <vs-th sort-key="tx_cells">
+          TX CELLS
         </vs-th>
         <!-- <vs-th sort-key="parent">
           PARENT
@@ -71,16 +75,20 @@
           <vs-td :data="data[index].hop">
             {{data[index].hop}}
           </vs-td>
+          <vs-td :data="data[index].avg_mac_tx_total_diff">
+            {{(data[index].avg_mac_tx_total_diff/120).toFixed(3)}}
+          </vs-td>
+          
           <!-- <vs-td :data="data[index].parent">
             {{data[index].parent}}
           </vs-td> -->
           <!-- <vs-td :data="data[index].children">
             {{data[index].children}}
           </vs-td> -->
-
-          <vs-td :data="data[index].avg_mac_tx_total_diff">
-            {{(data[index].avg_mac_tx_total_diff/120).toFixed(3)}}
+          <vs-td :data="data[index].tx_cells">
+            {{data[index].tx_cells}}
           </vs-td>
+          
           <vs-td :data="data[index].uplink_latency_avg">
             {{data[index].uplink_latency_avg.toFixed(2)}}
           </vs-td>
@@ -139,6 +147,7 @@ export default {
           res.data.data[i].mac_per = res.data.data[i].avg_mac_tx_noack_diff/(res.data.data[i].avg_mac_tx_total_diff+0.000001)*100.0
           res.data.data[i].app_per = res.data.data[i].avg_app_per_lost_diff/(res.data.data[i].avg_app_per_sent_diff+0.000001)*100.0
           res.data.data[i].per = res.data.data[i].mac_per + res.data.data[i].app_per
+          res.data.data[i].tx_cells = 0
         }
 
         var sensors = res.data.data.sort(function(a,b) {
@@ -202,7 +211,24 @@ export default {
           
           this.sensors = sensors
           this.$EventBus.$emit("sensors",this.sensors)
+
+          // count bandwidth (tx cell)
+          this.$api.gateway.getSchedule().
+          then((res)=>{
+            if(res.data.flag == 0) return
+            for(var i=0;i<res.data.data.length;i++) {
+              if(res.data.data[i].type!="beacon") {
+                for(var j=0;j<this.sensors.length;j++) {
+                  if(res.data.data[i].sender == this.sensors[j].sensor_id) {
+                    this.sensors[j].tx_cells++
+                  }
+                }
+              }
+            }
+          })
+
         })
+        
       })
     },
     selectGW() {
