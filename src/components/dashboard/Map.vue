@@ -362,6 +362,6 @@ export default {
 #gmap
   margin-top 8px
   width 100%
-  height 912px
+  height 800px
 .gm-style-iw + button {display: none;}  
 </style>

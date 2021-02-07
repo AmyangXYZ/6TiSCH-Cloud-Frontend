@@ -35,7 +35,7 @@ html, body {
   margin: 0;
   padding: 0;
   background-color: #EBECF1;
-  font-size: 1.2rem;
+  font-size: 1.15rem;
 }
 
 #app {
@@ -51,6 +51,6 @@ html, body {
 
 #content-wrap {
   padding-bottom: 120px;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 </style>

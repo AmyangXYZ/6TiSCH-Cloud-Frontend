@@ -68,6 +68,6 @@ export default {
 <style lang="stylus" scoped>
 #r
   // margin-top 3px
-  font-size 1.12rem
+  font-size 1.1rem
   overflow hidden
 </style>

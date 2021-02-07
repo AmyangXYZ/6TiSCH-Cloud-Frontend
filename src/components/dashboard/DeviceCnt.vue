@@ -2,7 +2,7 @@
   <vs-row vs-align="flex-start"> 
     <vs-col style="z-index:99" vs-w="5.7">
       <vs-card>
-          <vs-row s-align="center">
+          <vs-row vs-align="center">
             <vs-col vs-w="3">
               <vs-icon size="65px" icon="router" color="#B4A3DB"></vs-icon>
             </vs-col>
@@ -70,7 +70,7 @@ export default {
 
 <style lang="stylus" scoped>
 .cnt
-  font-size 1.22rem
+  font-size 1.32rem
   
   >h3
     font-size 1.9rem
