@@ -5,7 +5,7 @@
       <vs-row vs-align="flex-start" vs-w="12">
         <vs-col v-for="(f,i) in filters" :key="i" vs-offset="0.5" vs-w="5.2">
           <span class="title">{{f.name}}: [{{f.value[0]}}, {{f.value[1]}}]</span>
-          <vs-slider :color="f.color" :max="f.max" :step="f.step" :step-decimals="true" v-model="f.value"/>
+          <vs-slider size="small" :color="f.color" :max="f.max" :step="f.step" :step-decimals="true" v-model="f.value"/>
         </vs-col>
       </vs-row>
     </div>
@@ -22,9 +22,9 @@ export default {
       show: false,
       filters: {
         latency: {name:"Latency", max: 4, step:0.001, value: [0,4], color:"dark"},
-        macPER: {name:"MAC PER", max: 5, step:0.001, value: [0,5], color:"orange"},
-        noiseLv: {name:"Noise Level", max: 3, step:0.1, value: [0,3], color:"green"},
-        appPER: {name:"APP PER", max: 1, step:0.001, value: [0,1], color:"red"},
+        rtt: {name:"RTT", max: 5, step:0.001, value: [0,5], color:"orange"},
+        noiseLv: {name:"NoiseLv", max: 3, step:0.1, value: [0,3], color:"green"},
+        per: {name:"PER", max: 1, step:0.001, value: [0,1], color:"red"},
       },
       // all sensors
       sensors: [],
@@ -43,8 +43,8 @@ export default {
     handleLatencyRange: lodash.debounce(function() {
       this.filterRes.latency = []
       for(var i=0;i<this.sensors.length;i++) {
-        if(this.sensors[i].avg_rtt>=this.filters.latency.value[0] 
-          && this.sensors[i].avg_rtt<=this.filters.latency.value[1]) {
+        if(this.sensors[i].uplink_latency_avg>=this.filters.latency.value[0] 
+          && this.sensors[i].uplink_latency_avg<=this.filters.latency.value[1]) {
           this.filterRes.latency.push(this.sensors[i].sensor_id)
         }
       }
@@ -53,7 +53,7 @@ export default {
         .filter(y => this.filterRes.appPER.includes(y)).filter(y => this.filterRes.noiseLv.includes(y))
     }, 300),
 
-    handleMacPERRange: lodash.debounce(function() {
+    handlePERRange: lodash.debounce(function() {
       this.filterRes.macPER = []
       for(var i=0;i<this.sensors.length;i++) {
         if(this.sensors[i].noiseLv>=this.filters.noiseLv.value[0] 
@@ -134,11 +134,13 @@ export default {
 
 <style lang="stylus" scoped>
 .sliders
-  font-size 1rem
-
+  font-size 0.9rem
+.con-vs-slider
+  margin-top 10px
+  margin-bottom 10px
 .expand-enter-active, .expand-leave-active 
   transition all .3s
-  height 140px
+  height 100px
   overflow: hidden;
 .expand-enter, .expand-leave-to
   height 0px

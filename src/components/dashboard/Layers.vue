@@ -85,7 +85,7 @@ export default {
 
 .expand-enter-active, .expand-leave-active 
   transition all .3s
-  height 60px
+  height 55px
   overflow: hidden;
 .expand-enter, .expand-leave-to
   height 0px

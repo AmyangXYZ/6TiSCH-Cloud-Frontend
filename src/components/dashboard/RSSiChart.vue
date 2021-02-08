@@ -40,13 +40,14 @@ export default {
         },
         grid: [{
           top: '30',
-          height: '28%'
+          height: '30%'
         }, {
-          top: '210',
-          height: '28%'
+          top: '175',
+          height: '30%'
         }],
         xAxis: [
           {
+            show: false,
             type: "category",
             boundaryGap: false,
             data: this.date,
@@ -107,7 +108,7 @@ export default {
         visualMap: {
           seriesIndex: 1,
           type: 'piecewise',
-          top: "185",
+          top: "150",
           right: "20",
           orient: "horizontal",
           precision: 1,
@@ -233,5 +234,5 @@ export default {
 <style lang="stylus" scoped>
 .echarts 
   width 100%
-  height 388px
+  height 338px
 </style>

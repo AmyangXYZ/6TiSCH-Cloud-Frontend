@@ -13,8 +13,8 @@
         <vs-sidebar-item to="/dashboard" index="1" icon="dashboard">
           Dashboard
         </vs-sidebar-item>
-        <vs-sidebar-item to="/schedule" index="2" icon="schedule" >
-          Schedule
+        <vs-sidebar-item to="/scheduler" index="2" icon="schedule" >
+          Scheduler
         </vs-sidebar-item>
         <vs-sidebar-item to="/analysis" index="3" icon="bar_chart" >
           Analysis
@@ -40,7 +40,7 @@ export default {
     return {
       cur_index: 1,
       active: true,
-      paths: ["/dashboard", "/schedule", "/analysis"],
+      paths: ["/dashboard", "/scheduler", "/analysis"],
       notExpand: false,
       hiddenBG: true,
       reduce: true,

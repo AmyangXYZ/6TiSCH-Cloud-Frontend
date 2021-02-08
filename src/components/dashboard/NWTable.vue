@@ -1,6 +1,6 @@
 <template lang="html" >
   <div>
-    <vs-table :max-items="maxItems" pagination :currentPage="currentPage" v-model="selectedSensor" @selected="selectSensor" :data="sensors">
+    <vs-table id="table" :max-items="maxItems" pagination :currentPage="currentPage" v-model="selectedSensor" @selected="selectSensor" :data="sensors">
       <vs-row slot="header" vs-align="center" style="margin:6px">
         <vs-col  vs-w="6">
           <h4>Network Statistics</h4>
@@ -224,11 +224,9 @@ export default {
                   }
                 }
               }
-            }
+            }    
           })
-
         })
-        
       })
     },
     selectGW() {
@@ -270,5 +268,6 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-
+#table
+  min-height 443px
 </style>

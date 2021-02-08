@@ -2,7 +2,7 @@
   <vs-card>
     <div slot="header">
       <vs-row vs-align="center" vs-justify="space-between">
-        <vs-col vs-w="2.5" vs-type="flex" vs-align="center">
+        <vs-col vs-w="3" vs-type="flex" vs-align="center">
           <vs-button id="fBt" color="danger" @click="showFiltersPanel" icon="filter_list" size="small">
             Filters
           </vs-button>
@@ -10,7 +10,7 @@
             Layers
           </vs-button>
         </vs-col>
-        <vs-col vs-w="3" vs-type="flex" vs-justify="flex-end" vs-align="center">
+        <vs-col vs-w="3.5" vs-type="flex" vs-justify="flex-end" vs-align="center">
           <vs-button color="#860262" @click="clearMap" icon="clear_all" size="small">
             Reset All
           </vs-button>
@@ -362,6 +362,6 @@ export default {
 #gmap
   margin-top 8px
   width 100%
-  height 800px
+  height 799px
 .gm-style-iw + button {display: none;}  
 </style>

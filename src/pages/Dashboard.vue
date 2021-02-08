@@ -13,10 +13,8 @@
     </vs-row>
     <vs-row vs-align="flex-start" vs-w="12">
       <vs-col vs-offset="0.8" vs-w="5">
-        
         <NWTable/>
         <RSSiChart/>
-        
       </vs-col>
       <vs-col vs-offset="0.3" vs-w="5.5">
         <Slider/>
@@ -24,12 +22,20 @@
         <Map/>
       </vs-col>
     </vs-row> 
-    <!-- <vs-row vs-align="flex-start" vs-w="12">
+    <!-- <vs-row >
       <vs-col vs-offset="0.8" vs-w="10.8"> -->
         <!-- <LatencyChart/> -->
         <!-- <RTTChart/> -->
       <!-- </vs-col>
     </vs-row> -->
+    <vs-row vs-align="flex-start" vs-w="12">
+      <vs-col vs-offset="0.8" vs-w="8.5">
+        <SchTable/>
+      </vs-col>
+      <vs-col vs-offset="0.3" vs-w="2">
+        <SchPi/>
+      </vs-col>
+    </vs-row>
   </div>
 </template>>
 
@@ -44,8 +50,8 @@ import RSSiChart from '../components/dashboard/RSSiChart'
 import Map from '../components/dashboard/Map'
 import Slider from '../components/dashboard/Slider'
 import Layers from '../components/dashboard/Layers'
-
-
+import SchTable from '../components/dashboard/SchTable'
+import SchPi from '../components/dashboard/SchPi'
 export default {
     components: {
       DeviceCnt,
@@ -57,7 +63,9 @@ export default {
       RSSiChart,
       Map,
       Slider,
-      Layers
+      Layers,
+      SchTable,
+      SchPi
     },
 }
 </script>
