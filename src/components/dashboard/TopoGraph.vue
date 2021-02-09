@@ -106,3 +106,34 @@ export default {
   width 100%
   height 804px
 </style>
+
+<!-- 
+Edge to Tree, 1 loop
+
+```go
+package main
+
+type node struct {
+	name     int
+	children []*node
+}
+
+func main() {
+	var edges = [][2]int{{1, 0}, {2, 1}, {3, 1}, {4, 2}, {5, 4}, {6, 2}}
+	trees := make(map[int]*node)
+
+	for _, pair := range edges {
+		c := pair[0]
+		p := pair[1]
+		if _, ok := trees[c]; !ok {
+			trees[c] = &node{c, []*node{}}
+		}
+		if parent, ok := trees[p]; ok {
+			parent.children = append(parent.children, trees[c])
+		} else {
+			trees[p] = &node{p, []*node{trees[c]}}
+		}
+	}
+}
+```
+-->
