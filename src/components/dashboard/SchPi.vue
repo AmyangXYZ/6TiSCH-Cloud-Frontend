@@ -1,7 +1,7 @@
 <template>
   <vs-card>
     <span id="s">Total links: {{this.linksTotal}} </span>
-    <ECharts id="pi" autoresize :options="option" theme="default"/>
+    <ECharts id="pi" autoresize :options="option"/>
   </vs-card>
 </template>
 
@@ -11,8 +11,6 @@ import "echarts/lib/chart/pie";
 import "echarts/lib/component/legend";
 import "echarts/lib/component/toolbox";
 import "echarts/lib/component/tooltip";
-import "echarts/lib/component/title";
-import "echarts/theme/shine.js"
 
 export default {
   components: {

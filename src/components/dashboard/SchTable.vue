@@ -375,6 +375,7 @@ export default {
       var parent = {}
       while(cell.receiver!=0) {
         parent = this.findSlot(cell.receiver)
+        if(parent==0) break
         this.option.series[0].markLine.data.push([{xAxis:cell.slot[0]+1, yAxis:cell.slot[1]+0.5}, {xAxis:parent.slot[0], yAxis:parent.slot[1]+0.5}])
         cell = parent
       }  
@@ -397,7 +398,7 @@ export default {
 
     findSlot(node) {
       for(var i=0;i<this.slots.length;i++) {
-        if(this.slots[i].cell.sender == node && this.slots[i].cell.type=="uplink") {
+        if(this.slots[i].sender == node && this.slots[i].type=="uplink") {
           return this.slots[i]
         }
       }

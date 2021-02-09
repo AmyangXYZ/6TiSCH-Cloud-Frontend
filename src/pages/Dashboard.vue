@@ -17,9 +17,8 @@
         <RSSiChart/>
       </vs-col>
       <vs-col vs-offset="0.3" vs-w="5.5">
-        <Slider/>
-        <Layers/>
-        <Map/>
+   
+        <Topo/>
       </vs-col>
     </vs-row> 
     <!-- <vs-row >
@@ -47,9 +46,8 @@ import TxTotal from "../components/dashboard/TxTotal"
 // import LatencyChart from '../components/dashboard/LatencyChart'
 // import RTTChart from '../components/dashboard/RTTChart'
 import RSSiChart from '../components/dashboard/RSSiChart'
-import Map from '../components/dashboard/Map'
-import Slider from '../components/dashboard/Slider'
-import Layers from '../components/dashboard/Layers'
+import Topo from '../components/dashboard/Topo'
+
 import SchTable from '../components/dashboard/SchTable'
 import SchPi from '../components/dashboard/SchPi'
 export default {
@@ -61,9 +59,8 @@ export default {
       // LatencyChart,
       // RTTChart,
       RSSiChart,
-      Map,
-      Slider,
-      Layers,
+      Topo,
+    
       SchTable,
       SchPi
     },

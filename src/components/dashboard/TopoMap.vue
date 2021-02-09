@@ -1,6 +1,10 @@
 <template>
-  <vs-card>
-    <div slot="header">
+  <!-- <vs-card> -->
+    <!-- <div slot="header"> -->
+
+    <div id="map">
+      <Slider/>
+      <Layers/>
       <vs-row vs-align="center" vs-justify="space-between">
         <vs-col vs-w="3" vs-type="flex" vs-align="center">
           <vs-button id="fBt" color="danger" @click="showFiltersPanel" icon="filter_list" size="small">
@@ -22,16 +26,20 @@
       </GmapMap>
       
     </div>
-  </vs-card>
+  <!-- </vs-card> -->
 </template>
 
 <script>
 import PowerChart from '@/components/dashboard/PowerChart'
 // import topoRes from './topology_121_part.json'
+import Slider from '@/components/dashboard/Slider'
+import Layers from '@/components/dashboard/Layers'
 
 export default {
   components: {
     PowerChart,
+    Slider,
+    Layers
   },
   data() {
     return {
@@ -355,6 +363,8 @@ export default {
 </script>
 
 <style lang="stylus">
+#map
+  font-size 1.1rem
 #fBt
   border-radius 6px 0 0 6px
 #lBt
@@ -362,6 +372,6 @@ export default {
 #gmap
   margin-top 8px
   width 100%
-  height 799px
+  height 759px
 .gm-style-iw + button {display: none;}  
 </style>
