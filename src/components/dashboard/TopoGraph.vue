@@ -20,7 +20,6 @@ export default {
       selectedGW: "any",
       selectedRange: "day",
       selectedSensor: {},
-      topo: {1:0}, // {child: parent}
       trees: {1:
         {
           name:1, 
@@ -75,44 +74,21 @@ export default {
         // res.data = t
         if (res.data.flag==0||res.data.data.length==0) return
         this.$EventBus.$emit('sensorCnt', res.data.data.length-1)
-
+   
         for(var i=0;i<res.data.data.length;i++) {
-          if(res.data.data[i].sensor_id==1) {
-            this.$EventBus.$emit('startTime', res.data.data[i].first_appear)
-          } else {
-            this.topo[res.data.data[i].sensor_id] = res.data.data[i].parent
-          }
-        }
-
-        var maxHop = 0;
-
-        for(var j=0;j<res.data.data.length;j++) {
-          var node = res.data.data[j]
+          var node = res.data.data[i]
           if(node.sensor_id==1) {
-            node.hop = 0
+            this.$EventBus.$emit('startTime', node.first_appear)
             continue
           }
-          this.trees[node.sensor_id] = {name:node.sensor_id, children:[]}
-          var parent = node.parent
-          var hop = 1
-          while(parent!=1) {
-            parent = this.topo[parent]
-            hop++
-          }
-          node.hop = hop
-          maxHop = (maxHop>hop)?maxHop:hop
+
+          this.trees[node.sensor_id] = {name: node.sensor_id, children:[]}
+          if(this.trees[node.parent]==null)
+            this.trees[node.parent] = { name: node.parent, children: [ this.trees[node.sensor_id] ] }
+          else
+            this.trees[node.parent].children.push(this.trees[node.sensor_id])
         }
 
-        for(var cur_hop = maxHop;cur_hop>=1;cur_hop--) {
-          for(var k=0;k<res.data.data.length;k++) {
-            var n = res.data.data[k]
-            if(n.hop == cur_hop) {
-              this.trees[n.parent].children.push(
-                this.trees[n.sensor_id]
-              )
-            }
-          }
-        }
         this.option.series[0].data = [this.trees[1]]
       })
     },
