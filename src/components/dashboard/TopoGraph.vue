@@ -82,7 +82,8 @@ export default {
             continue
           }
 
-          this.trees[node.sensor_id] = {name: node.sensor_id, children:[]}
+          if(this.trees[node.sensor_id]==null) 
+            this.trees[node.sensor_id] = {name: node.sensor_id, children:[]}
           if(this.trees[node.parent]==null)
             this.trees[node.parent] = { name: node.parent, children: [ this.trees[node.sensor_id] ] }
           else
