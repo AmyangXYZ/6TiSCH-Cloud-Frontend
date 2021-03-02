@@ -251,7 +251,9 @@ function init1(topology,seq) {
   }
   // sch1.setTopology(sch_topo)
   join_seq = seq
+  // sort_join_seq()
   static_schedule1()
+  
   var n1 = sch1.count_used_slotss()
   var n2 = sch1.count_multi_ch_slots()
   // console.log("2D PART uses", n1, "slots, and", n2,"slots","("+(n2/n1*100.0).toFixed(2)+"%)", "use multiple channels")
@@ -371,6 +373,31 @@ function get_sch5() {
 
 function get_sch6() {
   return {cells:sch5.used_subslot}
+}
+
+function sort_join_seq() {
+  // console.log(topo)
+
+  var arr_1 = []
+  for(var l=0;l<6;l++) {
+    var p_c = {}
+    for(var n=1;n<Object.keys(topo).length;n++) {
+      if(topo[n].layer==l) {
+        p_c[n] = 0
+        for(var nn=1;nn<Object.keys(topo).length;nn++) {
+          if(topo[nn].parent == n) p_c[n]++
+        }
+      }
+    }
+    
+    var sorted = Object.keys(p_c).sort(function(a,b){return p_c[b]-p_c[a]})
+    // console.log(p_c)
+    // console.log(sorted)
+    Array.prototype.push.apply(arr_1, sorted)
+  }
+
+  // console.log(arr_1)
+  join_seq = arr_1
 }
 
 function foo() {
