@@ -41,7 +41,7 @@
 
 const RESERVED = 0; //Number of reserved
 const SUBSLOTS = 8;
-const ROWS = 3;
+const ROWS = 8;
 const ALGORITHM = "partition"
 const partition_config = require("./partition.json");
 
@@ -50,22 +50,8 @@ function partition_init(sf) {
   var u_d = [Math.floor(sf - partition_config.beacon - RESERVED) / 2, Math.floor(sf - partition_config.beacon - RESERVED) / 2];
   // var u_d = [sf-partition_config.beacon,sf-partition_config.beacon]
   // partition_scale(u_d, sf-RESERVED-partition_config.beacon);
-  var uplink = partition_config.uplink.slice();
-
-  var uplink_row0 = partition_scale(uplink, u_d[0]);
-  var uplink_row1 = partition_scale(uplink, u_d[0] - uplink_row0[0]);
-  var uplink_row2 = partition_scale(uplink, u_d[0] - uplink_row0[0] - uplink_row1[0]);
-
+  var uplink = partition_config.uplink.slice(); 
   var downlink = partition_config.downlink.slice();
-  var downlink_row0 = partition_scale(downlink, u_d[1]);
-  var downlink_row1 = partition_scale(downlink, u_d[1] - downlink_row0[0]);
-  var downlink_row2 = partition_scale(downlink, u_d[1] - downlink_row0[0] - downlink_row1[0]);
-
-  //now we have everything scaled by slotframe length
-  //and start do the partition
-  var cur_r0 = RESERVED;
-  var cur_r1 = RESERVED;
-  var cur_r2 = RESERVED;
 
   var partition = {
     broadcast: {},
@@ -74,42 +60,52 @@ function partition_init(sf) {
     partition[r] = { uplink: {}, downlink: {} }
   }
 
+  var channel_per_row = Math.floor(16/ROWS)
+  var slot_cursor = []
+  var uplink_row = []
+  var downlink_row = []
+  var last_uplink_row_boundary = 0
+  var last_downlink_row_boundary = 0
 
+  for(var r=0; r<ROWS;r++) {
+    slot_cursor[r] = RESERVED
+    uplink_row[r] = partition_scale(uplink, u_d[0]-last_uplink_row_boundary)
+    downlink_row[r] = partition_scale(downlink, u_d[1]-last_downlink_row_boundary);
+    last_uplink_row_boundary += uplink_row[r][0]
+    last_downlink_row_boundary += downlink_row[r][0]
+  }
+
+  //now we have everything scaled by slotframe length
+  //and start do the partitioning
+  
   // uplink
   for (var u = uplink.length - 1; u >= 0; --u) {
-    partition[0].uplink[u] = { start: cur_r0, end: cur_r0 + uplink_row0[u] };
-    partition[1].uplink[u] = { start: cur_r1, end: cur_r1 + uplink_row1[u] };
-    partition[2].uplink[u] = { start: cur_r2, end: cur_r2 + uplink_row2[u] };
-
-    cur_r0 += uplink_row0[u];
-    cur_r1 += uplink_row1[u];
-    cur_r2 += uplink_row2[u];
+    for (var r=0;r<ROWS;r++) {
+      var tmp = 0
+      // if(r==ROWS-1) tmp=1
+      partition[r].uplink[u] = {start: slot_cursor[r], end: slot_cursor[r]+uplink_row[r][u], channels:[r*channel_per_row,(r+1)*channel_per_row+tmp]}
+      slot_cursor[r] += uplink_row[r][u]
+    }
   }
 
-  // Reserved beacon
-  partition.broadcast = { start: cur_r0, end: cur_r0 + partition_config.beacon };
-  cur_r0 += partition_config.beacon;
-  cur_r1 = cur_r0
-  cur_r2 = cur_r0
+  // Beacon
+  partition.broadcast = { start: slot_cursor[0], end: slot_cursor[0] + partition_config.beacon };
+  
+  for(var r=0;r<ROWS;r++) {
+    slot_cursor[r] = sf
+  }
 
-
-  // downlink
-  cur_r0 = sf
-  cur_r1 = sf
-  cur_r2 = sf
-
+  // Downlink
   for (var d = downlink.length - 1; d >= 0; --d) {
-    partition[0].downlink[d] = { start: cur_r0 - downlink_row0[d], end: cur_r0 };
-    partition[1].downlink[d] = { start: cur_r1 - downlink_row1[d], end: cur_r1 };
-    partition[2].downlink[d] = { start: cur_r2 - downlink_row2[d], end: cur_r2 };
-
-    cur_r0 -= downlink_row0[d];
-    cur_r1 -= downlink_row1[d];
-    cur_r2 -= downlink_row2[d];
+    for (var r=0;r<ROWS;r++) {
+      var tmp = 0
+      // if(r==ROWS-1) tmp=1
+      partition[r].downlink[d] = {start: slot_cursor[r]-downlink_row[r][d], end: slot_cursor[r], channels:[r*channel_per_row,(r+1)*channel_per_row+tmp]}
+      slot_cursor[r] -= downlink_row[r][d]
+    }
   }
 
-
-  // window.console.log("patition:", partition);
+  window.console.log("patition:", partition);
   return partition;
 }
 
@@ -155,6 +151,7 @@ function create_scheduler(sf, ch, algorithm) {
   this.slotFrameLength = sf;
   this.channels = ch;
   this.algorithm = algorithm
+  this.rows = ROWS
   this.schedule = new Array(sf);
   // { parent: [children] }, mainly for count subtree size
   this.topology = { 0: [] }
@@ -175,7 +172,16 @@ function create_scheduler(sf, ch, algorithm) {
   //initialize partition
   this.partition = partition_init(sf);
   // console.log(this.partition)
-  this.channelRows = { 0: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 1: [11, 12, 13, 14], 2: [15, 16] }
+  this.channelRows = {}
+  for(var r=0;r<ROWS;r++) {
+    var channels = this.partition[r].uplink[0].channels
+    this.channelRows[r] = []
+    for(var c=channels[0];c<channels[1];c++) {
+      this.channelRows[r].push(c+1)
+    }
+  }
+  console.log(this.channelRows)
+  // this.channelRows = { 0: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 1: [11, 12, 13, 14], 2: [15, 16] }
 
   this.setTopology = function (topo) {
     this.topo = topo
@@ -1477,7 +1483,8 @@ function create_scheduler(sf, ch, algorithm) {
     var slots_list;
     var checkOrder = 1
     var parent = (info.type == "uplink") ? nodes_list[1] : parent = nodes_list[0]
-    var rows = [0, 1, 2]
+    rows = []
+    for(var r=0;r<ROWS;r++) rows.push(r)
 
     // random
     if (this.algorithm == "random") {

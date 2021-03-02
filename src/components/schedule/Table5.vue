@@ -2,8 +2,7 @@
 
       <vs-card>
         <div slot="header" >
-          <h4>Block | <span style="text-decoration:underline;cursor:pointer;" @click="handleSwitch">{{simOrReal}}</span>
-          </h4>
+          <h4>Block</h4>
         </div>
         <ECharts id="sch-table" autoresize :options="option" @click="handleClickSch" />        
       </vs-card>
@@ -23,7 +22,7 @@ import "echarts/lib/component/markLine";
 import "echarts/lib/component/dataZoom";
 import "echarts/lib/chart/graph"
 
-import {init5,get_sch5,kick4,get_scheduler} from './schedule-dpa-sim.js'
+import {init,get_sch,kick,get_scheduler} from './scheduler-sim.js'
 
 export default {
   components: {
@@ -158,7 +157,7 @@ export default {
           type: 'heatmap',
           data: [],
           label: {
-            show: false,
+            show: true,
             color: 'white',
             fontWeight: 'bold',
             fontSize: 12.5,
@@ -280,16 +279,6 @@ export default {
         this.option.series[0].data = cellsTmp
       })
     },
-    handleIntraPartitionAdjustmentBt() {
-      this.res = intra_partition_adjustment(window.grid.nodes)
-      this.drawPartition()
-      if(this.selectedCell.slot.length>0) setTimeout(()=>{this.findPath(this.selectedCell)},300)
-    },
-    handleInterPartitionAdjustmentBt() {
-      this.res = inter_partition_adjustment()
-      this.drawPartition()
-      if(this.selectedCell.slot.length>0) setTimeout(()=>{this.findPath(this.selectedCell)},300)
-    },
     findPath(cell) {
       this.option.series[0].markLine.data = []
       // update cell
@@ -327,20 +316,6 @@ export default {
         }
       }
     },
-    handleSwitch() {
-      this.simOrReal = (this.simOrReal=="Simulation")?"Real":"Simulation"
-      this.drawPartition()
-    },
-    getCrossRowLinks() {
-      for(var i=0;i<this.slots.length;i++) {
-        if(this.slots[i].type=="uplink" && this.slots[i].layer>0) {
-          var parent = this.findSlot(this.slots[i].receiver)
-          if(parent.row!=this.slots[i].row) {
-            this.option.series[0].data.push([this.slots[i].slot[0]+0.5, this.slots[i].slot[1]+0.5,1])
-          }
-        }
-      }
-    },
     findSlot(node) {
       for(var i=0;i<this.slots.length;i++) {
         if(this.slots[i].sender == node && this.slots[i].type=="uplink") {
@@ -350,21 +325,20 @@ export default {
       return 0
     },
     update_sch() {
-      this.res = get_sch4()
-      this.drawPartition()
+      this.res = get_sch()
     }
   },
 
   mounted() {
     window.table = this
-    // this.$EventBus.$emit("init",1)
+    this.$EventBus.$emit("init",1)
     this.$EventBus.$on("topo", (topo) => {
       this.topo = topo.data
       this.seq = topo.seq
-      this.res = init4(topo.data, topo.seq)
-      this.$EventBus.$emit("cells4",this.res.cells)
-      this.drawPartition()
+      this.res = init(topo.data, topo.seq)
+      this.$EventBus.$emit("cells1",this.res.cells)
       // setTimeout(this.getCrossRowLinks,1000)
+      this.drawSchedule()
       window.sch = get_scheduler()
     });
     
@@ -383,27 +357,20 @@ export default {
       }
     })
     this.$EventBus.$on("kicked", (kicked) => {
-      kick4(kicked)
+      kick(kicked)
       
-      this.res = get_sch4()
+      this.res = get_sch()
       this.drawSchedule()
     })
     this.$EventBus.$on("clear", (clear) => {
       if(clear) {
-        window.console.log(1)
-        this.res = init4(this.topo, this.seq)
+        this.res = init(this.topo, this.seq)
         this.drawSchedule()
       }
     })
     this.$EventBus.$on("changed", () => {
-      // var node = nodes[0]
-      // for(var i=0;i<nodes.length;i++) dynamic_schedule(nodes[i])
-      // if(!is_optimal) {
-      //   this.$EventBus.$emit("nonOptimal", node.id)
-      // }
-      
-      this.res = get_sch4()
-      this.$EventBus.$emit("cells4",this.res.cells)
+      this.res = get_sch()
+      this.$EventBus.$emit("cells1",this.res.cells)
       this.drawSchedule()
       if(this.selectedCell.slot.length>0) setTimeout(()=>{this.findPath(this.selectedCell)},500)
     });
@@ -431,5 +398,5 @@ export default {
     margin-top 4px
 #sch-table
   width 100%
-  height 350px
+  height 550px
 </style>

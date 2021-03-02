@@ -273,15 +273,9 @@ export default {
             var y1 = 1
             var y2 = 17
             var pos = "insideBottom"
-            if(res.data.data[i].row==0 && res.data.data[i].type!="beacon") {
-              y1 = 1
-              y2 = 11
-            } else if(res.data.data[i].row==1) {
-              y1 = 11
-              y2 = 15
-            } else if(res.data.data[i].row==2) {
-              y1 = 15
-              y2 = 17
+            if(res.data.data[i].type!="beacon") {
+              y1 = 1+res.data.data[i].channels[0]
+              y2 = 1+res.data.data[i].channels[1]
             }
             if(res.data.data[i].type=="uplink") {
               pos = "insideBottomLeft"

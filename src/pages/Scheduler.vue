@@ -40,6 +40,7 @@
 <script>
 import Grid from '../components/schedule/Grid'
 import SchTable from '../components/schedule/Table'
+// import SchTable5 from '../components/schedule/Table5'
 // import SchTable4 from '../components/schedule/Table4'
 // import SchTable2 from '../components/schedule/Table2'
 // import SchTable3 from '../components/schedule/Table3'

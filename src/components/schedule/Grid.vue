@@ -81,7 +81,7 @@ import "echarts/lib/chart/scatter";
 import "echarts/lib/chart/effectScatter";
 import "echarts/lib/component/markLine";
 import "echarts/lib/component/toolbox";
-import nodes from "./nodes2.json";
+// import nodes from "./nodes_21.json";
 import noiseList from "./noiseList.json";
 // import _ from "lodash"
 
@@ -93,12 +93,12 @@ export default {
   data() {
     return {
       gwPos: [],
-      size: 25,
-      nodesNumber: 101, // include gateway
+      size: 20,
+      nodesNumber: 121, // include gateway
       maxHop: 6,
       txRange: 20, // in square
       childrenCnt: {0:0},
-      parent_capacity:8,
+      parent_capacity:100,
       kicked: [],
       history_cp: [],
       history_cl: [],
@@ -258,7 +258,8 @@ export default {
       var yy = Math.round((this.size - 10) * Math.random() + 5);
       this.gwPos = [xx, yy];
       // this.gwPos = nodes[0]
-      // this.gwPos = [10,10]
+      
+      this.gwPos = [10,10]
       this.nodes = {
         0: { parent: -1, position: this.gwPos, layer: -1, path: [0] },
       };
@@ -277,12 +278,12 @@ export default {
         this.childrenCnt[i] = 0
       }
 
-      if (nodes[0]) {
-        nodes[0] = {};
-      }
+      // if (nodes[0]) {
+      //   nodes[0] = {};
+      // }
 
       // this.nodes = nodes
-
+      window.console.log(this.nodes)
       for (var nn = 0; nn < Object.keys(this.nodes).length; nn++) {
         this.option.series[0].data.push(this.nodes[nn].position);
       }
@@ -291,6 +292,9 @@ export default {
 
       // find parents
       this.findParents();
+      // setTimeout(()=>{
+      //   this.$EventBus.$emit("topo", { data: this.nodes, seq: this.join_seq });
+      // },100)
     },
     findParents() {
       // reset

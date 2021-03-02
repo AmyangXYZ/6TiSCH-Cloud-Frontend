@@ -1,17 +1,20 @@
 /*eslint-disable*/
-var scheduler = require('./scheduler-multi-row')
-var scheduler1row = require('./scheduler')
+var scheduler = require('./scheduler-apas')
+// var scheduler = require('./scheduler-apasp')
+// var scheduler1row = require('./scheduler')
+// var scheduler_block = require('./scheduler-block')
 
 function get_partition() {
   var p = []
-  p.push({type:"beacon", layer:0, range:[sch1.partition.broadcast.start,sch1.partition.broadcast.end]})
-  for(var l=0;l<Object.keys(sch1.partition[0].uplink).length;l++) {
-    for(var r=0;r<3;r++) {
-      p.push({type:'uplink',layer:l, row:r, range:[sch1.partition[r].uplink[l].start,sch1.partition[r].uplink[l].end]})
-      p.push({type:'downlink',layer:l, row:r, range:[sch1.partition[r].downlink[l].start,sch1.partition[r].downlink[l].end]})
+  sch = sch1
+  p.push({type:"beacon", layer:0, range:[sch.partition.broadcast.start,sch.partition.broadcast.end]})
+  for(var l=0;l<Object.keys(sch.partition[0].uplink).length;l++) {
+    for(var r=0;r<sch1.rows;r++) {
+      p.push({type:'uplink',layer:l, row:r, channels:sch.partition[r].uplink[l].channels, range:[sch.partition[r].uplink[l].start,sch.partition[r].uplink[l].end]})
+      p.push({type:'downlink',layer:l, row:r, channels:sch.partition[r].downlink[l].channels, range:[sch.partition[r].downlink[l].start,sch.partition[r].downlink[l].end]})
     }
   }
-  // console.log(sch.partition)
+  // console.log(p)
   return p
 }
 
@@ -30,6 +33,8 @@ var sch1={}
 var sch2={}
 var sch3={}
 var sch4={}
+var sch5={}
+var sch6={}
 var topo = {}
 var join_seq = []
 
@@ -103,6 +108,44 @@ function static_schedule4() {
       sch4.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer,row:ret.row,sender:parent,receiver:node}, ret.is_optimal);
     else
       console.log("cannot find an optimal cell")
+  }
+}
+
+function static_schedule5() {
+  for(var i=0;i<join_seq.length;i++) {
+    var node = join_seq[i]
+    var parent = topo[node].parent
+    var layer = topo[node].layer
+
+    // var ret=sch3.find_empty_subslot([node],8,{type:"beacon",layer:0});
+    // sch3.add_subslot(ret.slot, ret.subslot, {type:"beacon",layer:layer,row:ret.row, sender:node,receiver:0xffff}, ret.is_optimal);
+
+    var ret=sch5.find_empty_subslot([node,parent],1,{type:"uplink",layer:layer});
+    if(ret!=null)
+      sch5.add_subslot(ret.slot, ret.subslot, {type:"uplink",layer:layer,row:ret.row,sender:node,receiver:parent}, ret.is_optimal);    
+    else
+      console.log("cannot find an optimal cell")
+    var ret=sch5.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer});
+    if(ret!=null)
+      sch5.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer,row:ret.row,sender:parent,receiver:node}, ret.is_optimal);
+    else
+      console.log("cannot find an optimal cell")
+  }
+}
+
+function static_schedule6() {
+  for(var i=0;i<join_seq.length;i++) {
+    var node = join_seq[i]
+    var parent = topo[node].parent
+    var layer = topo[node].layer
+
+    var ret=sch6.find_empty_subslot([node],8,{type:"beacon",layer:0});
+    sch6.add_subslot(ret.slot, ret.subslot, {type:"beacon",layer:layer, sender:node,receiver:0xffff}, ret.is_optimal);
+
+    var ret=sch6.find_empty_subslot([node,parent],1,{type:"uplink",layer:layer});
+    sch6.add_subslot(ret.slot, ret.subslot, {type:"uplink",layer:layer, sender:node,receiver:parent}, ret.is_optimal);    
+    var ret=sch6.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer});
+    sch6.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer,sender:parent,receiver:node}, ret.is_optimal);
   }
 }
 
@@ -273,6 +316,41 @@ function init4(topology,seq) {
   return {cells:sch4.used_subslot, n1:n1, n2:n2}
 }
 
+function init5(topology,seq) {
+  sch4 = scheduler.create_scheduler(127,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],"block")
+
+  topo = topology
+  // topo for scheduler, {parent: [children]}
+  var sch_topo = {0:[]}
+  for(var n=1;n<Object.keys(topo).length;n++) {
+    if(sch_topo[topo[n].parent]!=null) sch_topo[topo[n].parent].push(n)
+    else sch_topo[topo[n].parent] = [n]
+  }
+  // sch1.setTopology(sch_topo)
+  join_seq = seq
+  static_schedule4()
+
+  return {cells:sch5.used_subslot}
+}
+
+
+function init6(topology,seq) {
+  sch6 = scheduler.create_scheduler(127,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],"partition+")
+
+  topo = topology
+  // topo for scheduler, {parent: [children]}
+  var sch_topo = {0:[]}
+  for(var n=1;n<Object.keys(topo).length;n++) {
+    if(sch_topo[topo[n].parent]!=null) sch_topo[topo[n].parent].push(n)
+    else sch_topo[topo[n].parent] = [n]
+  }
+  // sch1.setTopology(sch_topo)
+  join_seq = seq
+  static_schedule6()
+
+  return {cells:sch6.used_subslot, partitions: get_partition()}
+}
+
 function get_sch() {
   return {cells:sch1.used_subslot, partitions: get_partition()}
 }
@@ -285,6 +363,14 @@ function get_sch3() {
 
 function get_sch4() {
   return {cells:sch4.used_subslot}
+}
+
+function get_sch5() {
+  return {cells:sch5.used_subslot}
+}
+
+function get_sch6() {
+  return {cells:sch5.used_subslot}
 }
 
 function foo() {
@@ -318,7 +404,7 @@ function inter_partition_adjustment() {
 }
 
 function get_scheduler() {
-  return sch4
+  return sch6
 }
 
 module.exports={
@@ -326,6 +412,8 @@ module.exports={
   init2: init2,
   init3: init3,
   init4: init4,
+  init5: init5,
+  init6: init6,
   intra_partition_adjustment: intra_partition_adjustment,
   inter_partition_adjustment: inter_partition_adjustment,
   kick: kick,
@@ -338,5 +426,7 @@ module.exports={
   get_sch2: get_sch2,
   get_sch3: get_sch3,
   get_sch4: get_sch4,
+  get_sch5: get_sch5,
+  get_sch6: get_sch6,
   foo: foo
 };

@@ -130,9 +130,12 @@ export default {
              var icon = {
               path: window.google.maps.SymbolPath.CIRCLE,
               scale: 7,
-              fillColor: "#FE7E28",
+              // fillColor: "#FE7E28",
+              // fillOpacity: 1,
+              // strokeColor: "#FE7E28",
+              fillColor: "#58B2EC",
               fillOpacity: 1,
-              strokeColor: "#FE7E28",
+              strokeColor: "#58B2EC",
             }
             var text = ""
             if(this.markers[k].sensor_id==1) {

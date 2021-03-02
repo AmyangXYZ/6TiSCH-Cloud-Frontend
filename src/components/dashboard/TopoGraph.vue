@@ -22,7 +22,7 @@ export default {
       selectedSensor: {},
       trees: {1:
         {
-          name:1, 
+          name:"GW", 
           children:[], 
           symbolSize: 12,
           label: {
@@ -35,7 +35,7 @@ export default {
           {
             type: 'tree',
             data:[
-              {name:"1",children:[]}
+              {name:"GW",children:[]}
             ],
             top: '1%',
             left: '7%',

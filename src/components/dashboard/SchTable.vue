@@ -105,7 +105,7 @@ export default {
           name: "Channel Offset",
           type: 'value',
           min: 1,
-          max: 17,
+          max: 16,
           interval: 1,
           inverse: true,
           nameLocation: "middle",
@@ -208,8 +208,8 @@ export default {
               yAxis: 1,
             },
             {
-              xAxis:8, 
-              yAxis: 17,
+              xAxis:4, 
+              yAxis: 16,
               itemStyle:{color:"gray", opacity:0.4,borderColor:"black",borderWidth:0.1},
               label:{color:"black",fontWeight:"bold",fontSize:14, position:"insideBottom"}
             },
@@ -252,17 +252,17 @@ export default {
             //   color_index+=1
             // }
             var y1 = 1
-            var y2 = 17
+            var y2 = 16
             var pos = "insideBottom"
             if(res.data.data[i].row==0 && res.data.data[i].type!="beacon") {
               y1 = 1
-              y2 = 11
+              y2 = 10
             } else if(res.data.data[i].row==1) {
-              y1 = 11
-              y2 = 15
+              y1 = 10
+              y2 = 14
             } else if(res.data.data[i].row==2) {
-              y1 = 15
-              y2 = 17
+              y1 = 14
+              y2 = 16
             }
             if(res.data.data[i].type=="uplink") {
               pos = "insideBottomLeft"

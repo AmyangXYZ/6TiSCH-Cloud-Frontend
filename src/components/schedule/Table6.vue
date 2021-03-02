@@ -2,9 +2,28 @@
 
       <vs-card>
         <div slot="header" >
-          <h4>Block | <span style="text-decoration:underline;cursor:pointer;" @click="handleSwitch">{{simOrReal}}</span>
+          <h4>APaS+ | <span style="text-decoration:underline;cursor:pointer;" @click="handleSwitch">{{simOrReal}}</span>
+          <!-- <h4>Partition Scheduler -->
+            <div v-if="simOrReal=='Simulation'" class="bts">
+              <!-- <vs-button color="danger" type="filled" @click="handleShuffleBt">Shuffle</vs-button> -->
+              <!-- <vs-button color="primary" type="filled"  @click="handleIntraPartitionAdjustmentBt">Intra-Partition Adjustment</vs-button> -->
+              <!-- <vs-button color="danger" type="filled"  @click="handleInterPartitionAdjustmentBt">Inter-Partition Adjustment</vs-button> -->
+            </div>
           </h4>
         </div>
+        <div class="partition-usage">
+          
+          <vs-row vs-type="flex" vs-justify="space-around" vs-w="12">
+            <vs-col vs-w="2">
+              <h3>{{this.slots.length}} links, {{nonOptimalCnt}} non-aligned</h3>
+            </vs-col>
+            <vs-col id="part" vs-w="0.5" v-for="(l,i) in links" :key="i">
+              {{l.name}}: {{l.used-l.non_optimal}}<span class="non-optimal" v-if="l.non_optimal>0">+{{l.non_optimal}}</span>
+            </vs-col>
+          </vs-row>
+          <!-- {{this.res.n1}} slots used, {{this.res.n2}} slots use multiple channels -->
+        </div>
+        <vs-divider/>
         <ECharts id="sch-table" autoresize :options="option" @click="handleClickSch" />        
       </vs-card>
 
@@ -14,8 +33,8 @@
 import ECharts from "vue-echarts/components/ECharts";
 import "echarts/lib/chart/heatmap";
 import "echarts/lib/component/visualMap";
-import "echarts/lib/component/toolbox";
 import "echarts/lib/component/legend";
+import "echarts/lib/component/toolbox";
 import "echarts/lib/component/tooltip";
 import "echarts/lib/component/title";
 import "echarts/lib/component/markArea";
@@ -23,7 +42,7 @@ import "echarts/lib/component/markLine";
 import "echarts/lib/component/dataZoom";
 import "echarts/lib/chart/graph"
 
-import {init5,get_sch5,kick4,get_scheduler} from './schedule-dpa-sim.js'
+import {init6,get_sch6,get_scheduler} from './schedule-dpa-sim.js'
 
 export default {
   components: {
@@ -51,7 +70,7 @@ export default {
       option: {
         toolbox:{
           feature:{
-            saveAsImage:{}
+            // saveAsImage:{}
           }
         },
         tooltip: {
@@ -81,9 +100,9 @@ export default {
           }
         },
         grid: {
-          top: '18%',
+          top: '15%',
           // height: '78%',
-          left: '2.5%',
+          left: '3%',
           right: '1%',
           bottom: "5%",
         },
@@ -127,14 +146,14 @@ export default {
           },
           data: [],
           splitArea: {
-            show: true
+            show: true,
           }
         },
         dataZoom: [
           {
             type: "inside",
             start: 0,
-            end: 100,
+            end: 100  ,
           },
         ],
         visualMap: {
@@ -151,7 +170,7 @@ export default {
           },
           position: 'top',
           orient: "horizontal",
-          top: 6,
+          top: 5,
           right:"1%",
         },
         series: [{
@@ -161,7 +180,7 @@ export default {
             show: false,
             color: 'white',
             fontWeight: 'bold',
-            fontSize: 12.5,
+            fontSize: 14.5,
             formatter: (item) => {
               for(var i=0;i<this.slots.length;i++) {
                 // if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]*2+1)) {
@@ -169,7 +188,6 @@ export default {
                   if(this.slots[i].type!="beacon"){
                     
                     return `${this.slots[i].sender}\n${this.slots[i].receiver}`
-                    // return `${this.slots[i].layer}`
                   }
                 }
               }
@@ -183,10 +201,10 @@ export default {
           },
           markLine: {
             data: [],
-            symbolSize: 12,
+            symbolSize: 8,
             lineStyle: {
               color: "red",
-              width: 5,
+              width: 3,
               type: "solid"
             },
             animationDuration: 300,
@@ -196,9 +214,7 @@ export default {
             label: {
               position:"bottom"
             },
-            data: [[
-              {yAxis:1},{yAxis:17,itemStyle:{color:'#4575b4',opacity:0.2},}
-            ]]
+            data: []
           },
         }]
       },
@@ -207,26 +223,93 @@ export default {
   methods: {
     drawPartition() {
       this.slots = []
-      this.option.yAxis.data = this.Channels
-      var colors = ['#4e92f5', '#b1d3fb']
-      var markAreaTmp = []
-      for(var b=0;b<25;b++) {
-        markAreaTmp.push([
-          {
-            name:`${b}`,
-            xAxis:b*5,
-            yAxis: 1,
-          },
-          {
-            xAxis:(b+1)*5, 
-            yAxis: 17,
-            itemStyle:{color:colors[b%2],opacity:0.5},
-            label:{color:"black",fontWeight:"bold",fontSize:16, position:"insideBottom"}
-          },
-        ])
+      for(var k in this.links) {
+        this.links[k] = {name:k, used:0, non_optimal:0}
       }
-      this.option.series[0].markArea.data = markAreaTmp
-      this.drawSchedule()
+      this.option.yAxis.data = this.Channels
+      this.$api.gateway.getPartition()
+      .then(res=> {
+        if(this.simOrReal=="Simulation") {
+          res = {data:{data:this.res.partitions}}
+        }
+
+        this.partitions = res.data.data
+        var markAreaTmp = []
+        // var colors = ['#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
+        // var colors = {}
+        var colorMap = {
+          "B":{'rgb':"#ffa000", opacity:0.5},
+          "U1":{'rgb':"#1d71f2", opacity:0.6},
+          "D1":{'rgb':"#ffff00", opacity:0.6},
+          "U2":{'rgb':"#4e92f5", opacity:0.5},
+          "D2":{'rgb':"#ffff60", opacity:0.6},
+          "U3":{'rgb':"#80b3f8", opacity:0.5},
+          "D3":{'rgb':"#ffff80", opacity:0.5},
+          "U4":{'rgb':"#b1d3fb", opacity:0.5},
+          "D4":{'rgb':"#ffffc0", opacity:0.5},
+          "U5":{'rgb':"#e3f4fe", opacity:0.6},
+          "D5":{'rgb':"#ffffee", opacity:0.6},
+          "U6":{'rgb':"#e3f4fe", opacity:0.4},
+          "D6":{'rgb':"#ffffee", opacity:0.4},
+        }
+        // var color_index = 0
+        for(var i=0;i<res.data.data.length;i++) {
+          // init beacon subslots
+          if(res.data.data[i].type=="beacon") {
+            for(var b=res.data.data[i].range[0];b<res.data.data[i].range[1];b++) {
+              this.bcnSubslots[b] = {}
+            }            
+          }
+          // partition size > 0
+          res.data.data[i].layer++
+          if(res.data.data[i].range[0]<res.data.data[i].range[1]) {
+            
+            var name = res.data.data[i].type[0].toUpperCase()
+            if(name!="B") name+=res.data.data[i].layer
+            // if(colorMap[name]==null) {
+            //   colorMap[name] = colors[color_index%colors.length]
+            //   color_index+=1
+            // }
+            var y1 = 1
+            var y2 = 17
+            var pos = "insideBottom"
+            // if(res.data.data[i].row==0 && res.data.data[i].type!="beacon") {
+            //   y1 = 1
+            //   y2 = 11
+            // } else if(res.data.data[i].row==1) {
+            //   y1 = 11
+            //   y2 = 15
+            // } else if(res.data.data[i].row==2) {
+            //   y1 = 15
+            //   y2 = 17
+            // }
+            if(res.data.data[i].type=="uplink") {
+              pos = "insideBottomLeft"
+            } else {
+              pos = "insideBottomRight"
+            }
+            this.links[name] = {name:name, used:0, non_optimal:0}
+            markAreaTmp.push([
+              {
+                name:name,
+                xAxis:res.data.data[i].range[0],
+                yAxis: y1,
+              },
+              {
+                xAxis:res.data.data[i].range[1], 
+                yAxis: y2,
+                itemStyle:{color:colorMap[name].rgb, opacity:colorMap[name].opacity,borderColor:"black",borderWidth:0.1},
+                label:{color:"black",fontWeight:"bold",fontSize:16, position:pos}
+              },
+            ])
+          }
+        }
+        markAreaTmp.push()
+        this.option.series[0].markArea.data = markAreaTmp
+       
+        // make sure partition is loaded
+        this.drawSchedule()
+      })
     },
     drawSchedule() {
       this.$api.gateway.getSchedule()
@@ -248,12 +331,15 @@ export default {
         // if(!res.data.flag) return
         this.slots = res.data.data
         for(var i=0;i<res.data.data.length;i++) {
+          // res.data.data[i].layer++
           var name = res.data.data[i].type[0].toUpperCase()
           if(res.data.data[i].type == "beacon") {
             res.data.data[i].layer = ""
-          } 
-          name+=res.data.data[i].layer
-
+          } else {
+            name+=res.data.data[i].layer+=1
+          }
+          
+          // if(res.data.data[i].layer>2) continue
           if(this.links[name] == null) {
             this.links[name] = {name:name, used:0, non_optimal:0}
           }
@@ -269,26 +355,22 @@ export default {
           if(res.data.data[i].type=="beacon") {
             tag = -1
           }
-
-          // if(res.data.data[i].type=="beacon") {
-          //   this.bcnSubslots[res.data.data[i].slot[0]][res.data.data[i].subslot[0]]=res.data.data[i].sender
-          // }
+          if(this.bcnSubslots[res.data.data[i].slot[0]]!=null) {
+            if(res.data.data[i].type=="beacon") {
+              this.bcnSubslots[res.data.data[i].slot[0]][res.data.data[i].subslot[0]]=res.data.data[i].sender
+            }
+          }
 
           cellsTmp.push([res.data.data[i].slot[0]+0.5,res.data.data[i].slot[1]+0.5,tag])
           // cellsTmp.push([res.data.data[i].slot[0]+0.5,Math.floor(res.data.data[i].slot[1]/2),tag])
         }
         this.option.series[0].data = cellsTmp
+
+        for(var k in this.links) {
+          if(this.links[k].used==0)
+            delete this.links[k]
+        }
       })
-    },
-    handleIntraPartitionAdjustmentBt() {
-      this.res = intra_partition_adjustment(window.grid.nodes)
-      this.drawPartition()
-      if(this.selectedCell.slot.length>0) setTimeout(()=>{this.findPath(this.selectedCell)},300)
-    },
-    handleInterPartitionAdjustmentBt() {
-      this.res = inter_partition_adjustment()
-      this.drawPartition()
-      if(this.selectedCell.slot.length>0) setTimeout(()=>{this.findPath(this.selectedCell)},300)
     },
     findPath(cell) {
       this.option.series[0].markLine.data = []
@@ -331,82 +413,41 @@ export default {
       this.simOrReal = (this.simOrReal=="Simulation")?"Real":"Simulation"
       this.drawPartition()
     },
-    getCrossRowLinks() {
-      for(var i=0;i<this.slots.length;i++) {
-        if(this.slots[i].type=="uplink" && this.slots[i].layer>0) {
-          var parent = this.findSlot(this.slots[i].receiver)
-          if(parent.row!=this.slots[i].row) {
-            this.option.series[0].data.push([this.slots[i].slot[0]+0.5, this.slots[i].slot[1]+0.5,1])
-          }
-        }
-      }
-    },
+
     findSlot(node) {
       for(var i=0;i<this.slots.length;i++) {
-        if(this.slots[i].sender == node && this.slots[i].type=="uplink") {
+        if(this.slots[i].cell.sender == node && this.slots[i].cell.type=="uplink") {
           return this.slots[i]
         }
       }
       return 0
     },
     update_sch() {
-      this.res = get_sch4()
+      this.res = get_sch6()
       this.drawPartition()
     }
   },
 
   mounted() {
     window.table = this
-    // this.$EventBus.$emit("init",1)
-    this.$EventBus.$on("topo", (topo) => {
-      this.topo = topo.data
-      this.seq = topo.seq
-      this.res = init4(topo.data, topo.seq)
-      this.$EventBus.$emit("cells4",this.res.cells)
+    this.$EventBus.$emit("init",1)
+    if(this.simOrReal=="Simulation") {
+      
+      this.$EventBus.$on("topo", (topo) => {
+        this.topo = topo.data
+        this.seq = topo.seq
+        this.res = init6(topo.data, topo.seq)
+        this.$EventBus.$emit("cells1",this.res.cells)
+        this.drawPartition()
+        // setTimeout(this.getCrossRowLinks,1000)
+        window.sch = get_scheduler()
+      });
+    } else {
       this.drawPartition()
-      // setTimeout(this.getCrossRowLinks,1000)
-      window.sch = get_scheduler()
-    });
+    }
     
-    this.$EventBus.$on("selectedNode", (node) => {
-      this.option.series[0].markLine.data = []
-      if(node==this.selectedCell.sender) {
-        this.selectedCell = {slot:[]}
-        return
-      }
-      for(var i=0;i<this.slots.length;i++) {
-        if(this.slots[i].cell.sender==node) {
-          var cell = this.slots[i]
-          this.selectedCell = cell
-          this.findPath(cell)
-        }
-      }
-    })
-    this.$EventBus.$on("kicked", (kicked) => {
-      kick4(kicked)
-      
-      this.res = get_sch4()
-      this.drawSchedule()
-    })
-    this.$EventBus.$on("clear", (clear) => {
-      if(clear) {
-        window.console.log(1)
-        this.res = init4(this.topo, this.seq)
-        this.drawSchedule()
-      }
-    })
-    this.$EventBus.$on("changed", () => {
-      // var node = nodes[0]
-      // for(var i=0;i<nodes.length;i++) dynamic_schedule(nodes[i])
-      // if(!is_optimal) {
-      //   this.$EventBus.$emit("nonOptimal", node.id)
-      // }
-      
-      this.res = get_sch4()
-      this.$EventBus.$emit("cells4",this.res.cells)
-      this.drawSchedule()
-      if(this.selectedCell.slot.length>0) setTimeout(()=>{this.findPath(this.selectedCell)},500)
-    });
+  
+
   },
 }
 </script>
@@ -427,6 +468,7 @@ export default {
   color red
 .partition-usage
   font-size 0.9rem
+  text-align center
   #part
     margin-top 4px
 #sch-table

@@ -171,7 +171,7 @@ export default {
     // e2e latency
     computeRTT() {
       var over_deadline = 0
-      window.console.log(this.cells)
+      // window.console.log(this.cells)
       for(var i=0;i<this.cells.length;i++) {
         if(this.cells[i].cell.type!="uplink") continue
         var rtt = this.cells[i].latency
