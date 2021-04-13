@@ -83,6 +83,7 @@ import "echarts/lib/component/markLine";
 import "echarts/lib/component/toolbox";
 // import nodes from "./nodes_21.json";
 import noiseList from "./noiseList.json";
+
 // import _ from "lodash"
 
 
@@ -94,7 +95,7 @@ export default {
     return {
       gwPos: [],
       size: 20,
-      nodesNumber: 121, // include gateway
+      nodesNumber: 17, // include gateway
       maxHop: 6,
       txRange: 20, // in square
       childrenCnt: {0:0},
@@ -110,6 +111,7 @@ export default {
       noisePosList: [],
       noiseID: 0,
       blacklist: [],
+      animateID: 0,
       option: {
         toolbox: {
           feature: {
@@ -141,6 +143,7 @@ export default {
             itemStyle: {
               color: "deepskyblue",
             },
+            animation:false,
             silent: true,
             data: [],
             label: {
@@ -180,6 +183,7 @@ export default {
               opacity: 0,
             },
             symbolSize: 20,
+            animation:false,
             // hoverAnimation: false
           },
           {
@@ -189,6 +193,7 @@ export default {
               scale: 12,
             },
             data: [],
+            animation:false,
           },
           {
             type: "scatter",
@@ -206,6 +211,7 @@ export default {
             },
             symbolSize: 24,
             hoverAnimation: false,
+            animation:false,
           },
           {
             type: "scatter",
@@ -230,6 +236,18 @@ export default {
             symbol: "rect",
             animation: false,
             data: [],
+          },
+          {
+            type: "scatter",
+            data: [],
+            itemStyle: {
+              color: "red",
+              opacity: 0.9,
+            },
+            symbolSize: 14,
+            hoverAnimation: false,
+            animationDelayUpdate:0,
+            animationDurationUpdate: 2000,
           },
         ],
       },
@@ -596,32 +614,46 @@ export default {
         }
       }
     },
+    send(src, dst) {
+      var pkt_points = this.option.series[6].data
+     
+      var pkt = {
+        name:"packet"+src+dst,
+        value:this.nodes[src].position
+      }
+      pkt_points.push(pkt)
+ 
+      setTimeout(()=>{
+        pkt.value = this.nodes[dst].position
+        setTimeout(()=>{  
+          this.option.series[6].data = []
+          window.console.log("packet sent to",dst)
+        },1200)     
+      },800)
+      
+    },
   },
   mounted() {
+    this.draw()
+
+
+    this.send(1,this.nodes[1].parent)
+    this.send(2,this.nodes[2].parent)
+
+    this.send(3,this.nodes[3].parent)
+    this.send(4,this.nodes[4].parent)
+
+    this.send(5,this.nodes[5].parent)
+    this.send(6,this.nodes[6].parent)
     window.grid = this;
     // setInterval(this.draw, 2000)
     this.$EventBus.$on("init", (flag) => {
       if (flag) this.draw();
+      
     });
     this.$EventBus.$on("nonOptimal", (nodeId) => {
       this.nonOptimal.push(nodeId);
     });
-  },
-  watch: {
-    // size: {
-    //   handler: (size)=>{
-    //     window.console.log(size)
-    //   }
-      // handler: _.debounce(function(){
-        // this.draw()
-
-      // }, 200)
-    // },
-    // nodesNumber: {
-    //   handler: _.debounce(function(){
-    //     this.draw()
-    //   }, 200)
-    // },
   },
 };
 </script>
