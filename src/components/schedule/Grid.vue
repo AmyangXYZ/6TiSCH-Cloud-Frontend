@@ -1,6 +1,6 @@
 <template>
   <vs-card>
-    <div slot="header"><h4>Topology Generator</h4></div>
+    <div slot="header"><h4>Topology</h4></div>
     <vs-row class="panel" vs-w="12" vs-type="flex" vs-justify="space-between">
       <vs-col vs-w="2">
         <vs-input
@@ -84,6 +84,7 @@ import "echarts/lib/component/toolbox";
 // import nodes from "./nodes_21.json";
 import noiseList from "./noiseList.json";
 
+
 // import _ from "lodash"
 
 
@@ -94,8 +95,8 @@ export default {
   data() {
     return {
       gwPos: [],
-      size: 20,
-      nodesNumber: 17, // include gateway
+      size: 25,
+      nodesNumber: 101, // include gateway
       maxHop: 6,
       txRange: 20, // in square
       childrenCnt: {0:0},
@@ -111,7 +112,8 @@ export default {
       noisePosList: [],
       noiseID: 0,
       blacklist: [],
-      animateID: 0,
+      pkt_id: 0,
+      schedule: [],
       option: {
         toolbox: {
           feature: {
@@ -139,7 +141,7 @@ export default {
         },
         series: [
           {
-            symbolSize: 21,
+            symbolSize: 18,
             itemStyle: {
               color: "deepskyblue",
             },
@@ -149,7 +151,7 @@ export default {
             label: {
               show: true,
               color: "black",
-              fontSize: 14,
+              fontSize: 13,
               formatter: (item) => {
                 for (var i = 0; i < Object.keys(this.nodes).length; i++) {
                   if (
@@ -164,7 +166,7 @@ export default {
             markLine: {
               animation: false,
               silent: true,
-              symbolSize: 10,
+              symbolSize: 5,
               lineStyle: {
                 type: "solid",
                 width: 2.5,
@@ -244,7 +246,7 @@ export default {
               color: "red",
               opacity: 0.9,
             },
-            symbolSize: 14,
+            symbolSize: 12,
             hoverAnimation: false,
             animationDelayUpdate:0,
             animationDurationUpdate: 2000,
@@ -377,7 +379,7 @@ export default {
         }
         // not found, increase threshold
         threshold += this.txRange;
-        window.console.log("increase tx range to "+threshold)
+        // window.console.log("increase tx range to "+threshold)
         loopCnt++
       }
 
@@ -615,42 +617,104 @@ export default {
       }
     },
     send(src, dst) {
-      var pkt_points = this.option.series[6].data
-     
+      this.pkt_id++
       var pkt = {
-        name:"packet"+src+dst,
-        value:this.nodes[src].position
+        name:"pkt"+src+"->"+dst+"#"+this.pkt_id,
+        value:this.nodes[src].position,
       }
-      pkt_points.push(pkt)
- 
+      this.option.series[6].data.push(pkt)
+      
+      
       setTimeout(()=>{
         pkt.value = this.nodes[dst].position
         setTimeout(()=>{  
-          this.option.series[6].data = []
-          window.console.log("packet sent to",dst)
-        },1200)     
-      },800)
+          // this.option.series[6].data = []
+          // if(next_hop!=dst) {
+          //   this.send(next_hop, dst)
+          // }
+          // else {
+            // window.console.log(pkt.name,"finished")
+            // this.$EventBus.$emit("pkt_finish", true);
+          // }
+          pkt.value = [-1,-1]
+          this.$EventBus.$emit("pkt_finish", pkt)
+        },1500)     
+      },500)
       
     },
+    runSimulationNext(slot) {
+      var total = 0
+      this.$EventBus.$emit("simulation_cur_slot", slot)
+      for(var ch=1;ch<17;ch++) {
+        if(this.schedule[slot][ch]!=null) {
+          var cell = this.schedule[slot][ch]
+          if(cell.type!="beacon") {
+            total++
+            this.send(cell.sender,cell.receiver)
+          }
+        }
+      }
+      
+      return total
+    },
+    runSimulation() {
+      var slot = 0
+      var total = this.runSimulationNext(slot)
+      while(total==0) {
+        slot++
+        total = this.runSimulationNext(slot)
+      }
+      var cnt = 0
+      this.$EventBus.$on("pkt_finish", () => {
+        cnt++
+        // window.console.log(pkt.name,"finished")
+        if(cnt == total) {
+          cnt = 0
+          slot++
+          total = this.runSimulationNext(slot)
+          while(total==0) {
+            slot++
+            if(slot>126)
+              return
+            total = this.runSimulationNext(slot)
+            
+          }
+        }
+      });
+    }
   },
   mounted() {
-    this.draw()
-
-
-    this.send(1,this.nodes[1].parent)
-    this.send(2,this.nodes[2].parent)
-
-    this.send(3,this.nodes[3].parent)
-    this.send(4,this.nodes[4].parent)
-
-    this.send(5,this.nodes[5].parent)
-    this.send(6,this.nodes[6].parent)
     window.grid = this;
-    // setInterval(this.draw, 2000)
     this.$EventBus.$on("init", (flag) => {
       if (flag) this.draw();
+      setTimeout(this.runSimulation, 1000)
       
     });
+    
+    // var cnt = 0
+    // this.$EventBus.$on("pkt_finish", () => {
+    //   cnt++
+    //   // window.console.log(pkt.name+' '+cnt+"finished")
+    //   if(cnt==4) {
+    //     cnt = 0
+    //     for(var i=1;i<5;i++) {
+    //       this.send(i,0)
+    //     }
+    //   }
+    // });
+
+    this.$EventBus.$on("cells1", (cells) => {
+      this.schedule = new Array(127)
+      for(var slot=0;slot<127;slot++) {
+        this.schedule[slot] = new Array(17)
+      }
+      for(var i=0;i<cells.length;i++) {
+        this.schedule[cells[i].slot[0]][cells[i].slot[1]] = cells[i].cell
+      }
+    });
+
+    
+
     this.$EventBus.$on("nonOptimal", (nodeId) => {
       this.nonOptimal.push(nodeId);
     });
@@ -663,6 +727,6 @@ export default {
   width 110px
 #chart {
   width: 100%;
-  height: 577px;
+  height: 500px;
 }
 </style>

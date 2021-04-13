@@ -23,7 +23,7 @@ import "echarts/lib/component/markLine";
 import "echarts/lib/component/dataZoom";
 import "echarts/lib/chart/graph"
 
-import {init5,get_sch5,kick4,get_scheduler} from './schedule-dpa-sim.js'
+import {init4,get_sch4,kick4,get_scheduler} from './schedule-dpa-sim.js'
 
 export default {
   components: {
@@ -158,7 +158,7 @@ export default {
           type: 'heatmap',
           data: [],
           label: {
-            show: false,
+            show: true,
             color: 'white',
             fontWeight: 'bold',
             fontSize: 12.5,
@@ -281,14 +281,10 @@ export default {
       })
     },
     handleIntraPartitionAdjustmentBt() {
-      this.res = intra_partition_adjustment(window.grid.nodes)
-      this.drawPartition()
-      if(this.selectedCell.slot.length>0) setTimeout(()=>{this.findPath(this.selectedCell)},300)
+      
     },
     handleInterPartitionAdjustmentBt() {
-      this.res = inter_partition_adjustment()
-      this.drawPartition()
-      if(this.selectedCell.slot.length>0) setTimeout(()=>{this.findPath(this.selectedCell)},300)
+      
     },
     findPath(cell) {
       this.option.series[0].markLine.data = []
@@ -357,7 +353,7 @@ export default {
 
   mounted() {
     window.table = this
-    // this.$EventBus.$emit("init",1)
+    this.$EventBus.$emit("init",1)
     this.$EventBus.$on("topo", (topo) => {
       this.topo = topo.data
       this.seq = topo.seq
@@ -431,5 +427,6 @@ export default {
     margin-top 4px
 #sch-table
   width 100%
-  height 350px
+  // height 350px
+  height 600px
 </style>

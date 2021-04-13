@@ -5,8 +5,8 @@
       <vs-col style="z-index:99" vs-offset="0.6" vs-w="5">  
         <Grid/>
       </vs-col>
-      <vs-col style="z-index:99" vs-offset="0.2" vs-w="4.2">  
-        <Latency/>
+      <vs-col style="z-index:99" vs-offset="0.6" vs-w="5.2">  
+        <!-- <Latency/> -->
       </vs-col>
        <!-- <vs-col style="z-index:99" vs-offset="0.1" vs-w="2.2  ">  
         <Latency2/>
@@ -44,7 +44,7 @@ import SchTable from '../components/schedule/Table'
 // import SchTable4 from '../components/schedule/Table4'
 // import SchTable2 from '../components/schedule/Table2'
 // import SchTable3 from '../components/schedule/Table3'
-import Latency from '../components/schedule/Latency'
+// import Latency from '../components/schedule/Latency'
 // import Latency2 from '../components/schedule/Latency2'
 // import Latency3 from '../components/schedule/Latency3'
 // import Latency4 from '../components/schedule/Latency4'
@@ -57,7 +57,7 @@ export default {
       // SchTable4,
       // SchTable2,
       // SchTable3,
-      Latency,
+      // Latency,
       // Latency2,
       // Latency3,
       // Latency4

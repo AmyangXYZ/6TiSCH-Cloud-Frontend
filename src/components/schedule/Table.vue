@@ -11,7 +11,7 @@
             </div>
           </h4>
         </div>
-        <div class="partition-usage">
+        <!-- <div class="partition-usage">
           
           <vs-row vs-type="flex" vs-justify="space-around" vs-w="12">
             <vs-col vs-w="2">
@@ -21,9 +21,9 @@
               {{l.name}}: {{l.used-l.non_optimal}}<span class="non-optimal" v-if="l.non_optimal>0">+{{l.non_optimal}}</span>
             </vs-col>
           </vs-row>
-          <!-- {{this.res.n1}} slots used, {{this.res.n2}} slots use multiple channels -->
-        </div>
-        <vs-divider/>
+          {{this.res.n1}} slots used, {{this.res.n2}} slots use multiple channels
+        </div> -->
+        <!-- <vs-divider/> -->
         <ECharts id="sch-table" autoresize :options="option" @click="handleClickSch" />        
       </vs-card>
 
@@ -124,7 +124,7 @@ export default {
           nameTextStyle: {
             fontWeight: "bold",
             padding: 15,
-            fontSize: 15
+            fontSize: 13
           },
           data: [],
           splitArea: {
@@ -142,7 +142,7 @@ export default {
           nameTextStyle: {
             fontWeight: "bold",
             padding: 10,
-            fontSize: 15
+            fontSize: 13
           },
           data: [],
           splitArea: {
@@ -166,11 +166,11 @@ export default {
           },
           pieces:[{min:-1,max:-1,label:"Beacon"},{min:0,max:0,label:"Uplink"},{min:1,max:1,label:"Downlink"},],
           textStyle: {
-            fontSize:15,
+            fontSize:13,
           },
           position: 'top',
           orient: "horizontal",
-          top: 5,
+          top: 2,
           right:"1%",
         },
         series: [{
@@ -215,6 +215,28 @@ export default {
               position:"bottom"
             },
             data: []
+          },
+        },
+        {
+          type: 'line',
+          markLine: {
+            data: [{
+              xAxis:0.5,
+              // yAxis:10
+            }],
+            symbolSize: 8,
+            lineStyle: {
+              color: "red",
+              width: 3,
+              type: "solid"
+            },
+            label: {
+              formatter: (item)=>{
+                return "Slot "+ (item.data.coord[0]-0.5).toString()
+              },
+              fontSize:13
+            },
+            animationDurationUpdate: 500,
           },
         }]
       },
@@ -283,6 +305,7 @@ export default {
               pos = "insideBottomRight"
             }
             this.links[name] = {name:name, used:0, non_optimal:0}
+            
             markAreaTmp.push([
               {
                 name:name,
@@ -293,7 +316,7 @@ export default {
                 xAxis:res.data.data[i].range[1], 
                 yAxis: y2,
                 itemStyle:{color:colorMap[name].rgb, opacity:colorMap[name].opacity,borderColor:"black",borderWidth:0.1},
-                label:{color:"black",fontWeight:"bold",fontSize:16, position:pos}
+                label:{color:"black",fontWeight:"bold",fontSize:14, position:pos}
               },
             ])
           }
@@ -483,6 +506,10 @@ export default {
       this.drawPartition()
       if(this.selectedCell.slot.length>0) setTimeout(()=>{this.findPath(this.selectedCell)},500)
     });
+
+    this.$EventBus.$on("simulation_cur_slot", (slot)=>{
+      this.option.series[1].markLine.data[0].xAxis = slot+0.5
+    })
   },
 }
 </script>
@@ -508,5 +535,5 @@ export default {
     margin-top 4px
 #sch-table
   width 100%
-  height 350px
+  height 320px
 </style>

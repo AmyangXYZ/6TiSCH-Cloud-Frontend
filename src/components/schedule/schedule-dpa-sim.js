@@ -90,6 +90,13 @@ function static_schedule3() {
 }
 
 function static_schedule4() {
+  var max_hop = 0
+  for(var x=0;x<join_seq.length;x++) {
+    var node = join_seq[x]
+    if ((topo[node].path.length-1)>max_hop)
+      max_hop = topo[node].path.length-1
+  }
+  console.log("max hop", max_hop)
   for(var i=0;i<join_seq.length;i++) {
     var node = join_seq[i]
     var parent = topo[node].parent
@@ -97,17 +104,19 @@ function static_schedule4() {
 
     // var ret=sch3.find_empty_subslot([node],8,{type:"beacon",layer:0});
     // sch3.add_subslot(ret.slot, ret.subslot, {type:"beacon",layer:layer,row:ret.row, sender:node,receiver:0xffff}, ret.is_optimal);
-
-    var ret=sch4.find_empty_subslot([node,parent],1,{type:"uplink",layer:layer});
-    if(ret!=null)
-      sch4.add_subslot(ret.slot, ret.subslot, {type:"uplink",layer:layer,row:ret.row,sender:node,receiver:parent}, ret.is_optimal);    
-    else
-      console.log("cannot find an optimal cell")
-    var ret=sch4.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer});
-    if(ret!=null)
-      sch4.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer,row:ret.row,sender:parent,receiver:node}, ret.is_optimal);
-    else
-      console.log("cannot find an optimal cell")
+    var hop = topo[node].path.length-1
+    for(var j=0;j<max_hop+1-hop;j++) {
+      var ret=sch4.find_empty_subslot([node,parent],1,{type:"uplink",layer:layer});
+      if(ret!=null)
+        sch4.add_subslot(ret.slot, ret.subslot, {type:"uplink",layer:layer,row:ret.row,sender:node,receiver:parent}, ret.is_optimal);    
+      else
+        console.log("cannot find an optimal cell")
+    }
+    // var ret=sch4.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer});
+    // if(ret!=null)
+    //   sch4.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer,row:ret.row,sender:parent,receiver:node}, ret.is_optimal);
+    // else
+    //   console.log("cannot find an optimal cell")
   }
 }
 

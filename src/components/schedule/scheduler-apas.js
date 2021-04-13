@@ -41,7 +41,7 @@
 
 const RESERVED = 0; //Number of reserved
 const SUBSLOTS = 8;
-const ROWS = 8;
+const ROWS = 4;
 const ALGORITHM = "partition"
 const partition_config = require("./partition.json");
 
@@ -70,6 +70,7 @@ function partition_init(sf) {
   for(var r=0; r<ROWS;r++) {
     slot_cursor[r] = RESERVED
     uplink_row[r] = partition_scale(uplink, u_d[0]-last_uplink_row_boundary)
+    // uplink_row[r] = uplink
     downlink_row[r] = partition_scale(downlink, u_d[1]-last_downlink_row_boundary);
     last_uplink_row_boundary += uplink_row[r][0]
     last_downlink_row_boundary += downlink_row[r][0]
@@ -1325,7 +1326,8 @@ function create_scheduler(sf, ch, algorithm) {
 
     // 1 cell per link, from root to leaf
     if (parent == 0) {
-      block_id = Math.floor(Math.random() * block_num)
+      // block_id = Math.floor(Math.random() * block_num)
+      block_id = block_numz
       if (block_id % 2 != 0) block_id -= 1
       if (info.type == "uplink") {
         for (var b = block_id; b >= 0; b -= 2) block_list.push(b)
