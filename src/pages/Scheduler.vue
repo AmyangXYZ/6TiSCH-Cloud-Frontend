@@ -2,10 +2,10 @@
   <div>
     <vs-row vs-align="flex-start" vs-w="12">
       <br><br><br><br><br>
-      <vs-col style="z-index:99" vs-offset="0.6" vs-w="4.5">  
+      <vs-col style="z-index:99" vs-offset="0.6" vs-w="5.5">  
         <Grid/>
       </vs-col>
-      <vs-col style="z-index:99" vs-offset="0.6" vs-w="5.2">  
+      <vs-col style="z-index:99" vs-offset="0.4" vs-w="5.2">  
         <!-- <Latency/> -->
         <Console/>
       </vs-col>

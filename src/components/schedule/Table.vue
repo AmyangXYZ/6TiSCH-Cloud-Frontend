@@ -2,13 +2,14 @@
 
       <vs-card>
         <div slot="header" >
-          <h4>APaS | <span style="text-decoration:underline;cursor:pointer;" @click="handleSwitch">{{simOrReal}}</span>
+          <h4>APaS 
+            <!-- | <span style="text-decoration:underline;cursor:pointer;" @click="handleSwitch">{{simOrReal}}</span> -->
           <!-- <h4>Partition Scheduler -->
-            <div v-if="simOrReal=='Simulation'" class="bts">
+            <!-- <div v-if="simOrReal=='Simulation'" class="bts"> -->
               <!-- <vs-button color="danger" type="filled" @click="handleShuffleBt">Shuffle</vs-button> -->
               <!-- <vs-button color="primary" type="filled"  @click="handleIntraPartitionAdjustmentBt">Intra-Partition Adjustment</vs-button> -->
               <!-- <vs-button color="danger" type="filled"  @click="handleInterPartitionAdjustmentBt">Inter-Partition Adjustment</vs-button> -->
-            </div>
+            <!-- </div> -->
           </h4>
         </div>
         <!-- <div class="partition-usage">
@@ -100,11 +101,11 @@ export default {
           }
         },
         grid: {
-          top: '18%',
+          top: '20%',
           // height: '78%',
           left: '3%',
           right: '1%',
-          bottom: "8%",
+          bottom: "7.5%",
         },
         xAxis: {
           min:0,
@@ -237,7 +238,7 @@ export default {
               formatter: (item)=>{
                 return "Slot "+ (item.data.coord[0]-0.5).toString()
               },
-              fontSize:14
+              fontSize:13
             },
             animationDuration:300,
             animationDurationUpdate: 500,
@@ -511,9 +512,7 @@ export default {
       if(this.selectedCell.slot.length>0) setTimeout(()=>{this.findPath(this.selectedCell)},500)
     });
 
-    this.$EventBus.$on("run_simulation", ()=>{
-      
-    })
+    
     this.$EventBus.$on("simulation_cur_slot", (slot)=>{
       this.option.series[1].markLine.data = [{xAxis:slot+0.5}]
     })
@@ -545,5 +544,5 @@ export default {
     margin-top 4px
 #sch-table
   width 100%
-  height 240px
+  height 220px
 </style>

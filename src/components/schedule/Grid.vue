@@ -1,15 +1,25 @@
 <template>
-  <vs-card>
+  <vs-card >
     <div slot="header"><h4>Topology</h4></div>
-    <vs-row class="panel"  vs-w="11" vs-type="flex" vs-justify="space-between">
+    <vs-row class="panel" vs-w="11" vs-type="flex" vs-justify="space-between">
       <vs-col vs-w="2" vs-offset=0.5>
         <vs-input
           type="number"
           size="small"
-          label="Grid Size"
+          label="GridX"
           class="inputx"
           placeholder="20"
-          v-model="size"
+          v-model="sizeX"
+        />
+      </vs-col>
+      <vs-col vs-w="2" >
+        <vs-input
+          type="number"
+          size="small"
+          label="GridY"
+          class="inputx"
+          placeholder="20"
+          v-model="sizeY"
         />
       </vs-col>
       <vs-col vs-w="2">
@@ -53,7 +63,7 @@
         />
       </vs-col> -->
     </vs-row>
-    <ECharts ref="chart" @click="addNoiseByClick" id="chart" autoresize :options="option" />
+    <ECharts ref="chart" @click="addNoiseByClick" id="grid-chart" autoresize :options="option" />
     <!-- <ECharts
       ref="chart"
       @click="selectNode"
@@ -62,12 +72,14 @@
       :options="option"
     /> -->
     <div slot="footer">
-      <vs-row vs-justify="flex-end">
-        <vs-button color="green" type="filled" @click="draw">ReDraw</vs-button>
-        <vs-button color="danger" type="filled" @click="addNoiseCircleRand"
+      <vs-row vs-justify="flex-end" id="bts">
+      
+        <vs-button  size="small" color="green" type="relief" @click="draw">ReDraw</vs-button>
+        
+        <vs-button size="small" color="danger" type="relief" @click="addNoiseCircleRand"
           >Interfer</vs-button
         >
-        <vs-button color="primary" type="filled" @click="clearNoise"
+        <vs-button size="small" color="primary" type="relief" @click="clearNoise"
           >Clear</vs-button
         >
       </vs-row>
@@ -95,12 +107,13 @@ export default {
   data() {
     return {
       gwPos: [],
-      size: 25,
-      nodesNumber: 11, // include gateway
+      sizeX: 32,
+      sizeY: 24,
+      nodesNumber: 121, // include gateway
       maxHop: 6,
-      txRange: 25, // in square
+      txRange: 36, // in square
       childrenCnt: {0:0},
-      parent_capacity:8, // except gateway
+      parent_capacity:6, // except gateway
       kicked: [],
       history_cp: [],
       history_cl: [],
@@ -155,7 +168,7 @@ export default {
             itemStyle: {
               color: "deepskyblue",
             },
-            animation:false,
+            // animation:false,
             silent: true,
             data: [],
             label: {
@@ -267,25 +280,27 @@ export default {
   },
   methods: {
     draw() {
-      this.size = parseInt(this.size)
+      // this.size = parseInt(this.size)
+      var sizeX = parseInt(this.sizeX)
+      var sizeY = parseInt(this.sizeY)
       this.nodesNumber = parseInt(this.nodesNumber)
       this.txRange = parseInt(this.txRange)
       this.maxHop = parseInt(this.maxHop)
       this.parent_capacity = parseInt(this.parent_capacity)
-      if((this.size-1)*(this.size-1) < this.nodesNumber)
+      if((sizeX-1)*(sizeY-1) < this.nodesNumber)
         return
       
 
       this.option.series[0].data = [];
       // gen invisible node for click event
-      for (var a = 0; a <= this.size; a++) {
-        for (var b = 0; b <= this.size; b++) {
+      for (var a = 0; a <= sizeX; a++) {
+        for (var b = 0; b <= sizeY; b++) {
           this.option.series[1].data.push([a, b]);
         }
       }
       // gen gateway and nodes
-      var xx = Math.round((this.size - 10) * Math.random() + 5);
-      var yy = Math.round((this.size - 10) * Math.random() + 5);
+      var xx = Math.round((sizeX - 10) * Math.random() + 5);
+      var yy = Math.round((sizeY - 10) * Math.random() + 5);
       this.gwPos = [xx, yy];
       // this.gwPos = nodes[0]
       
@@ -297,11 +312,11 @@ export default {
       var pos_list = {};
       pos_list[this.gwPos[0] + "-" + this.gwPos[1]] = 1;
       for (var i = 1; i < this.nodesNumber; i++) {
-        var x = Math.round((this.size - 2) * Math.random() + 1);
-        var y = Math.round((this.size - 2) * Math.random() + 1);
+        var x = Math.round((sizeX - 2) * Math.random() + 1);
+        var y = Math.round((sizeY - 2) * Math.random() + 1);
         while (pos_list[x + "-" + y] != null) {
-          x = Math.round((this.size - 1) * Math.random() + 1);
-          y = Math.round((this.size - 1) * Math.random() + 1);
+          x = Math.round((sizeX - 1) * Math.random() + 1);
+          y = Math.round((sizeY - 1) * Math.random() + 1);
         }
         pos_list[x + "-" + y] = 1;
         this.nodes[i] = { parent: -1, position: [x, y], layer: -1, path: [i] };
@@ -317,8 +332,8 @@ export default {
       for (var nn = 0; nn < Object.keys(this.nodes).length; nn++) {
         this.option.series[0].data.push(this.nodes[nn].position);
       }
-      this.option.xAxis.max = this.size
-      this.option.yAxis.max = this.size
+      this.option.xAxis.max = sizeX
+      this.option.yAxis.max = sizeY
 
       // find parents
       this.findParents();
@@ -633,20 +648,10 @@ export default {
         value:this.nodes[src].position,
       }
       this.option.series[6].data.push(pkt)
-
-      
       
       setTimeout(()=>{
         pkt.value = this.nodes[dst].position
         setTimeout(()=>{  
-          // this.option.series[6].data = []
-          // if(next_hop!=dst) {
-          //   this.send(next_hop, dst)
-          // }
-          // else {
-            // window.console.log(pkt.name,"finished")
-            // this.$EventBus.$emit("pkt_finish", true);
-          // }
           pkt.value = [-1,-1]
           this.$EventBus.$emit("pkt_finish", pkt)
         },800)     
@@ -669,7 +674,7 @@ export default {
           if(cell.type!="beacon") {
             this.pkt_num_cur_slot++
             this.send(cell.sender,cell.receiver)
-            transmissions.push([cell.sender, cell.receiver])
+            transmissions.push([cell.sender, cell.receiver, ch])
           }
         }
       }
@@ -688,10 +693,8 @@ export default {
   },
   mounted() {
     window.grid = this;
-    this.$EventBus.$on("init", (flag) => {
-      if (flag) this.draw();
-      
-      
+    this.$EventBus.$on("init", () => {
+      this.draw();
     });
 
     this.$EventBus.$on("cells1", (cells) => {
@@ -747,12 +750,16 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-.vs-input
-  width 110px
-#chart {
-  width: 100%;
-  height: 400px;
-}
 .panel
-  font-size 0.5rem
+  margin-top -5px
+  .vs-input
+    width 100px
+    
+#grid-chart
+  width 100%
+  height 400px  
+
+#bts
+  font-size 0.9rem
+// need to change vuesax.css: `.vs-input--label: {font-size: 0.7rem  }`
 </style>

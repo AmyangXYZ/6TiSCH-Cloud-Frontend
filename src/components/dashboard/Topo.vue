@@ -1,7 +1,7 @@
 <template>
   <vs-card class="topo">
     <div id="title">Topology</div>
-    <vs-tabs  alignment="center">
+    <vs-tabs alignment="center">
       <vs-tab label="Map">
         <TopoMap/>
       </vs-tab>
