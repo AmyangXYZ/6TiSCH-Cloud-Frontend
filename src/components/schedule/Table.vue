@@ -100,11 +100,11 @@ export default {
           }
         },
         grid: {
-          top: '15%',
+          top: '18%',
           // height: '78%',
           left: '3%',
           right: '1%',
-          bottom: "5%",
+          bottom: "8%",
         },
         xAxis: {
           min:0,
@@ -115,7 +115,8 @@ export default {
             formatter: (item)=>{
               if(item%2==1) 
                 return item
-            }
+            },
+            fontSize:10,
           },
           name: "Slot Offset",
           type: 'value',
@@ -124,12 +125,13 @@ export default {
           nameTextStyle: {
             fontWeight: "bold",
             padding: 15,
-            fontSize: 13
+            fontSize: 12
           },
           data: [],
           splitArea: {
             show: true,
           },
+          
         },
         yAxis: {
           name: "Channel Offset",
@@ -142,11 +144,14 @@ export default {
           nameTextStyle: {
             fontWeight: "bold",
             padding: 10,
-            fontSize: 13
+            fontSize: 12
           },
           data: [],
           splitArea: {
             show: true,
+          },
+          axisLabel: {
+            fontSize:10,
           }
         },
         dataZoom: [
@@ -166,11 +171,11 @@ export default {
           },
           pieces:[{min:-1,max:-1,label:"Beacon"},{min:0,max:0,label:"Uplink"},{min:1,max:1,label:"Downlink"},],
           textStyle: {
-            fontSize:13,
+            fontSize:12,
           },
           position: 'top',
           orient: "horizontal",
-          top: 2,
+          top: 0,
           right:"1%",
         },
         series: [{
@@ -220,10 +225,8 @@ export default {
         {
           type: 'line',
           markLine: {
-            data: [{
-              xAxis:0.5,
-              // yAxis:10
-            }],
+            data: [],
+            symbol: "pin",
             symbolSize: 8,
             lineStyle: {
               color: "red",
@@ -234,8 +237,9 @@ export default {
               formatter: (item)=>{
                 return "Slot "+ (item.data.coord[0]-0.5).toString()
               },
-              fontSize:13
+              fontSize:14
             },
+            animationDuration:300,
             animationDurationUpdate: 500,
           },
         }]
@@ -316,7 +320,7 @@ export default {
                 xAxis:res.data.data[i].range[1], 
                 yAxis: y2,
                 itemStyle:{color:colorMap[name].rgb, opacity:colorMap[name].opacity,borderColor:"black",borderWidth:0.1},
-                label:{color:"black",fontWeight:"bold",fontSize:14, position:pos}
+                label:{color:"black",fontWeight:"bold",fontSize:12, position:pos}
               },
             ])
           }
@@ -507,8 +511,14 @@ export default {
       if(this.selectedCell.slot.length>0) setTimeout(()=>{this.findPath(this.selectedCell)},500)
     });
 
+    this.$EventBus.$on("run_simulation", ()=>{
+      
+    })
     this.$EventBus.$on("simulation_cur_slot", (slot)=>{
-      this.option.series[1].markLine.data[0].xAxis = slot+0.5
+      this.option.series[1].markLine.data = [{xAxis:slot+0.5}]
+    })
+    this.$EventBus.$on("simulation_finish", ()=>{
+      this.option.series[1].markLine.data = []
     })
   },
 }
@@ -535,5 +545,5 @@ export default {
     margin-top 4px
 #sch-table
   width 100%
-  height 320px
+  height 240px
 </style>

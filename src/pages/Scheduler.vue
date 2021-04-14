@@ -2,11 +2,12 @@
   <div>
     <vs-row vs-align="flex-start" vs-w="12">
       <br><br><br><br><br>
-      <vs-col style="z-index:99" vs-offset="0.6" vs-w="5">  
+      <vs-col style="z-index:99" vs-offset="0.6" vs-w="4.5">  
         <Grid/>
       </vs-col>
       <vs-col style="z-index:99" vs-offset="0.6" vs-w="5.2">  
         <!-- <Latency/> -->
+        <Console/>
       </vs-col>
        <!-- <vs-col style="z-index:99" vs-offset="0.1" vs-w="2.2  ">  
         <Latency2/>
@@ -38,6 +39,7 @@
 </template>
 
 <script>
+import Console from '../components/schedule/Console.vue'
 import Grid from '../components/schedule/Grid'
 import SchTable from '../components/schedule/Table'
 // import SchTable5 from '../components/schedule/Table5'
@@ -54,6 +56,7 @@ export default {
     components: {
       Grid,
       SchTable,
+        Console,
       // SchTable4,
       // SchTable2,
       // SchTable3,

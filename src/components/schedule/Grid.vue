@@ -1,8 +1,8 @@
 <template>
   <vs-card>
     <div slot="header"><h4>Topology</h4></div>
-    <vs-row class="panel" vs-w="12" vs-type="flex" vs-justify="space-between">
-      <vs-col vs-w="2">
+    <vs-row class="panel"  vs-w="11" vs-type="flex" vs-justify="space-between">
+      <vs-col vs-w="2" vs-offset=0.5>
         <vs-input
           type="number"
           size="small"
@@ -42,7 +42,7 @@
           v-model="maxHop"
         />
       </vs-col>
-      <vs-col vs-w="2">
+      <!-- <vs-col vs-w="2">
         <vs-input
           type="number"
           size="small"
@@ -51,7 +51,7 @@
           placeholder="10"
           v-model="parent_capacity"
         />
-      </vs-col>
+      </vs-col> -->
     </vs-row>
     <ECharts ref="chart" @click="addNoiseByClick" id="chart" autoresize :options="option" />
     <!-- <ECharts
@@ -96,11 +96,11 @@ export default {
     return {
       gwPos: [],
       size: 25,
-      nodesNumber: 101, // include gateway
+      nodesNumber: 11, // include gateway
       maxHop: 6,
-      txRange: 20, // in square
+      txRange: 25, // in square
       childrenCnt: {0:0},
-      parent_capacity:100,
+      parent_capacity:8, // except gateway
       kicked: [],
       history_cp: [],
       history_cl: [],
@@ -113,6 +113,10 @@ export default {
       noiseID: 0,
       blacklist: [],
       pkt_id: 0,
+      pkt_num_cur_slot: 0,
+      simulation_slot: -1,
+      simulation_run: false,
+      simulation_slot_list:[0,0],
       schedule: [],
       option: {
         toolbox: {
@@ -121,7 +125,7 @@ export default {
           },
         },
         grid: {
-          top: "5%",
+          top: "3%",
           left: "5%",
           right: "5%",
           bottom: "5%",
@@ -130,18 +134,24 @@ export default {
           min: 0,
           max: this.size,
           interval: 1,
+          axisLabel: {
+            fontSize:10,
+          }
         },
         yAxis: {
           min: 0,
           max: this.size,
           interval: 1,
+          axisLabel: {
+            fontSize:10,
+          }
         },
         markLine: {
           z: -1,
         },
         series: [
           {
-            symbolSize: 18,
+            symbolSize: 16,
             itemStyle: {
               color: "deepskyblue",
             },
@@ -151,7 +161,7 @@ export default {
             label: {
               show: true,
               color: "black",
-              fontSize: 13,
+              fontSize: 12,
               formatter: (item) => {
                 for (var i = 0; i < Object.keys(this.nodes).length; i++) {
                   if (
@@ -202,7 +212,7 @@ export default {
             data: [],
             label: {
               show: true,
-              fontSize: 18,
+              fontSize: 16,
               formatter: () => {
                 return "0";
               },
@@ -211,7 +221,7 @@ export default {
               color: "purple",
               opacity: 0.85,
             },
-            symbolSize: 24,
+            symbolSize: 18,
             hoverAnimation: false,
             animation:false,
           },
@@ -246,10 +256,10 @@ export default {
               color: "red",
               opacity: 0.9,
             },
-            symbolSize: 12,
+            symbolSize: 10,
             hoverAnimation: false,
             animationDelayUpdate:0,
-            animationDurationUpdate: 2000,
+            animationDurationUpdate: 1000,
           },
         ],
       },
@@ -279,7 +289,7 @@ export default {
       this.gwPos = [xx, yy];
       // this.gwPos = nodes[0]
       
-      this.gwPos = [10,10]
+      // this.gwPos = [10,10]
       this.nodes = {
         0: { parent: -1, position: this.gwPos, layer: -1, path: [0] },
       };
@@ -303,7 +313,7 @@ export default {
       // }
 
       // this.nodes = nodes
-      window.console.log(this.nodes)
+      // window.console.log(this.nodes)
       for (var nn = 0; nn < Object.keys(this.nodes).length; nn++) {
         this.option.series[0].data.push(this.nodes[nn].position);
       }
@@ -360,7 +370,7 @@ export default {
             );
      
             for(var i=0;i<parent_candidates.length;i++) {
-              if ((parent_candidates[i].d <= threshold) && (this.childrenCnt[parent_candidates[i].id]<=this.parent_capacity)) {
+              if ((parent_candidates[i].d <= threshold) && ( parent_candidates[i].id==0 || (parent_candidates[i].id!=0 && this.childrenCnt[parent_candidates[i].id]<=this.parent_capacity) )) {
                 this.nodes[j].parent = parent_candidates[i].id;
                 this.nodes[j].layer = cur_layer;
                 this.nodes[j].path = this.nodes[j].path.concat(
@@ -619,10 +629,11 @@ export default {
     send(src, dst) {
       this.pkt_id++
       var pkt = {
-        name:"pkt"+src+"->"+dst+"#"+this.pkt_id,
+        name:"pkt "+src+"->"+dst+" #"+this.pkt_id,
         value:this.nodes[src].position,
       }
       this.option.series[6].data.push(pkt)
+
       
       
       setTimeout(()=>{
@@ -638,70 +649,50 @@ export default {
           // }
           pkt.value = [-1,-1]
           this.$EventBus.$emit("pkt_finish", pkt)
-        },1500)     
-      },500)
+        },800)     
+      },400)
       
     },
-    runSimulationNext(slot) {
-      var total = 0
-      this.$EventBus.$emit("simulation_cur_slot", slot)
+    runSimulationNext() {
+      this.pkt_num_cur_slot = 0
+      this.simulation_slot++
+      if(this.simulation_slot>126) {
+        this.$EventBus.$emit("simulation_finish", true)
+        return
+      }
+      // window.console.log("slot",this.simulation_slot)
+      var transmissions = []
+      this.$EventBus.$emit("simulation_cur_slot", this.simulation_slot)
       for(var ch=1;ch<17;ch++) {
-        if(this.schedule[slot][ch]!=null) {
-          var cell = this.schedule[slot][ch]
+        if(this.schedule[this.simulation_slot][ch]!=null) {
+          var cell = this.schedule[this.simulation_slot][ch]
           if(cell.type!="beacon") {
-            total++
+            this.pkt_num_cur_slot++
             this.send(cell.sender,cell.receiver)
+            transmissions.push([cell.sender, cell.receiver])
           }
         }
       }
-      
-      return total
+
+      if(this.pkt_num_cur_slot==0) {
+        this.$EventBus.$emit("no_pkt", true)
+      } else {
+        this.simulation_slot_list.push(this.simulation_slot)
+
+        this.$EventBus.$emit("simulation_log",{slot: this.simulation_slot, tx:transmissions})
+      }
     },
     runSimulation() {
-      var slot = 0
-      var total = this.runSimulationNext(slot)
-      while(total==0) {
-        slot++
-        total = this.runSimulationNext(slot)
-      }
-      var cnt = 0
-      this.$EventBus.$on("pkt_finish", () => {
-        cnt++
-        // window.console.log(pkt.name,"finished")
-        if(cnt == total) {
-          cnt = 0
-          slot++
-          total = this.runSimulationNext(slot)
-          while(total==0) {
-            slot++
-            if(slot>126)
-              return
-            total = this.runSimulationNext(slot)
-            
-          }
-        }
-      });
+      
     }
   },
   mounted() {
     window.grid = this;
     this.$EventBus.$on("init", (flag) => {
       if (flag) this.draw();
-      setTimeout(this.runSimulation, 1000)
+      
       
     });
-    
-    // var cnt = 0
-    // this.$EventBus.$on("pkt_finish", () => {
-    //   cnt++
-    //   // window.console.log(pkt.name+' '+cnt+"finished")
-    //   if(cnt==4) {
-    //     cnt = 0
-    //     for(var i=1;i<5;i++) {
-    //       this.send(i,0)
-    //     }
-    //   }
-    // });
 
     this.$EventBus.$on("cells1", (cells) => {
       this.schedule = new Array(127)
@@ -713,7 +704,40 @@ export default {
       }
     });
 
+    this.$EventBus.$on("no_pkt", () => {
+      // if(this.simulation_)
+      this.runSimulationNext()
+    })
     
+    this.$EventBus.$on("simulation_run", (sig)=>{
+      this.simulation_run = sig
+      if(sig==true)
+        this.runSimulationNext()
+    })
+
+    this.$EventBus.$on("simulation_finish", ()=>{
+      this.simulation_run = false
+      this.simulation_slot = 0
+    })
+
+
+    this.$EventBus.$on("simulation_step", (direction)=>{
+      if(direction=="back") {
+        var idx = this.simulation_slot_list.indexOf(this.simulation_slot)
+        this.simulation_slot = this.simulation_slot_list[idx-2]
+      }
+      this.runSimulationNext()
+    })
+    var cnt = 0
+    this.$EventBus.$on("pkt_finish", () => {
+      cnt++
+      // window.console.log(pkt.name,"finished")
+      if(cnt == this.pkt_num_cur_slot) {
+        cnt = 0
+        if(this.simulation_run==true)
+          this.runSimulationNext()
+      }
+    });
 
     this.$EventBus.$on("nonOptimal", (nodeId) => {
       this.nonOptimal.push(nodeId);
@@ -727,6 +751,8 @@ export default {
   width 110px
 #chart {
   width: 100%;
-  height: 500px;
+  height: 400px;
 }
+.panel
+  font-size 0.5rem
 </style>
