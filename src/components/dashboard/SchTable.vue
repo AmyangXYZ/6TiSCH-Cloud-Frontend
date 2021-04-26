@@ -70,9 +70,9 @@ export default {
           }
         },
         grid: {
-          top: '12%',
+          top: '14%',
           // height: '78%',
-          left: '3%',
+          left: '3.5%',
           right: '1%',
           bottom: "3%",
         },
@@ -408,6 +408,8 @@ export default {
 
   mounted() {
     this.drawPartition()
+    setInterval(this.drawPartition, 10000)
+    
   },
 }
 </script>
@@ -417,7 +419,7 @@ export default {
   float right
   .vs-button
     margin-left 10px
-    font-size 0.8rem
+    font-size 0.7rem
     font-weight 600
   
 .links
@@ -428,5 +430,5 @@ export default {
     font-size 1.2rem
 #sch-table
   width 100%
-  height 350px
+  height 275px
 </style>

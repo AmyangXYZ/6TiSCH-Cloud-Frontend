@@ -9,12 +9,12 @@
       <vs-navbar-item>  
         <Events style="cursor:pointer;"/>
       </vs-navbar-item>
-      <vs-navbar-item >
+      <!-- <vs-navbar-item >
         <a href="#">foo2</a>
       </vs-navbar-item>
       <vs-navbar-item>
         <a href="#">foo3</a>
-      </vs-navbar-item>
+      </vs-navbar-item> -->
     </vs-navbar>
   </div>
 </template>
@@ -33,16 +33,16 @@ export default {
 #ntitle
   text-align right
   font-weight 500
-  font-size 1.6rem
+  font-size 1.35rem
   margin-left 90px
   margin-bottom 20px
   #subtitle  
-    font-size 1.4rem
+    font-size 1.2rem
 #nbar
-  height 135px
+  height 105px
   z-index 1
   position absolute
-  margin-top -100px
+  margin-top -80px
   color white
   li
     margin-right 30px

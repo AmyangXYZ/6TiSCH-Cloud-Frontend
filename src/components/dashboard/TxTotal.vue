@@ -5,7 +5,7 @@
     <vs-card id="txtotal">
       <vs-row id="r" vs-type="flex" vs-align="center">
         <vs-col style="" vs-w="2.4">
-          <vs-icon size="65px" icon="import_export" color="#B4A3DB"></vs-icon>
+          <vs-icon size="55px" icon="import_export" color="#B4A3DB"></vs-icon>
         </vs-col>
         <vs-col vs-w="3.5">
           <h3 style="color:#3B4F63">Tx Total</h3>
@@ -60,7 +60,7 @@ export default {
   },
   mounted() {
     this.getTxTotal()
-    setInterval(this.getTxTotal, 10*1000)
+    setInterval(this.getTxTotal, 2*1000)
   }
 }
 </script>
@@ -68,6 +68,6 @@ export default {
 <style lang="stylus" scoped>
 #r
   // margin-top 3px
-  font-size 1.1rem
+  font-size 0.92rem
   overflow hidden
 </style>

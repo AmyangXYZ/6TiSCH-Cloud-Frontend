@@ -2,7 +2,7 @@
 
       <vs-card>
         <div slot="header" >
-          <h4>APaS 
+          <h4>Scheduler: APaS 
             <!-- | <span style="text-decoration:underline;cursor:pointer;" @click="handleSwitch">{{simOrReal}}</span> -->
           <!-- <h4>Partition Scheduler -->
             <!-- <div v-if="simOrReal=='Simulation'" class="bts"> -->
@@ -543,6 +543,7 @@ export default {
   #part
     margin-top 4px
 #sch-table
+
   width 100%
-  height 220px
+  height 250px
 </style>

@@ -4,7 +4,7 @@
       <vs-card>
           <vs-row vs-align="center">
             <vs-col vs-w="3">
-              <vs-icon size="65px" icon="router" color="#B4A3DB"></vs-icon>
+              <vs-icon size="55px" icon="router" color="#B4A3DB"></vs-icon>
             </vs-col>
 
             <vs-col class="cnt" vs-offset="4.5" vs-w="4.5">
@@ -19,7 +19,7 @@
       <vs-card>
           <vs-row vs-align="center">
             <vs-col vs-w="3">
-              <vs-icon size="65px" icon="memory" color="#58B2EC"></vs-icon>
+              <vs-icon size="55px" icon="memory" color="#58B2EC"></vs-icon>
             </vs-col>
 
             <vs-col class="cnt" vs-offset="4.5" vs-w="4.5">
@@ -70,10 +70,10 @@ export default {
 
 <style lang="stylus" scoped>
 .cnt
-  font-size 1.32rem
+  font-size 1.15rem
   
   >h3
-    font-size 1.9rem
+    font-size 1.5rem
   >h5
     color #3B4F63
 </style>

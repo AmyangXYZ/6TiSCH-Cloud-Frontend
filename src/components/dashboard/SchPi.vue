@@ -24,9 +24,12 @@ export default {
         tooltip: {
           trigger: 'item'
         },
+        grid: {
+          top: "60%"
+        },
         legend: {
-          top: '0%',
-          left: 'left'
+          // top: '0%',
+          left: 'right'
         },
         series: [
           {
@@ -45,7 +48,7 @@ export default {
             emphasis: {
               label: {
                 show: true,
-                fontSize: '30',
+                fontSize: '20',
                 fontWeight: 'bold'
               }
             },
@@ -108,5 +111,5 @@ export default {
 #pi
   margin-top 25px
   width 100%
-  height 345px
+  height 270px
 </style>

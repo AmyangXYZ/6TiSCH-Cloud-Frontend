@@ -24,6 +24,9 @@
         <!-- <vs-th sort-key="gateway">
           GATEWAY
         </vs-th> -->
+        <vs-th sort-key="eui">
+          EUI
+        </vs-th>
         <vs-th sort-key="hop">
           HOP
         </vs-th>
@@ -31,9 +34,9 @@
         <vs-th sort-key="avg_mac_tx_total_diff">
           TX RATE(pps)
         </vs-th>
-        <vs-th sort-key="tx_cells">
+        <!-- <vs-th sort-key="tx_cells">
           TX CELLS
-        </vs-th>
+        </vs-th> -->
         <!-- <vs-th sort-key="parent">
           PARENT
         </vs-th> -->
@@ -49,9 +52,9 @@
         <vs-th sort-key="e2e_latency_avg">
           RTT(s)
         </vs-th>
-        <vs-th sort-key="sr">
+        <!-- <vs-th sort-key="sr">
           DSR(%)
-        </vs-th>
+        </vs-th> -->
         <!-- <vs-th sort-key="e2e_latency_sr">
           LAT SR(%)
         </vs-th> -->
@@ -69,6 +72,9 @@
           <vs-td :data="data[index].sensor_id">
             {{data[index].sensor_id}}
           </vs-td>
+          <vs-td :data="data[index].eui64">
+            {{data[index].eui64.substr(18,24).toUpperCase()}}
+          </vs-td>
           <!-- <vs-td :data="data[index].gateway">
             {{data[index].gateway}}
           </vs-td> -->
@@ -85,9 +91,9 @@
           <!-- <vs-td :data="data[index].children">
             {{data[index].children}}
           </vs-td> -->
-          <vs-td :data="data[index].tx_cells">
+          <!-- <vs-td :data="data[index].tx_cells">
             {{data[index].tx_cells}}
-          </vs-td>
+          </vs-td> -->
           
           <vs-td :data="data[index].uplink_latency_avg">
             {{data[index].uplink_latency_avg.toFixed(2)}}
@@ -98,9 +104,9 @@
           <vs-td :data="data[index].e2e_latency_avg">
             {{(data[index].e2e_latency_avg).toFixed(2)}}
           </vs-td>
-          <vs-td :data="data[index].sr">
+          <!-- <vs-td :data="data[index].sr">
             {{(data[index].sr*100).toFixed(2)}}
-          </vs-td>
+          </vs-td> -->
           <!-- <vs-td :data="data[index].e2e_latency_sr">
             {{(data[index].e2e_latency_sr*100).toFixed(2)}}
           </vs-td> -->
@@ -128,8 +134,8 @@ export default {
       sensors: [],
       selectedGW: 'any',
       selectedSensor: {},
-      maxItems: 9,
-      currentPage: 0,
+      maxItems: 8,
+      currentPage: 1,
       selectedRange: 'day',
       ranges: ['15min','30min','1hr',"4hr",'day','week','month']
     }
@@ -147,7 +153,7 @@ export default {
           res.data.data[i].mac_per = res.data.data[i].avg_mac_tx_noack_diff/(res.data.data[i].avg_mac_tx_total_diff+0.000001)*100.0
           res.data.data[i].app_per = res.data.data[i].avg_app_per_lost_diff/(res.data.data[i].avg_app_per_sent_diff+0.000001)*100.0
           res.data.data[i].per = res.data.data[i].mac_per + res.data.data[i].app_per
-          res.data.data[i].tx_cells = 0
+          // res.data.data[i].tx_cells = 0
         }
 
         var sensors = res.data.data.sort(function(a,b) {
@@ -197,6 +203,7 @@ export default {
           for(var x=0;x<sensors.length;x++) {
             for(var y=0;y<nodes.length;y++) {
               if(sensors[x].sensor_id==nodes[y].sensor_id) {
+                sensors[x].eui64 = nodes[y].eui64
                 sensors[x].hop = nodes[y].hop
                 sensors[x].parent = nodes[y].parent
                 // sensors[x].children = nodes[y].children
@@ -212,20 +219,23 @@ export default {
           this.sensors = sensors
           this.$EventBus.$emit("sensors",this.sensors)
 
-          // count bandwidth (tx cell)
-          this.$api.gateway.getSchedule().
-          then((res)=>{
-            if(res.data.flag == 0) return
-            for(var i=0;i<res.data.data.length;i++) {
-              if(res.data.data[i].type!="beacon") {
-                for(var j=0;j<this.sensors.length;j++) {
-                  if(res.data.data[i].sender == this.sensors[j].sensor_id) {
-                    this.sensors[j].tx_cells++
-                  }
-                }
-              }
-            }    
-          })
+          // count bandwidth (tx cell)   
+          // this.$api.gateway.getSchedule().
+          // then((res)=>{ 
+          //   if(res.data.flag == 0) return
+
+          //   for(var j=0;j<this.sensors.length;j++) {
+          //     var tx_cell_num = 0
+          //     for(var i=0;i<res.data.data.length;i++) {
+          //       if(res.data.data[i].type!="beacon") {
+          //         if(res.data.data[i].sender == this.sensors[j].sensor_id) {
+          //           tx_cell_num++
+          //         }  
+          //       }
+          //     }
+          //     this.sensors[j].tx_cells = tx_cell_num
+          //   }            
+          // })
         })
       })
     },
@@ -269,5 +279,9 @@ export default {
 
 <style lang="stylus" scoped>
 #table
-  min-height 443px
+  min-height 378px
+th
+  font-size 0.8rem
+td
+  font-size 0.75rem
 </style>

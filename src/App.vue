@@ -40,17 +40,17 @@ html, body {
 
 #app {
   position: relative;
-  min-height: calc(100vh - 100px);
+  min-height: calc(100vh - 80px);
   font-family: "Noto Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
-  margin-top: 100px;
+  margin-top: 80px;
   /* height: 100%; */
 }
 
 #content-wrap {
-  padding-bottom: 120px;
+  padding-bottom: 50px;
   /* overflow: hidden; */
 }
 </style>

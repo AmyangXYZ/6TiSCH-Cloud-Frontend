@@ -28,12 +28,12 @@
       <!-- </vs-col>
     </vs-row> -->
     <vs-row vs-align="flex-start" vs-w="12">
-      <vs-col vs-offset="0.8" vs-w="8.5">
+      <vs-col vs-offset="0.8" vs-w="10.8">
         <SchTable/>
       </vs-col>
-      <vs-col vs-offset="0.3" vs-w="2">
+      <!-- <vs-col vs-offset="0.3" vs-w="2">
         <SchPi/>
-      </vs-col>
+      </vs-col> -->
     </vs-row>
   </div>
 </template>>
@@ -49,7 +49,7 @@ import RSSiChart from '../components/dashboard/RSSiChart'
 import Topo from '../components/dashboard/Topo'
 
 import SchTable from '../components/dashboard/SchTable'
-import SchPi from '../components/dashboard/SchPi'
+// import SchPi from '../components/dashboard/SchPi'
 export default {
     components: {
       DeviceCnt,
@@ -62,7 +62,15 @@ export default {
       Topo,
     
       SchTable,
-      SchPi
+      // SchPi
     },
+    mounted() {
+      setTimeout(()=>{
+        setInterval(()=>{
+          this.$EventBus.$emit("selectedRange","day")
+          // window.console.log("biu")
+        },2000)
+      },2000)
+    }
 }
 </script>

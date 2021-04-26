@@ -5,7 +5,7 @@
     <div id="map">
       <Slider/>
       <Layers/>
-      <vs-row vs-align="center" vs-justify="space-between">
+      <!-- <vs-row vs-align="center" vs-justify="space-between">
         <vs-col vs-w="3" vs-type="flex" vs-align="center">
           <vs-button id="fBt" color="danger" @click="showFiltersPanel" icon="filter_list" size="small">
             Filters
@@ -19,8 +19,8 @@
             Reset All
           </vs-button>
         </vs-col>
-      </vs-row>
-      <GmapMap ref="mymap" id="gmap" :center="center" v-model="zoom" :zoom="zoom" :options="opt">
+      </vs-row> -->
+      <GmapMap ref="mymap" id="gmap" :center="center" v-model="zoom" :zoom="21" :options="opt">
         <GmapMarker :key="i" v-for="(m,i) in markers" :position="m.position" :label="m.label" :icon="m.icon" :clickable="true" @click="handleClick(m)"/><GmapInfoWindow :opened="infoWindowActive" :options="infoWindowOpt" :position="infoWindowPos" @closeclick="infoWindowActive=false"><PowerChart/></GmapInfoWindow>
         <GmapPolyline v-for="(line,i) in lines" :key="'l'+i" :path="line.path" :options="line.option"/>
       </GmapMap>
@@ -129,7 +129,7 @@ export default {
           for(var k=0;k<this.markers.length;k++) {            
              var icon = {
               path: window.google.maps.SymbolPath.CIRCLE,
-              scale: 7,
+              scale: 6.2,
               // fillColor: "#FE7E28",
               // fillOpacity: 1,
               // strokeColor: "#FE7E28",
@@ -140,12 +140,12 @@ export default {
             var text = ""
             if(this.markers[k].sensor_id==1) {
               text = 'GW'
-              icon.scale = 8
+              icon.scale = 7
             } else {
               text = this.markers[k].sensor_id.toString()
             }
             this.$set(this.markers[k],'icon', icon)
-            this.$set(this.markers[k],'label', {text:text, color:'#2c3e50', fontSize:"10pt"})
+            this.$set(this.markers[k],'label', {text:text, color:'#2c3e50', fontSize:"8pt"})
           }
         })
       })
@@ -367,7 +367,8 @@ export default {
 
 <style lang="stylus">
 #map
-  font-size 1.1rem
+  font-size 1rem
+  
 #fBt
   border-radius 6px 0 0 6px
 #lBt
@@ -375,6 +376,6 @@ export default {
 #gmap
   margin-top 8px
   width 100%
-  height 759px
+  height 648px
 .gm-style-iw + button {display: none;}  
 </style>

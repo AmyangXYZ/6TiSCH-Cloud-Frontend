@@ -149,6 +149,8 @@ export default {
   },
   methods: {
     draw() {
+      this.option.series[0].data = []
+      this.option.series[1].data = []
       var topo = this.topo
       var sorted = Object.keys(topo).sort(function(a,b){return topo[a].layer-topo[b].layer})
       for(var i=1;i<Object.keys(this.topo).length;i++) {
@@ -261,7 +263,7 @@ export default {
 <style lang="stylus" >
 #console
   width 100%
-  height 512px
+  height 562px
 #buttons
   // position absolute
   // width 300px
@@ -270,8 +272,8 @@ export default {
 #logs
   margin-top 10px
   width 100%
-  height 405px
-  font-size 0.85rem
+  height 450px
+  font-size 0.7rem
   line-height 1.3
   border-radius: 6px;
   padding 9px
@@ -285,7 +287,7 @@ textarea:disabled {
 }
 #chart
   width 100%
-  height 420px
+  height 450px
 .vs-tabs--li
   // span
   // z-index 999

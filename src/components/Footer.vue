@@ -21,17 +21,17 @@ export default {
   overflow: hidden;
   position absolute
   bottom 0
-  height 60px
+  height 50px
   width 100%
 #card
-  height 60px
+  height 50px
   width 100%
   margin 0
-  padding 10px
+  padding 5px
   border-radius 0px
   color black
   h3
-    font-size 0.8rem
+    font-size 0.7rem
 	a
     color #36454A
   a:hover

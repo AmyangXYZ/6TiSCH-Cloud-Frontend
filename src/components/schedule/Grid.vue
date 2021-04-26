@@ -164,7 +164,7 @@ export default {
         },
         series: [
           {
-            symbolSize: 16,
+            symbolSize: 18,
             itemStyle: {
               color: "deepskyblue",
             },
@@ -757,7 +757,7 @@ export default {
     
 #grid-chart
   width 100%
-  height 400px  
+  height 450px  
 
 #bts
   font-size 0.9rem

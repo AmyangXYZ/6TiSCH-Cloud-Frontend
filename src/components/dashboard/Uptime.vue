@@ -4,7 +4,7 @@
     <vs-card id="uptime">
       <vs-row id="r" vs-type="flex" vs-align="center">
         <vs-col style="" vs-w="2.4">
-          <vs-icon size="65px" icon="power_settings_new" color="#B4A3DB"></vs-icon>
+          <vs-icon size="55px" icon="power_settings_new" color="#B4A3DB"></vs-icon>
         </vs-col>
         <vs-col vs-w="2.5">
           <h3 style="color:#3B4F63">Uptime</h3>
@@ -53,6 +53,6 @@ export default {
 <style lang="stylus" scoped>
 #r
   // margin-top 3px
-  font-size 1.1rem
+  font-size 0.92rem
   overflow hidden
 </style>
