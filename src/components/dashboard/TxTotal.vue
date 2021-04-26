@@ -60,7 +60,7 @@ export default {
   },
   mounted() {
     this.getTxTotal()
-    setInterval(this.getTxTotal, 2*1000)
+    setInterval(this.getTxTotal, 3*1000)
   }
 }
 </script>

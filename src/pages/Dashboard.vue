@@ -65,12 +65,12 @@ export default {
       // SchPi
     },
     mounted() {
-      setTimeout(()=>{
-        setInterval(()=>{
-          this.$EventBus.$emit("selectedRange","day")
-          // window.console.log("biu")
-        },2000)
-      },2000)
+
+      setInterval(()=>{
+        this.$EventBus.$emit("selectedRange","1hr")
+        // window.console.log("biu")
+      },3000)
+
     }
 }
 </script>

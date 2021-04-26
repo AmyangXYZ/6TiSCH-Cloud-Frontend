@@ -89,7 +89,7 @@ export default {
             },
             gridIndex: 1,
             type: 'category',
-            data: this.yData,
+            data: [12,13,14,15,16,17,18,19,20,21,22,23,24,25,26],
             axisLabel: {
               fontSize:10,
             }
@@ -198,7 +198,7 @@ export default {
         if(res.data.flag == 0) {
           return
         }
-        for(var c=12;c<27;c++) this.yData.push(c)
+        // for(var c=12;c<27;c++) this.yData.push(c)
 
         var min = parseInt(res.data.data[0].rssi.split(",")[0])
         var max = min
@@ -220,7 +220,7 @@ export default {
         this.option.visualMap.max = max
         this.option.visualMap.min = min
         this.option.xAxis[1].data = this.xData
-        this.option.yAxis[1].data = this.yData
+        // this.option.yAxis[1].data = this.yData
         this.option.series[1].data = this.dataCh
         // this.option.toolbox.feature.saveAsImage.name = "rssi_sensor_"+id
       })
