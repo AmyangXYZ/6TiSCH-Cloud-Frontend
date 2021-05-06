@@ -26,6 +26,7 @@ export default {
   },
   data() {
     return {
+      autorefresh:false,
       i:0,
       partition_changes: {},
       selectedCell: {slot:[]},
@@ -70,9 +71,9 @@ export default {
           }
         },
         grid: {
-          top: '14%',
+          top: '18%',
           // height: '78%',
-          left: '3.5%',
+          left: '3%',
           right: '1%',
           bottom: "3%",
         },
@@ -85,7 +86,8 @@ export default {
             formatter: (item)=>{
               if(item%5==0) 
                 return item
-            }
+            },
+            fontSize: 10
           },
           name: "Slot Offset",
           type: 'value',
@@ -408,8 +410,15 @@ export default {
 
   mounted() {
     this.drawPartition()
-    setInterval(this.drawPartition, 10000)
-    
+    // setInterval(this.drawPartition, 10000)
+    this.$EventBus.$on("autorefresh", (flag)=>{
+      this.autorefresh = flag
+    })
+    setInterval(()=>{
+      if(this.autorefresh) {
+        this.drawPartition()
+      }
+    },5000)
   },
 }
 </script>
@@ -430,5 +439,5 @@ export default {
     font-size 1.2rem
 #sch-table
   width 100%
-  height 275px
+  height 225px
 </style>

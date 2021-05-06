@@ -20,7 +20,7 @@
           </vs-button>
         </vs-col>
       </vs-row> -->
-      <GmapMap ref="mymap" id="gmap" :center="center" v-model="zoom" :zoom="21" :options="opt">
+      <GmapMap ref="mymap" id="gmap" :center="center" v-model="zoom" :zoom="zoom" :options="opt">
         <GmapMarker :key="i" v-for="(m,i) in markers" :position="m.position" :label="m.label" :icon="m.icon" :clickable="true" @click="handleClick(m)"/><GmapInfoWindow :opened="infoWindowActive" :options="infoWindowOpt" :position="infoWindowPos" @closeclick="infoWindowActive=false"><PowerChart/></GmapInfoWindow>
         <GmapPolyline v-for="(line,i) in lines" :key="'l'+i" :path="line.path" :options="line.option"/>
       </GmapMap>
@@ -116,7 +116,7 @@ export default {
               path: [res.data.data[i].position, parentPos],
               option: {
                 strokeColor: 'rgba(102,102,102, 0.5)',
-                strokeWeight: 2,
+                strokeWeight: 1,
               },
             })
           }
@@ -129,7 +129,7 @@ export default {
           for(var k=0;k<this.markers.length;k++) {            
              var icon = {
               path: window.google.maps.SymbolPath.CIRCLE,
-              scale: 6.2,
+              scale: 6,
               // fillColor: "#FE7E28",
               // fillOpacity: 1,
               // strokeColor: "#FE7E28",
@@ -275,9 +275,11 @@ export default {
       }
     },
     panTo(position) {
-      this.$refs.mymap.$mapPromise.then((map) => {
-        map.panTo(position)
-      })
+      if(this.$refs.mymap!=null) {
+        this.$refs.mymap.$mapPromise.then((map) => {
+          map.panTo(position)
+        })
+      }
     },
     showFiltersPanel() {
       this.$EventBus.$emit("showFiltersPanel", 1)

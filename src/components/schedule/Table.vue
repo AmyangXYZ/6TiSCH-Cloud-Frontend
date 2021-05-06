@@ -209,7 +209,7 @@ export default {
             data: [],
             symbolSize: 8,
             lineStyle: {
-              color: "red",
+              color: "yellow",
               width: 3,
               type: "solid"
             },
@@ -288,11 +288,11 @@ export default {
             }            
           }
           // partition size > 0
-          res.data.data[i].layer++
+          // res.data.data[i].layer++
           if(res.data.data[i].range[0]<res.data.data[i].range[1]) {
             
             var name = res.data.data[i].type[0].toUpperCase()
-            if(name!="B") name+=res.data.data[i].layer
+            if(name!="B") name+=res.data.data[i].layer+1
             // if(colorMap[name]==null) {
             //   colorMap[name] = colors[color_index%colors.length]
             //   color_index+=1
@@ -441,20 +441,7 @@ export default {
         }
       }
     },
-    handleSwitch() {
-      this.simOrReal = (this.simOrReal=="Simulation")?"Real":"Simulation"
-      this.drawPartition()
-    },
-    // getCrossRowLinks() {
-    //   for(var i=0;i<this.slots.length;i++) {
-    //     if(this.slots[i].type=="uplink" && this.slots[i].layer>0) {
-    //       var parent = this.findSlot(this.slots[i].receiver)
-    //       if(parent.row!=this.slots[i].row) {
-    //         this.option.series[0].data.push([this.slots[i].slot[0]+0.5, this.slots[i].slot[1]+0.5,1])
-    //       }
-    //     }
-    //   }
-    // },
+
     findSlot(node) {
       for(var i=0;i<this.slots.length;i++) {
         if(this.slots[i].cell.sender == node && this.slots[i].cell.type=="uplink") {
@@ -487,28 +474,34 @@ export default {
       this.drawPartition()
     }
     
+    this.$EventBus.$on("schSelectNode", (node) => {
+      var cell = this.findSlot(node)
+      this.findPath(cell)
+    })
+
     this.$EventBus.$on("kicked", (kicked) => {
       kick(kicked)
       
       this.res = get_sch()
-      // this.drawPartition()
+      this.drawPartition()
     })
     this.$EventBus.$on("clear", (clear) => {
       if(clear) {
-        window.console.log(1)
         this.res = init1(this.topo, this.seq)
         this.drawPartition()
       }
     })
     this.$EventBus.$on("changed", (nodes) => {
+      // dynamic_schedule()
       // var node = nodes[0]
       for(var i=0;i<nodes.length;i++) dynamic_schedule(nodes[i])
       // if(!is_optimal) {
       //   this.$EventBus.$emit("nonOptimal", node.id)
       // }
-      this.$EventBus.$emit("cells1",this.res.cells)
-      this.res = get_sch()
+      
+      this.res = get_sch()      
       this.drawPartition()
+      this.$EventBus.$emit("cells1",this.res.cells)
       if(this.selectedCell.slot.length>0) setTimeout(()=>{this.findPath(this.selectedCell)},500)
     });
 

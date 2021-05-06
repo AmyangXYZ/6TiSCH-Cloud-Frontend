@@ -64,10 +64,18 @@ export default {
       SchTable,
       // SchPi
     },
+    data() {
+      return {
+        autorefresh: false
+      }
+    },
     mounted() {
-
+      this.$EventBus.$on("autorefresh", (flag)=>{
+        this.autorefresh = flag
+      })
       setInterval(()=>{
-        this.$EventBus.$emit("selectedRange","1hr")
+        if(this.autorefresh)
+          this.$EventBus.$emit("selectedRange","1hr")
         // window.console.log("biu")
       },3000)
 

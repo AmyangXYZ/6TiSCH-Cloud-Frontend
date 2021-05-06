@@ -2,10 +2,20 @@
   <div>
     <vs-table id="table" :max-items="maxItems" pagination :currentPage="currentPage" v-model="selectedSensor" @selected="selectSensor" :data="sensors">
       <vs-row slot="header" vs-align="center" style="margin:6px">
-        <vs-col  vs-w="6">
+        <vs-col  vs-w="4">
           <h4>Network Statistics</h4>
         </vs-col>
-        <vs-col vs-offset="1.5" vs-w="2.4">
+        <vs-col vs-offset="0.5" vs-w="3">
+            <vs-row vs-w=12 vs-justify="flex-end"  vs-align="center">
+              <vs-col vs-w="6">
+                <p style="font-size:0.8rem;text-align:right">auto-refresh</p>
+              </vs-col>
+              <vs-col vs-offset="0.2" vs-w="3">
+                <vs-switch style="white-space: nowrap;" v-model="autorefresh"/>
+              </vs-col>
+            </vs-row>
+        </vs-col>
+        <vs-col vs-offset="0.3" vs-w="2">
           <vs-select v-model="selectedGW" width="100%" autocomplete @change="selectGW">
             <vs-select-item :text="item" :value="item" v-for="(item,index) in gateways" :key="index"/>
           </vs-select>
@@ -130,13 +140,14 @@
 export default {
   data() {
     return {
+      autorefresh: false,
       gateways: [],
       sensors: [],
       selectedGW: 'any',
       selectedSensor: {},
       maxItems: 8,
       currentPage: 1,
-      selectedRange: 'day',
+      selectedRange: '1hr',
       ranges: ['15min','30min','1hr',"4hr",'day','week','month']
     }
   },
@@ -273,6 +284,13 @@ export default {
       this.selectedRange = r
       this.drawNWTable(this.selectedGW, this.selectedRange)
     })
+  },
+  watch: {
+    autorefresh: {
+      handler: function(flag) {
+        this.$EventBus.$emit("autorefresh", flag)
+      }
+    }
   }
 }
 </script>

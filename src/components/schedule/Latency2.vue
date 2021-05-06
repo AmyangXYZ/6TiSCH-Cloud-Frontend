@@ -213,7 +213,7 @@ export default {
   mounted() {
     window.lat = this
     // cells data ready
-    this.$EventBus.$on("cells2", (cells)=>{
+    this.$EventBus.$on("cells1", (cells)=>{
       this.cells = cells
       this.computeUplinkLatency()
       this.computeRTT()

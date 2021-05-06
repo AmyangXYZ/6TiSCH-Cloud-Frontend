@@ -10,7 +10,7 @@
         <Console/>
       </vs-col>
        <!-- <vs-col style="z-index:99" vs-offset="0.1" vs-w="2.2  ">  
-        <Latency2/>
+        <Latency/>
       </vs-col> -->
       <!-- <vs-col style="z-index:99" vs-offset="0.1" vs-w="2.2">
         <Latency3/>
@@ -47,7 +47,7 @@ import SchTable from '../components/schedule/Table'
 // import SchTable2 from '../components/schedule/Table2'
 // import SchTable3 from '../components/schedule/Table3'
 // import Latency from '../components/schedule/Latency'
-// import Latency2 from '../components/schedule/Latency2'
+// import Latency from '../components/schedule/Latency'
 // import Latency3 from '../components/schedule/Latency3'
 // import Latency4 from '../components/schedule/Latency4'
 
@@ -61,7 +61,7 @@ export default {
       // SchTable2,
       // SchTable3,
       // Latency,
-      // Latency2,
+      // Latency,
       // Latency3,
       // Latency4
     }

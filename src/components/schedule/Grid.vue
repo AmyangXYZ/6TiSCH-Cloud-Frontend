@@ -94,7 +94,7 @@ import "echarts/lib/chart/effectScatter";
 import "echarts/lib/component/markLine";
 import "echarts/lib/component/toolbox";
 // import nodes from "./nodes_21.json";
-import noiseList from "./noiseList.json";
+// import noiseList from "./noiseList.json";
 
 
 // import _ from "lodash"
@@ -337,9 +337,9 @@ export default {
 
       // find parents
       this.findParents();
-      // setTimeout(()=>{
-      //   this.$EventBus.$emit("topo", { data: this.nodes, seq: this.join_seq });
-      // },100)
+      setTimeout(()=>{
+        this.$EventBus.$emit("topo", { data: this.nodes, seq: this.join_seq });
+      },100)
     },
     findParents() {
       // reset
@@ -408,9 +408,7 @@ export default {
         loopCnt++
       }
 
-      setTimeout(()=>{
-        this.$EventBus.$emit("topo", { data: this.nodes, seq: this.join_seq });
-      },100)
+      
     },
     changeParents(kicked) {
       var changed = [];
@@ -487,11 +485,15 @@ export default {
 
       this.history_cp.push(cnt_cp);
       this.history_cl.push(cnt_cl);
-      window.console.log(this.history_cp, " nodes changed parent");
-      window.console.log(this.history_cl, " nodes changed layer");
+      // window.console.log(this.history_cp, " nodes changed parent");
+      // window.console.log(this.history_cl, " nodes changed layer");
       this.$EventBus.$emit(
         "changed",
         changed.sort((a, b) => (a.layer > b.layer ? 1 : -1))
+      );
+      this.$EventBus.$emit(
+        "changedTopo",
+        this.nodes
       );
     },
     drawLine(start, end) {
@@ -546,10 +548,10 @@ export default {
     addNoiseCircleRand() {
       var x = Math.round(20 * Math.random());
       var y = Math.round(20 * Math.random());
-      if (this.noiseID < 100) {
-        x = noiseList[this.noiseID][0];
-        y = noiseList[this.noiseID][1];
-      }
+      // if (this.noiseID < 100) {
+      //   x = noiseList[this.noiseID][0];
+      //   y = noiseList[this.noiseID][1];
+      // }
       this.noiseID++;
       this.noisePos = [x, y];
       // this.noisePosList.push([x,y])
@@ -559,8 +561,8 @@ export default {
     },
     addNoiseRectRand() {
       this.option.series[5].data = [];
-      var x = Math.round(20 * Math.random());
-      var y = Math.round(20 * Math.random());
+      var x = Math.round(this.sizeX * Math.random());
+      var y = Math.round(this.sizeY * Math.random());
       var length = Math.round(3 * Math.random() + 2);
       var direction = Math.round(1 * Math.random());
       if (direction) {
@@ -637,7 +639,7 @@ export default {
           // this.nodes[i].parent = -1
           this.kicked.push(i);
           this.eraseLine(i, node);
-          // this.kickChildren(i)
+          this.kickChildren(i)
         }
       }
     },

@@ -104,7 +104,7 @@ export default {
 <style lang="stylus" scoped>
 #graph
   width 100%
-  height 804px
+  height 656px
 </style>
 
 <!-- 
