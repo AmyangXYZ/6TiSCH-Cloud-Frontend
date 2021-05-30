@@ -2,7 +2,7 @@
 
       <vs-card>
         <div slot="header" >
-          <h4>Scheduler: APaS 
+          <h4>Scheduler: HP 
             <!-- | <span style="text-decoration:underline;cursor:pointer;" @click="handleSwitch">{{simOrReal}}</span> -->
           <!-- <h4>Partition Scheduler -->
             <!-- <div v-if="simOrReal=='Simulation'" class="bts"> -->
@@ -10,7 +10,11 @@
               <!-- <vs-button color="primary" type="filled"  @click="handleIntraPartitionAdjustmentBt">Intra-Partition Adjustment</vs-button> -->
               <!-- <vs-button color="danger" type="filled"  @click="handleInterPartitionAdjustmentBt">Inter-Partition Adjustment</vs-button> -->
             <!-- </div> -->
+            <div class="bts">
+              <vs-button color="danger" type="filled"  @click="handleHPBt">Hierarchical Partitioning</vs-button>
+            </div>  
           </h4>
+          
         </div>
         <!-- <div class="partition-usage">
           
@@ -45,7 +49,8 @@ import "echarts/lib/chart/graph"
 
 import {create_scheduler} from './scheduler-hp.js'
 
-const SLOTFRAME = 72
+const SLOTFRAME = 80
+const CHANNELS = [1,2,3,4,5,6,7,8]
 
 export default {
   components: {
@@ -54,10 +59,9 @@ export default {
   data() {
     return {
       i:0,
-
+      layer:0,
       selectedCell: {slot:[]},
       sch: {},
-      Channels: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],
       slots: [],
       links: {},
       topo: [],
@@ -136,7 +140,7 @@ export default {
           name: "Channel Offset",
           type: 'value',
           min: 1,
-          max: 17,
+          max: CHANNELS.length+1,
           interval: 1,
           inverse: true,
           nameLocation: "middle",
@@ -278,9 +282,10 @@ export default {
       }
     },
     drawSubPartition(subtree_root) {
+      // var colors = []
       if(subtree_root == 0)
         this.option.series[2].markArea.data = []
-      for(var i=0;i<this.sch.subpartitions[subtree_root].length;i++) {
+      for(var i in this.sch.subpartitions[subtree_root]) {
         var subpartition = this.sch.subpartitions[subtree_root][i]
         this.option.series[2].markArea.data.push([
           {
@@ -291,8 +296,8 @@ export default {
           {
             xAxis:subpartition.slot_range[1],
             yAxis: subpartition.channel_range[1],
-            itemStyle:{color:'red', opacity:0.5,borderColor:"black",borderWidth:0.1},
-            label:{color:"black",fontWeight:"normal",fontSize:14, position:"inside"}
+            itemStyle:{color:'red', opacity:1,borderColor:"black",borderWidth:1.5},
+            label:{color:"white",fontWeight:"bold",fontSize:13, position:"inside"}
           },
         ])
       }
@@ -351,6 +356,16 @@ export default {
       }
       return 0
     },
+    handleHPBt() {
+      if(this.layer > this.sch.toop_max_layer) return
+      for(var n in this.sch.topo) {
+        if(this.sch.topo[n].layer==this.layer) {
+          this.drawSubPartition(n)
+        }
+      }
+      this.layer++
+      
+    }
   },
 
   mounted() {
@@ -358,13 +373,14 @@ export default {
     this.$EventBus.$emit("init",1)
     
     this.$EventBus.$on("topo", (topo) => {
-      this.sch = create_scheduler(SLOTFRAME, this.Channels)
+      this.sch = create_scheduler(SLOTFRAME, CHANNELS)
       this.sch.set_topo(topo.data)
       var x = this.sch.find_idle_cell([1,2], {type:"beacon", layer:1})
       this.sch.add_cell(x)
       this.drawPartition()
       this.drawSubPartition(0)
-      this.drawSubPartition(this.sch.topo_tree[0].children[0].id)
+      this.layer = 0
+      this.$EventBus.$emit("topo_tree",this.sch.topo_tree)
       // this.drawSchedule()
       // this.$EventBus.$emit("cells1",this.res.cells)
     });
@@ -386,8 +402,8 @@ export default {
 .bts
   float right
   .vs-button
-    margin-left 10px
-    font-size 0.8rem
+    margin-bottom 10px
+    font-size 0.7rem
     font-weight 600
 #topo
   height 480px

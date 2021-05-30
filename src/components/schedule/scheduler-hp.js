@@ -21,7 +21,7 @@ function Cell(slot, channel, subslot, sender, receiver, type, layer, link_option
 
 const partition_config = require("./partition.json");
 
-function partition_init(sf) {
+function partition_init(sf,resource_req) {
   //Beacon reserved version
   // var u_d = [Math.floor(sf - partition_config.beacon - RESERVED -partition_config.control ) / 2, 
   // Math.floor(sf - partition_config.beacon - RESERVED - partition_config.control) / 2];
@@ -30,7 +30,12 @@ function partition_init(sf) {
   // partition_scale(u_d, sf-RESERVED-partition_config.beacon);
   var uplink = partition_config.uplink.slice();
   var downlink = partition_config.downlink.slice();
+  var uplink = []
+  for(var i=0;i<Object.keys(resource_req).length;i++) {
+    uplink.push(resource_req[i].slots+4)
+  }
 
+  
   var partition = {
     // broadcast: {},
     // control:{},
@@ -125,7 +130,7 @@ function create_scheduler(slotframe, channels) {
   }
   this.slotFrameLength = slotframe;
   this.channels = channels;
-  this.partitions = partition_init(slotframe);
+  
   this.subpartitions = {}
   this.cell_list = []
   this.schedule_table = new Array(this.slotFrameLength)
@@ -140,7 +145,6 @@ function create_scheduler(slotframe, channels) {
   this.topo_tree = { 0: { id: 0, children: [], traffic: 0 } }
 
   this.set_topo = function (topo) {
-    console.log(topo)
     this.topo = topo
     this.topo_max_layer = 0
     for (var i = 1; i < Object.keys(this.topo).length; i++)
@@ -175,6 +179,12 @@ function create_scheduler(slotframe, channels) {
       this.topo_tree[n].resource_table = {}
       for (var l = 0; l <= this.topo_max_layer; l++) {
         this.topo_tree[n].resource_table[l] = { slots: 0, channels: 0 }
+      }
+      if(n!=0) {
+        this.topo_tree[n].resource_table[this.topo[n].layer] = {
+          slots: this.topo_tree[n].traffic, 
+          channels:1 
+        }
       }
     }
 
@@ -215,31 +225,56 @@ function create_scheduler(slotframe, channels) {
     //   console.log(i, JSON.parse(JSON.stringify(this.topo_tree[i].resource_table)))
     // }
 
+    this.partitions = partition_init(slotframe, this.topo_tree[0].resource_table);
+
     this.allocate_subpartition(0)
-    this.allocate_subpartition(this.topo_tree[0].children[0].id)
+    for(var l=0;l<=this.topo_max_layer;l++) {
+      for(var n in this.topo) {
+        if(this.topo[n].layer == l) {
+          this.allocate_subpartition(n)
+        }
+      }
+    }
   }
 
   // allocate sub-partitions according to resource requirements
   this.allocate_subpartition = function (subtree_root) {
     var requirements = this.topo_tree[subtree_root].resource_table
-    var subpartitions = []
+    var subpartitions = {}
+    
     if(subtree_root == 0) {
       for (var i in requirements) {
         var req = requirements[i]
-        subpartitions.push({
+        subpartitions[i] = {
           slot_range: [this.partitions[0].uplink[i].end-req.slots, this.partitions[0].uplink[i].end],
-          channel_range: [1, 1+req.channels]
-        })
+          channel_range: [1, 1+req.channels],
+          // for children
+          used_channel: 1,
+          used_slots: this.partitions[0].uplink[i].end
+        }
       }
     } else {
       var parent = this.topo[subtree_root].parent
+
       for (var i in requirements) {
         var req = requirements[i]
         if(req.slots==0 && req.channels==0) continue
-        subpartitions.push({
-          slot_range: [this.subpartitions[parent][i].slot_range[1]-req.slots, this.subpartitions[parent][i].slot_range[1]],
-          channel_range: [this.subpartitions[parent][i].channel_range[0], this.subpartitions[parent][i].channel_range[0]+req.channels]
-        })
+        if(i==this.topo[subtree_root].layer) {
+          subpartitions[i] = {
+            slot_range: [this.subpartitions[parent][i].used_slots-req.slots, this.subpartitions[parent][i].used_slots],            
+            channel_range: this.subpartitions[parent][i].channel_range,
+          }
+          this.subpartitions[parent][i].used_slots-=req.slots
+        } else {
+
+          subpartitions[i] = {
+            slot_range: [this.subpartitions[parent][i].slot_range[1]-req.slots, this.subpartitions[parent][i].slot_range[1]],
+            channel_range: [this.subpartitions[parent][i].used_channel, this.subpartitions[parent][i].used_channel+req.channels],
+            used_channel: this.subpartitions[parent][i].used_channel,
+            used_slots: this.partitions[0].uplink[i].end
+          }
+          this.subpartitions[parent][i].used_channel+=req.channels
+        }
       }
     }
     this.subpartitions[subtree_root] = subpartitions

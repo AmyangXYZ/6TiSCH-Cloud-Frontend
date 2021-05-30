@@ -24,7 +24,21 @@ export default {
       selectedSensor: {},
       topo: [],
       trees: {},
+      // from table.sch
+      topo_tree: {},
       option: {
+        tooltip: {
+          formatter: (item)=>{
+            var table = this.topo_tree[item.name].resource_table
+            var s = ''
+            for(var i in table) {
+              if(table[i].slots==0&&table[i].channels==0) continue
+
+              s+= i+" - ["+table[i].slots+", "+table[i].channels+"]<br>"
+            }
+            return s
+          }
+        },
         series: [
           {
             type: 'tree',
@@ -39,7 +53,7 @@ export default {
             symbolSize: 8,
             orient: 'vertical',
             label: {
-              position: 'left',
+              position: 'top',
               verticalAlign: 'middle',
               align: 'right',
               fontSize: 13
@@ -47,7 +61,7 @@ export default {
 
             leaves: {
                 label: {
-                    position: 'right',
+                    position: 'top',
                     verticalAlign: 'middle',
                     align: 'left'
                 }
@@ -94,6 +108,10 @@ export default {
       this.topo = topo.data
       this.draw()
     });
+
+    this.$EventBus.$on("topo_tree", (topo_tree) => {
+      this.topo_tree = topo_tree
+    })
   }
 }
 </script>
