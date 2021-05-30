@@ -30,7 +30,7 @@ export default {
       i:0,
       partition_changes: {},
       selectedCell: {slot:[]},
-      SlotFrameLength: 127,
+      SlotFrameLength: 150,
       Channels: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],
       slots: [],
       links: {},
@@ -79,8 +79,8 @@ export default {
         },
         xAxis: {
           min:0,
-          max:127,
-          splitNumber: 127,
+          max:150,
+          splitNumber: 150,
           minInterval: 1,
           axisLabel: {
             formatter: (item)=>{
@@ -194,109 +194,106 @@ export default {
   },
   methods: {
     drawPartition() {
-      this.slots = []
-      for(var k in this.links) {
-        this.links[k] = {name:k, used:0, non_optimal:0}
-      }
-      this.option.yAxis.data = this.Channels
-      this.$api.gateway.getPartition()
-      .then(res=> {
-        this.partitions = res.data.data
-        var markAreaTmp = [
-          [
-            {
-              name:"Shared",
-              xAxis:0,
-              yAxis: 1,
-            },
-            {
-              xAxis:4, 
-              yAxis: 16,
-              itemStyle:{color:"gray", opacity:0.4,borderColor:"black",borderWidth:0.1},
-              label:{color:"black",fontWeight:"bold",fontSize:14, position:"insideBottom"}
-            },
+       this.slots = []
+        for(var k in this.links) {
+          this.links[k] = {name:k, used:0, non_optimal:0}
+        }
+        this.option.yAxis.data = this.Channels
+        this.$api.gateway.getPartition()
+        .then(res=> {
+          this.partitions = res.data.data
+          var markAreaTmp = [
+            [
+              {
+                name:"Sh",
+                xAxis:0,
+                yAxis: 1,
+              },
+              {
+                xAxis:4, 
+                yAxis: 17,
+                itemStyle:{color:"gray", opacity:0.4,borderColor:"black",borderWidth:0.1},
+                label:{color:"black",fontWeight:"bold",fontSize:14, position:"insideBottom"}
+              },
+            ]
           ]
-        ]
-        // var colors = ['#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
-        // var colors = {}
-        var colorMap = {
-          "Beacon":{'rgb':"orange", opacity:0.6},
-          "U1":{'rgb':"#1d71f2", opacity:0.6},
-          "D1":{'rgb':"#5F9C3F", opacity:0.6},
-          "U2":{'rgb':"#4e92f5", opacity:0.5},
-          "D2":{'rgb':"#7BB662", opacity:0.6},
-          "U3":{'rgb':"#80b3f8", opacity:0.5},
-          "D3":{'rgb':"#F5BD1E", opacity:0.5},
-          "U4":{'rgb':"#b1d3fb", opacity:0.5},
-          "D4":{'rgb':"#FFE134", opacity:0.5},
-          "U5":{'rgb':"#e3f4fe", opacity:0.6},
-          "D5":{'rgb':"#FFF347", opacity:0.6},
-          "U6":{'rgb':"#e3f4fe", opacity:0.4},
-          "D6":{'rgb':"#FFF347", opacity:0.4},
-        }
-        // var color_index = 0
-        for(var i=0;i<res.data.data.length;i++) {
-          // init beacon subslots
-          if(res.data.data[i].type=="beacon") {
-            for(var b=res.data.data[i].range[0];b<res.data.data[i].range[1];b++) {
-              this.bcnSubslots[b] = {}
-            }            
+          // var colors = ['#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
+          // var colors = {}
+          var colorMap = {
+            "Beacon":{'rgb':"#ffa000", opacity:0.5},
+            "Control":{'rgb':"lightseagreen", opacity:0.5},
+            "U1":{'rgb':"#1d71f2", opacity:0.6},
+            "D1":{'rgb':"#ffff00", opacity:0.6},
+            "U2":{'rgb':"#4e92f5", opacity:0.5},
+            "D2":{'rgb':"#ffff60", opacity:0.6},
+            "U3":{'rgb':"#80b3f8", opacity:0.5},
+            "D3":{'rgb':"#ffff80", opacity:0.5},
+            "U4":{'rgb':"#b1d3fb", opacity:0.5},
+            "D4":{'rgb':"#ffffc0", opacity:0.5},
+            "U5":{'rgb':"#e3f4fe", opacity:0.6},
+            "D5":{'rgb':"#ffffee", opacity:0.6},
+            "U6":{'rgb':"#e3f4fe", opacity:0.4},
+            "D6":{'rgb':"#ffffee", opacity:0.4},
           }
-          // partition size > 0
-          res.data.data[i].layer++
-          if(res.data.data[i].range[0]<res.data.data[i].range[1]) {
-            
-            var name = res.data.data[i].type[0].toUpperCase()
-            if(name!="B") name+=res.data.data[i].layer
-            else name="Beacon"
-            // if(colorMap[name]==null) {
-            //   colorMap[name] = colors[color_index%colors.length]
-            //   color_index+=1
+          // var color_index = 0
+          for(var i=0;i<res.data.data.length;i++) {
+            // init beacon subslots
+            if(res.data.data[i].type=="beacon") {
+              for(var b=res.data.data[i].range[0];b<res.data.data[i].range[1];b++) {
+                this.bcnSubslots[b] = {}
+              }            
+            }
+            // if(res.data.data[i].type=="control") {
+              
             // }
-            var y1 = 1
-            var y2 = 16
-            var pos = "insideBottom"
-            if(res.data.data[i].row==0 && res.data.data[i].type!="beacon") {
-              y1 = 1
-              y2 = 10
-            } else if(res.data.data[i].row==1) {
-              y1 = 10
-              y2 = 14
-            } else if(res.data.data[i].row==2) {
-              y1 = 14
-              y2 = 16
+            // partition size > 0
+            // res.data.data[i].layer++
+            if(res.data.data[i].range[0]<res.data.data[i].range[1]) {
+              
+              var name = res.data.data[i].type[0].toUpperCase()
+              if(name=="U"||name=="D") name+=res.data.data[i].layer+1
+              if(name=="B") name = "Beacon"
+              if(name=="C") name = "Control"
+              
+              // if(colorMap[name]==null) {
+              //   colorMap[name] = colors[color_index%colors.length]
+              //   color_index+=1
+              // }
+              var y1 = 1
+              var y2 = 17
+              var pos = "insideBottom"
+              if(res.data.data[i].type=="uplink" || res.data.data[i].type=="downlink") {
+                y1 = 1+res.data.data[i].channels[0]
+                y2 = 1+res.data.data[i].channels[1]
+              }
+              if(res.data.data[i].type=="uplink") {
+                pos = "insideBottomLeft"
+              } else if(res.data.data[i].type=="downlink"){
+                pos = "insideBottomRight"
+              }
+              this.links[name] = {name:name, used:0, non_optimal:0}
+              
+              markAreaTmp.push([
+                {
+                  name:name,
+                  xAxis:res.data.data[i].range[0],
+                  yAxis: y1,
+                },
+                {
+                  xAxis:res.data.data[i].range[1], 
+                  yAxis: y2,
+                  itemStyle:{color:colorMap[name].rgb, opacity:colorMap[name].opacity,borderColor:"black",borderWidth:0.1},
+                  label:{color:"black",fontWeight:"bold",fontSize:14, position:pos}
+                },
+              ])
             }
-            if(res.data.data[i].type=="uplink") {
-              pos = "insideBottomLeft"
-            } else if(res.data.data[i].type=="downlink") {
-              pos = "insideBottomRight"
-            }
-            
-            var showLabelFlag = false
-            if(res.data.data[i].row==0)
-              showLabelFlag = true
-            this.links[name] = {name:name, used:0, non_optimal:0}
-            markAreaTmp.push([
-              {
-                name:name,
-                xAxis:res.data.data[i].range[0],
-                yAxis: y1,
-              },
-              {
-                xAxis:res.data.data[i].range[1], 
-                yAxis: y2,
-                itemStyle:{color:colorMap[name].rgb, opacity:0.6,borderColor:"black",borderWidth:0.1},
-                label:{show:showLabelFlag,color:"black",fontWeight:"bold",fontSize:14, position:pos}
-              },
-            ])
           }
-        }
-        markAreaTmp.push()
-        this.option.series[0].markArea.data = markAreaTmp
-       
-        // make sure partition is loaded
-        this.drawSchedule()
-      })
+          markAreaTmp.push()
+          this.option.series[0].markArea.data = markAreaTmp
+        
+          // make sure partition is loaded
+          this.drawSchedule()
+        })
     },
     drawSchedule() {
       this.$api.gateway.getSchedule()

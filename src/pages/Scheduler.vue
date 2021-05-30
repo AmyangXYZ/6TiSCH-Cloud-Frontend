@@ -7,7 +7,8 @@
       </vs-col>
       <vs-col style="z-index:99" vs-offset="0.4" vs-w="5.2">  
         <!-- <Latency/> -->
-        <Console/>
+        <!-- <Console/> -->
+        <Graph/>
       </vs-col>
        <!-- <vs-col style="z-index:99" vs-offset="0.1" vs-w="2.2  ">  
         <Latency/>
@@ -39,9 +40,10 @@
 </template>
 
 <script>
-import Console from '../components/schedule/Console.vue'
+// import Console from '../components/schedule/Console.vue'
 import Grid from '../components/schedule/Grid'
-import SchTable from '../components/schedule/Table'
+import SchTable from '../components/schedule/TableHP'
+import Graph from '../components/schedule/Graph'
 // import SchTable5 from '../components/schedule/Table5'
 // import SchTable4 from '../components/schedule/Table4'
 // import SchTable2 from '../components/schedule/Table2'
@@ -56,7 +58,8 @@ export default {
     components: {
       Grid,
       SchTable,
-        Console,
+      Graph,
+        // Console,
       // SchTable4,
       // SchTable2,
       // SchTable3,

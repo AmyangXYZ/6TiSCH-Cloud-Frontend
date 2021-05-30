@@ -39,7 +39,7 @@
 */
 
 
-const RESERVED = 0; //Number of reserved
+const RESERVED = 4; //Number of reserved
 const SUBSLOTS = 8;
 const ROWS = 4;
 const ALGORITHM = "partition"
@@ -47,7 +47,8 @@ const partition_config = require("./partition.json");
 
 function partition_init(sf) {
   //Beacon reserved version
-  var u_d = [Math.floor(sf - partition_config.beacon - RESERVED) / 2, Math.floor(sf - partition_config.beacon - RESERVED) / 2];
+  var u_d = [Math.floor(sf - partition_config.beacon - RESERVED -partition_config.control ) / 2, 
+    Math.floor(sf - partition_config.beacon - RESERVED - partition_config.control) / 2];
   // var u_d = [sf-partition_config.beacon,sf-partition_config.beacon]
   // partition_scale(u_d, sf-RESERVED-partition_config.beacon);
   var uplink = partition_config.uplink.slice(); 
@@ -55,6 +56,7 @@ function partition_init(sf) {
 
   var partition = {
     broadcast: {},
+    control:{},
   }
   for (var r = 0; r < ROWS; r++) {
     partition[r] = { uplink: {}, downlink: {} }
@@ -67,8 +69,10 @@ function partition_init(sf) {
   var last_uplink_row_boundary = 0
   var last_downlink_row_boundary = 0
 
+  partition.control = { start: RESERVED, end: RESERVED+partition_config.control };
+
   for(var r=0; r<ROWS;r++) {
-    slot_cursor[r] = RESERVED
+    slot_cursor[r] = partition.control.end
     uplink_row[r] = partition_scale(uplink, u_d[0]-last_uplink_row_boundary)
     // uplink_row[r] = uplink
     downlink_row[r] = partition_scale(downlink, u_d[1]-last_downlink_row_boundary);
@@ -106,7 +110,7 @@ function partition_init(sf) {
     }
   }
 
-  window.console.log("patition:", partition);
+  console.log("patition:", partition);
   return partition;
 }
 
@@ -136,7 +140,7 @@ function partition_scale(raw_list, size) {
   return list;
 }
 
-function create_scheduler(sf, ch, algorithm) {
+function create_scheduler(sf, ch) {
   /*
   Slot = {slot_offset, channel}
   Subslot = {period, offset}
@@ -145,13 +149,13 @@ function create_scheduler(sf, ch, algorithm) {
   used_subslot = {slot: [slot_offset, ch_offset], subslot: [periord, offset], cell: cell, is_optimal:1}
   */
   if (!(this instanceof create_scheduler)) {
-    return new create_scheduler(sf, ch, algorithm);
+    return new create_scheduler(sf, ch);
   }
 
-  // window.console.log("create_scheduler("+sf+","+ch+")", algorithm);
+  console.log("create_scheduler("+sf+","+ch+")", ALGORITHM);
   this.slotFrameLength = sf;
   this.channels = ch;
-  this.algorithm = algorithm
+  this.algorithm = ALGORITHM
   this.rows = ROWS
   this.schedule = new Array(sf);
   // { parent: [children] }, mainly for count subtree size
@@ -172,7 +176,7 @@ function create_scheduler(sf, ch, algorithm) {
 
   //initialize partition
   this.partition = partition_init(sf);
-  // console.log(this.partition)
+  console.log(this.partition)
   this.channelRows = {}
   for(var r=0;r<ROWS;r++) {
     var channels = this.partition[r].uplink[0].channels
@@ -202,6 +206,7 @@ function create_scheduler(sf, ch, algorithm) {
         layer: cell.layer,
         sender: cell.sender,
         receiver: cell.receiver,
+        option: cell.option
       }
     }
 
@@ -299,13 +304,14 @@ function create_scheduler(sf, ch, algorithm) {
       }
     }
 
+
     if (flag && info.layer > 0) {
       if (info.type != "beacon") {
         var parent = 0
         if (info.type == "uplink") parent = nodes_list[1]
         else parent = nodes_list[0]
 
-        var parent_slot = this.find_cell(parent, info.type)
+        var parent_slot = this.find_cell(parent, info.type, info.option)
         if (info.type == "uplink") {
           if (slot.slot_offset > parent_slot.slot[0]) return false
         } else {
@@ -631,18 +637,34 @@ function create_scheduler(sf, ch, algorithm) {
   }
 
   // find the first(uplink)/last(downlink) used slot of the node
-  this.find_cell = function (node, type) {
-    for (var i = 0; i < this.used_subslot.length; i++) {
-      if (type == "uplink") {
-        if (this.used_subslot[i].cell.sender == node && this.used_subslot[i].cell.type == type) {
-          return this.used_subslot[i]
+  this.find_cell = function (node, type, option) {
+    if(option) {
+      for (var i = 0; i < this.used_subslot.length; i++) {
+        if (type == "uplink") {
+          if (this.used_subslot[i].cell.sender == node && this.used_subslot[i].cell.type == type && this.used_subslot[i].cell.option == option) {
+            return this.used_subslot[i]
+          }
+        } else if (type == "downlink") {
+          if (this.used_subslot[i].cell.receiver == node && this.used_subslot[i].cell.type == type && this.used_subslot[i].cell.option == option) {
+            return this.used_subslot[i]
+          }
         }
-      } else if (type == "downlink") {
-        if (this.used_subslot[i].cell.receiver == node && this.used_subslot[i].cell.type == type) {
-          return this.used_subslot[i]
+      }
+
+    } else {
+      for (var i = 0; i < this.used_subslot.length; i++) {
+        if (type == "uplink") {
+          if (this.used_subslot[i].cell.sender == node && this.used_subslot[i].cell.type == type) {
+            return this.used_subslot[i]
+          }
+        } else if (type == "downlink") {
+          if (this.used_subslot[i].cell.receiver == node && this.used_subslot[i].cell.type == type) {
+            return this.used_subslot[i]
+          }
         }
       }
     }
+    
     console.log("cannot find this cell", node, type)
   }
 
@@ -1250,9 +1272,14 @@ function create_scheduler(sf, ch, algorithm) {
   }
 
   //generate a shuffled slot list to iterate
-  this.shuffle_slots = function () {
+  this.shuffle_slots = function (start, end) {
+    if(!start && !end) {
+      start = RESERVED
+      end = this.slotFrameLength
+    }
+
     var shuffled_slots = [];
-    for (var slot = 0; slot < this.slotFrameLength; ++slot) {
+    for (var slot = start; slot < end; ++slot) {
       for (var c in this.channels) {
         var ch = this.channels[c];
         shuffled_slots.push({ slot_offset: slot, channel_offset: ch });
@@ -1325,7 +1352,7 @@ function create_scheduler(sf, ch, algorithm) {
     var block_list = []
 
     // 1 cell per link, from root to leaf
-    if (parent == 0) {
+    if (parent == 1) {
       // block_id = Math.floor(Math.random() * block_num)
       block_id = block_numz
       if (block_id % 2 != 0) block_id -= 1
@@ -1487,6 +1514,21 @@ function create_scheduler(sf, ch, algorithm) {
     var parent = (info.type == "uplink") ? nodes_list[1] : parent = nodes_list[0]
     rows = []
     for(var r=0;r<ROWS;r++) rows.push(r)
+
+    if(!info.option) {
+      if (info.type == "beacon") slots_list = this.inpartition_slots(0, info, 0)
+      else slots_list = this.shuffle_slots(this.partition.control.start, this.partition.control.end)
+      
+      for (var i = 0; i < slots_list.length; ++i) {
+        var slot = slots_list[i];
+        for (var offset = 0; offset < period; ++offset) {
+          if (this.available_subslot(nodes_list, slot, { period: period, offset: offset }, info, 0)) {
+            return { slot: slot, subslot: { offset: offset, period: period }, row: 0, is_optimal: 1 }
+          }
+        }
+      }
+      return
+    }
 
     // random
     if (this.algorithm == "random") {

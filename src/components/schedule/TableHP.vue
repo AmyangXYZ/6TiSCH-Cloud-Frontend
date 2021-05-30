@@ -43,9 +43,9 @@ import "echarts/lib/component/markLine";
 import "echarts/lib/component/dataZoom";
 import "echarts/lib/chart/graph"
 
-import {init1,inter_partition_adjustment, intra_partition_adjustment,dynamic_schedule,kick,get_sch,get_scheduler} from './schedule-sim.js'
+import {create_scheduler} from './scheduler-hp.js'
 
-const SLOTFRAME = 127
+const SLOTFRAME = 72
 
 export default {
   components: {
@@ -54,12 +54,9 @@ export default {
   data() {
     return {
       i:0,
-      autoFlag: 0,
-      simOrReal: "Simulation",
-      partition_changes: {},
+
       selectedCell: {slot:[]},
-      auto: {},
-      res: {},
+      sch: {},
       Channels: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],
       slots: [],
       links: {},
@@ -115,7 +112,7 @@ export default {
           minInterval: 1,
           axisLabel: {
             formatter: (item)=>{
-              if(item%2==1) 
+              if(item%1==0) 
                 return item
             },
             fontSize:10,
@@ -244,188 +241,70 @@ export default {
             animationDuration:300,
             animationDurationUpdate: 500,
           },
+        },
+        {
+          type: 'heatmap',
+          data: [],
+          markArea: {
+            silent:true,
+            label: {
+              position:"bottom"
+            },
+            data: []
+          },
         }]
       },
     }
   },
   methods: {
     drawPartition() {
-      this.slots = []
-      for(var k in this.links) {
-        this.links[k] = {name:k, used:0, non_optimal:0}
+      this.option.series[0].markArea.data = []
+      var colors = ['#1d71f2', "#4e92f5","#80b3f8", "#b1d3fb","#e3f4fe"]
+      for(var i=0;i<Object.keys(this.sch.partitions[0].uplink).length;i++) {
+        var partition = this.sch.partitions[0].uplink[i]
+        this.option.series[0].markArea.data.push([
+          {
+            name:"U"+i,
+            xAxis:partition.start,
+            yAxis: 1,
+          },
+          {
+            xAxis:partition.end, 
+            yAxis: 17,
+            itemStyle:{color:colors[i], opacity:0.55,borderColor:"black",borderWidth:0.1},
+            label:{color:"black",fontWeight:"bold",fontSize:14, position:"insideBottom"}
+          },
+        ])
       }
-      this.option.yAxis.data = this.Channels
-      this.$api.gateway.getPartition()
-      .then(res=> {
-        if(this.simOrReal=="Simulation") {
-          res = {data:{data:this.res.partitions}}
-        }
-
-        this.partitions = res.data.data
-        var markAreaTmp = [
-          [
-            {
-              name:"Sh",
-              xAxis:0,
-              yAxis: 1,
-            },
-            {
-              xAxis:4, 
-              yAxis: 17,
-              itemStyle:{color:"gray", opacity:0.4,borderColor:"black",borderWidth:0.1},
-              label:{color:"black",fontWeight:"bold",fontSize:14, position:"insideBottom"}
-            },
-          ]
-        ]
-        // var colors = ['#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
-        // var colors = {}
-        var colorMap = {
-          "Beacon":{'rgb':"#ffa000", opacity:0.5},
-          "Control":{'rgb':"lightseagreen", opacity:0.5},
-          "U1":{'rgb':"#1d71f2", opacity:0.6},
-          "D1":{'rgb':"#ffff00", opacity:0.6},
-          "U2":{'rgb':"#4e92f5", opacity:0.5},
-          "D2":{'rgb':"#ffff60", opacity:0.6},
-          "U3":{'rgb':"#80b3f8", opacity:0.5},
-          "D3":{'rgb':"#ffff80", opacity:0.5},
-          "U4":{'rgb':"#b1d3fb", opacity:0.5},
-          "D4":{'rgb':"#ffffc0", opacity:0.5},
-          "U5":{'rgb':"#e3f4fe", opacity:0.6},
-          "D5":{'rgb':"#ffffee", opacity:0.6},
-          "U6":{'rgb':"#e3f4fe", opacity:0.4},
-          "D6":{'rgb':"#ffffee", opacity:0.4},
-        }
-        // var color_index = 0
-        for(var i=0;i<res.data.data.length;i++) {
-          // init beacon subslots
-          if(res.data.data[i].type=="beacon") {
-            for(var b=res.data.data[i].range[0];b<res.data.data[i].range[1];b++) {
-              this.bcnSubslots[b] = {}
-            }            
-          }
-          // if(res.data.data[i].type=="control") {
-            
-          // }
-          // partition size > 0
-          // res.data.data[i].layer++
-          if(res.data.data[i].range[0]<res.data.data[i].range[1]) {
-            
-            var name = res.data.data[i].type[0].toUpperCase()
-            if(name=="U"||name=="D") name+=res.data.data[i].layer+1
-            if(name=="B") name = "Beacon"
-            if(name=="C") name = "Control"
-            
-            // if(colorMap[name]==null) {
-            //   colorMap[name] = colors[color_index%colors.length]
-            //   color_index+=1
-            // }
-            var y1 = 1
-            var y2 = 17
-            var pos = "insideBottom"
-            if(res.data.data[i].type=="uplink" || res.data.data[i].type=="downlink") {
-              y1 = 1+res.data.data[i].channels[0]
-              y2 = 1+res.data.data[i].channels[1]
-            }
-            if(res.data.data[i].type=="uplink") {
-              pos = "insideBottomLeft"
-            } else if(res.data.data[i].type=="downlink"){
-              pos = "insideBottomRight"
-            }
-            this.links[name] = {name:name, used:0, non_optimal:0}
-            
-            markAreaTmp.push([
-              {
-                name:name,
-                xAxis:res.data.data[i].range[0],
-                yAxis: y1,
-              },
-              {
-                xAxis:res.data.data[i].range[1], 
-                yAxis: y2,
-                itemStyle:{color:colorMap[name].rgb, opacity:colorMap[name].opacity,borderColor:"black",borderWidth:0.1},
-                label:{color:"black",fontWeight:"bold",fontSize:14, position:pos}
-              },
-            ])
-          }
-        }
-        markAreaTmp.push()
-        this.option.series[0].markArea.data = markAreaTmp
-       
-        // make sure partition is loaded
-        this.drawSchedule()
-      })
+    },
+    drawSubPartition(subtree_root) {
+      if(subtree_root == 0)
+        this.option.series[2].markArea.data = []
+      for(var i=0;i<this.sch.subpartitions[subtree_root].length;i++) {
+        var subpartition = this.sch.subpartitions[subtree_root][i]
+        this.option.series[2].markArea.data.push([
+          {
+            name:subtree_root.toString(),
+            xAxis:subpartition.slot_range[0],
+            yAxis: subpartition.channel_range[0],
+          },
+          {
+            xAxis:subpartition.slot_range[1],
+            yAxis: subpartition.channel_range[1],
+            itemStyle:{color:'red', opacity:0.5,borderColor:"black",borderWidth:0.1},
+            label:{color:"black",fontWeight:"normal",fontSize:14, position:"inside"}
+          },
+        ])
+      }
     },
     drawSchedule() {
-      this.$api.gateway.getSchedule()
-      .then(res => {
-        if(this.simOrReal=="Simulation") {
-          res = {data:{data:this.res.cells}}
-          for(var x=0;x<res.data.data.length;x++) {
-            res.data.data[x].row = res.data.data[x].cell.row
-            res.data.data[x].type = res.data.data[x].cell.type
-            res.data.data[x].layer = res.data.data[x].cell.layer
-            res.data.data[x].sender = res.data.data[x].cell.sender
-            res.data.data[x].receiver = res.data.data[x].cell.receiver
-          }
-        }
-
-        // this.nonOptimalCnt = Object.keys(this.unAligned).length
-        this.nonOptimalCnt = 0
-        var cellsTmp = []
-        // if(!res.data.flag) return
-        this.slots = res.data.data
-        for(var i=0;i<res.data.data.length;i++) {
-          // res.data.data[i].layer++
-          var name = res.data.data[i].type[0].toUpperCase()
-          if(res.data.data[i].type == "beacon") {
-            res.data.data[i].layer = ""
-          } else {
-            name+=res.data.data[i].layer+=1
-          }
-          
-          // if(res.data.data[i].layer>2) continue
-          if(this.links[name] == null) {
-            this.links[name] = {name:name, used:0, non_optimal:0}
-          }
-          this.links[name].used+=1
-
-          var tag = 1
-          if(res.data.data[i].type=="uplink") {
-            // this.nonOptimalCnt++
-            // this.unAligned[res.data.data[i].sender+'-'+res.data.data[i].receiver] = 1
-            // this.links[name].non_optimal+=1
-            tag = 0
-          }
-          if(res.data.data[i].type=="beacon") {
-            tag = -1
-          }
-          if(this.bcnSubslots[res.data.data[i].slot[0]]!=null) {
-            if(res.data.data[i].type=="beacon") {
-              this.bcnSubslots[res.data.data[i].slot[0]][res.data.data[i].subslot[0]]=res.data.data[i].sender
-            }
-          }
-
-          cellsTmp.push([res.data.data[i].slot[0]+0.5,res.data.data[i].slot[1]+0.5,tag])
-          // cellsTmp.push([res.data.data[i].slot[0]+0.5,Math.floor(res.data.data[i].slot[1]/2),tag])
-        }
-        this.option.series[0].data = cellsTmp
-
-        for(var k in this.links) {
-          if(this.links[k].used==0)
-            delete this.links[k]
-        }
-      })
+      this.option.series[0].data = []
+      for(var i=0;i<this.sch.cell_list.length; i++) {
+        var x = this.sch.cell_list[i]
+        this.option.series[0].data.push([x.slot+0.5, x.channel+0.5, 0])
+      }
     },
-    handleIntraPartitionAdjustmentBt() {
-      this.res = intra_partition_adjustment(window.grid.nodes)
-      this.drawPartition()
-      if(this.selectedCell.slot.length>0) setTimeout(()=>{this.findPath(this.selectedCell)},800)
-    },
-    handleInterPartitionAdjustmentBt() {
-      this.res = inter_partition_adjustment()
-      this.drawPartition()
-      if(this.selectedCell.slot.length>0) setTimeout(()=>{this.findPath(this.selectedCell)},300)
-    },
+
     findPath(cell) {
       this.option.series[0].markLine.data = []
       // update cell
@@ -472,61 +351,26 @@ export default {
       }
       return 0
     },
-    update_sch() {
-      this.res = get_sch()
-      this.drawPartition()
-    }
   },
 
   mounted() {
     window.table = this
     this.$EventBus.$emit("init",1)
-    if(this.simOrReal=="Simulation") {
-      
-      this.$EventBus.$on("topo", (topo) => {
-        this.topo = topo.data
-        this.seq = topo.seq
-        this.res = init1(topo.data, topo.seq)
-        // this.$EventBus.$emit("cells1",this.res.cells)
-        this.drawPartition()
-        // setTimeout(this.getCrossRowLinks,1000)
-        window.sch = get_scheduler()
-      });
-    } else {
-      this.drawPartition()
-    }
     
-    this.$EventBus.$on("schSelectNode", (node) => {
-      var cell = this.findSlot(node)
-      this.findPath(cell)
-    })
-
-    this.$EventBus.$on("kicked", (kicked) => {
-      kick(kicked)
-      
-      this.res = get_sch()
+    this.$EventBus.$on("topo", (topo) => {
+      this.sch = create_scheduler(SLOTFRAME, this.Channels)
+      this.sch.set_topo(topo.data)
+      var x = this.sch.find_idle_cell([1,2], {type:"beacon", layer:1})
+      this.sch.add_cell(x)
       this.drawPartition()
-    })
-    this.$EventBus.$on("clear", (clear) => {
-      if(clear) {
-        this.res = init1(this.topo, this.seq)
-        this.drawPartition()
-      }
-    })
-    this.$EventBus.$on("changed", (nodes) => {
-      // dynamic_schedule()
-      // var node = nodes[0]
-      for(var i=0;i<nodes.length;i++) dynamic_schedule(nodes[i])
-      // if(!is_optimal) {
-      //   this.$EventBus.$emit("nonOptimal", node.id)
-      // }
-      
-      this.res = get_sch()      
-      this.drawPartition()
-      this.$EventBus.$emit("cells1",this.res.cells)
-      if(this.selectedCell.slot.length>0) setTimeout(()=>{this.findPath(this.selectedCell)},500)
+      this.drawSubPartition(0)
+      this.drawSubPartition(this.sch.topo_tree[0].children[0].id)
+      // this.drawSchedule()
+      // this.$EventBus.$emit("cells1",this.res.cells)
     });
+    
 
+    
     
     this.$EventBus.$on("simulation_cur_slot", (slot)=>{
       this.option.series[1].markLine.data = [{xAxis:slot+0.5}]
