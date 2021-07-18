@@ -221,7 +221,7 @@ export default {
           // var colors = {}
           var colorMap = {
             "Beacon":{'rgb':"#ffa000", opacity:0.5},
-            "Control":{'rgb':"lightseagreen", opacity:0.5},
+            "Management":{'rgb':"lightseagreen", opacity:0.5},
             "U1":{'rgb':"#1d71f2", opacity:0.6},
             "D1":{'rgb':"#ffff00", opacity:0.6},
             "U2":{'rgb':"#4e92f5", opacity:0.5},
@@ -253,7 +253,7 @@ export default {
               var name = res.data.data[i].type[0].toUpperCase()
               if(name=="U"||name=="D") name+=res.data.data[i].layer+1
               if(name=="B") name = "Beacon"
-              if(name=="C") name = "Control"
+              if(name=="C") name = "Management"
               
               // if(colorMap[name]==null) {
               //   colorMap[name] = colors[color_index%colors.length]

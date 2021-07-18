@@ -8,7 +8,6 @@ function get_partition() {
   var p = []
   sch = sch1
   p.push({type:"beacon", layer:0, range:[sch.partition.broadcast.start,sch.partition.broadcast.end]})
-  p.push({type:"control", layer:0, range:[sch.partition.control.start,sch.partition.control.end]})
   for(var l=0;l<Object.keys(sch.partition[0].uplink).length;l++) {
     for(var r=0;r<sch1.rows;r++) {
       p.push({type:'uplink',layer:l, row:r, channels:sch.partition[r].uplink[l].channels, range:[sch.partition[r].uplink[l].start,sch.partition[r].uplink[l].end]})
@@ -39,8 +38,6 @@ var sch6={}
 var topo = {}
 var join_seq = []
 
-const LINK_OPTION_COAP = 1
-
 // static schedule, init
 function static_schedule1() {
   for(var i=0;i<join_seq.length;i++) {
@@ -51,17 +48,10 @@ function static_schedule1() {
     var ret=sch1.find_empty_subslot([node],8,{type:"beacon",layer:0});
     sch1.add_subslot(ret.slot, ret.subslot, {type:"beacon",layer:layer,row:ret.row, sender:node,receiver:0xffff}, ret.is_optimal);
 
-    // tx for control packets
     var ret=sch1.find_empty_subslot([node,parent],1,{type:"uplink",layer:layer});
     sch1.add_subslot(ret.slot, ret.subslot, {type:"uplink",layer:layer,row:ret.row,sender:node,receiver:parent}, ret.is_optimal);    
     var ret=sch1.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer});
     sch1.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer,row:ret.row,sender:parent,receiver:node}, ret.is_optimal);
-
-    // tx for coap packets
-    var ret=sch1.find_empty_subslot([node,parent],1,{type:"uplink",layer:layer, option: LINK_OPTION_COAP});
-    sch1.add_subslot(ret.slot, ret.subslot, {type:"uplink",layer:layer,row:ret.row,sender:node,receiver:parent, option: LINK_OPTION_COAP}, ret.is_optimal);    
-    var ret=sch1.find_empty_subslot([parent, node],1,{type:"downlink",layer:layer, option: LINK_OPTION_COAP});
-    sch1.add_subslot(ret.slot, ret.subslot, {type:"downlink",layer:layer,row:ret.row,sender:parent,receiver:node, option: LINK_OPTION_COAP}, ret.is_optimal);
   }
 }
 
@@ -259,7 +249,7 @@ function kick4(nodes) {
 }
 
 function init1(topology,seq) {
-  sch1 = scheduler.create_scheduler(150,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],"partition")
+  sch1 = scheduler.create_scheduler(127,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],"partition")
 
   topo = topology
   // topo for scheduler, {parent: [children]}

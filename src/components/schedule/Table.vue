@@ -43,9 +43,7 @@ import "echarts/lib/component/markLine";
 import "echarts/lib/component/dataZoom";
 import "echarts/lib/chart/graph"
 
-import {init1,inter_partition_adjustment, intra_partition_adjustment,dynamic_schedule,kick,get_sch,get_scheduler} from './schedule-sim.js'
-
-const SLOTFRAME = 127
+import {init1,inter_partition_adjustment, intra_partition_adjustment,dynamic_schedule,kick,get_sch,get_scheduler} from './schedule-dpa-sim.js'
 
 export default {
   components: {
@@ -60,6 +58,7 @@ export default {
       selectedCell: {slot:[]},
       auto: {},
       res: {},
+      SlotFrameLength: 127,
       Channels: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],
       slots: [],
       links: {},
@@ -110,8 +109,8 @@ export default {
         },
         xAxis: {
           min:0,
-          max:SLOTFRAME,
-          splitNumber: SLOTFRAME,
+          max:127,
+          splitNumber: 127,
           minInterval: 1,
           axisLabel: {
             formatter: (item)=>{
@@ -262,26 +261,11 @@ export default {
         }
 
         this.partitions = res.data.data
-        var markAreaTmp = [
-          [
-            {
-              name:"Sh",
-              xAxis:0,
-              yAxis: 1,
-            },
-            {
-              xAxis:4, 
-              yAxis: 17,
-              itemStyle:{color:"gray", opacity:0.4,borderColor:"black",borderWidth:0.1},
-              label:{color:"black",fontWeight:"bold",fontSize:14, position:"insideBottom"}
-            },
-          ]
-        ]
+        var markAreaTmp = []
         // var colors = ['#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
         // var colors = {}
         var colorMap = {
-          "Beacon":{'rgb':"#ffa000", opacity:0.5},
-          "Control":{'rgb':"lightseagreen", opacity:0.5},
+          "B":{'rgb':"#ffa000", opacity:0.5},
           "U1":{'rgb':"#1d71f2", opacity:0.6},
           "D1":{'rgb':"#ffff00", opacity:0.6},
           "U2":{'rgb':"#4e92f5", opacity:0.5},
@@ -303,18 +287,12 @@ export default {
               this.bcnSubslots[b] = {}
             }            
           }
-          // if(res.data.data[i].type=="control") {
-            
-          // }
           // partition size > 0
           // res.data.data[i].layer++
           if(res.data.data[i].range[0]<res.data.data[i].range[1]) {
             
             var name = res.data.data[i].type[0].toUpperCase()
-            if(name=="U"||name=="D") name+=res.data.data[i].layer+1
-            if(name=="B") name = "Beacon"
-            if(name=="C") name = "Control"
-            
+            if(name!="B") name+=res.data.data[i].layer+1
             // if(colorMap[name]==null) {
             //   colorMap[name] = colors[color_index%colors.length]
             //   color_index+=1
@@ -322,13 +300,13 @@ export default {
             var y1 = 1
             var y2 = 17
             var pos = "insideBottom"
-            if(res.data.data[i].type=="uplink" || res.data.data[i].type=="downlink") {
+            if(res.data.data[i].type!="beacon") {
               y1 = 1+res.data.data[i].channels[0]
               y2 = 1+res.data.data[i].channels[1]
             }
             if(res.data.data[i].type=="uplink") {
               pos = "insideBottomLeft"
-            } else if(res.data.data[i].type=="downlink"){
+            } else {
               pos = "insideBottomRight"
             }
             this.links[name] = {name:name, used:0, non_optimal:0}
@@ -343,7 +321,7 @@ export default {
                 xAxis:res.data.data[i].range[1], 
                 yAxis: y2,
                 itemStyle:{color:colorMap[name].rgb, opacity:colorMap[name].opacity,borderColor:"black",borderWidth:0.1},
-                label:{color:"black",fontWeight:"bold",fontSize:14, position:pos}
+                label:{color:"black",fontWeight:"bold",fontSize:12, position:pos}
               },
             ])
           }
@@ -487,7 +465,7 @@ export default {
         this.topo = topo.data
         this.seq = topo.seq
         this.res = init1(topo.data, topo.seq)
-        // this.$EventBus.$emit("cells1",this.res.cells)
+        this.$EventBus.$emit("cells1",this.res.cells)
         this.drawPartition()
         // setTimeout(this.getCrossRowLinks,1000)
         window.sch = get_scheduler()

@@ -93,7 +93,7 @@ import "echarts/lib/chart/scatter";
 import "echarts/lib/chart/effectScatter";
 import "echarts/lib/component/markLine";
 import "echarts/lib/component/toolbox";
-import nodes from "./nodes_21-4hop.json";
+// import nodes from "./nodes_21.json";
 // import noiseList from "./noiseList.json";
 
 
@@ -107,11 +107,11 @@ export default {
   data() {
     return {
       gwPos: [],
-      sizeX: 15,
-      sizeY: 15,
-      nodesNumber: 33, // include gateway
-      maxHop: 5,
-      txRange: 9, // in square
+      sizeX: 32,
+      sizeY: 24,
+      nodesNumber: 121, // include gateway
+      maxHop: 6,
+      txRange: 36, // in square
       childrenCnt: {0:0},
       parent_capacity:6, // except gateway
       kicked: [],
@@ -328,7 +328,7 @@ export default {
       // }
 
       // this.nodes = nodes
-      window.console.log(nodes.length)
+      // window.console.log(this.nodes)
       for (var nn = 0; nn < Object.keys(this.nodes).length; nn++) {
         this.option.series[0].data.push(this.nodes[nn].position);
       }
