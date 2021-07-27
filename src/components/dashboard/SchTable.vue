@@ -28,16 +28,11 @@ export default {
     return {
       autorefresh:false,
       i:0,
-      partition_changes: {},
       selectedCell: {slot:[]},
       SlotFrameLength: 150,
       Channels: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],
       slots: [],
-      links: {},
       bcnSubslots: {},
-      nonOptimalCnt:0,
-      nonOptimalList: [],
-      unAligned: {},
       option: {
         toolbox:{
           feature:{
@@ -195,17 +190,14 @@ export default {
   methods: {
     drawPartition() {
        this.slots = []
-        for(var k in this.links) {
-          this.links[k] = {name:k, used:0, non_optimal:0}
-        }
         this.option.yAxis.data = this.Channels
-        this.$api.gateway.getPartition()
+        this.$api.gateway.getPartitionHARP()
         .then(res=> {
           this.partitions = res.data.data
           var markAreaTmp = [
             [
               {
-                name:"Sh",
+                name:"SH",
                 xAxis:0,
                 yAxis: 1,
               },
@@ -220,20 +212,10 @@ export default {
           // var colors = ['#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
           // var colors = {}
           var colorMap = {
-            "Beacon":{'rgb':"#ffa000", opacity:0.5},
-            "Management":{'rgb':"lightseagreen", opacity:0.5},
-            "U1":{'rgb':"#1d71f2", opacity:0.6},
-            "D1":{'rgb':"#ffff00", opacity:0.6},
-            "U2":{'rgb':"#4e92f5", opacity:0.5},
-            "D2":{'rgb':"#ffff60", opacity:0.6},
-            "U3":{'rgb':"#80b3f8", opacity:0.5},
-            "D3":{'rgb':"#ffff80", opacity:0.5},
-            "U4":{'rgb':"#b1d3fb", opacity:0.5},
-            "D4":{'rgb':"#ffffc0", opacity:0.5},
-            "U5":{'rgb':"#e3f4fe", opacity:0.6},
-            "D5":{'rgb':"#ffffee", opacity:0.6},
-            "U6":{'rgb':"#e3f4fe", opacity:0.4},
-            "D6":{'rgb':"#ffffee", opacity:0.4},
+            "BEACON":{'rgb':"orange", opacity:0.5},
+            "MANAGEMENT":{'rgb':"lightseagreen", opacity:0.5},
+            "UPLINK": {'rgb':"#1d71f2", opacity:0.6},
+            "DOWNLINK": {'rgb':"green", opacity:0.6},
           }
           // var color_index = 0
           for(var i=0;i<res.data.data.length;i++) {
@@ -243,35 +225,13 @@ export default {
                 this.bcnSubslots[b] = {}
               }            
             }
-            // if(res.data.data[i].type=="control") {
-              
-            // }
-            // partition size > 0
-            // res.data.data[i].layer++
             if(res.data.data[i].range[0]<res.data.data[i].range[1]) {
               
-              var name = res.data.data[i].type[0].toUpperCase()
-              if(name=="U"||name=="D") name+=res.data.data[i].layer+1
-              if(name=="B") name = "Beacon"
-              if(name=="C") name = "Management"
+              var name = res.data.data[i].type.toUpperCase()
               
-              // if(colorMap[name]==null) {
-              //   colorMap[name] = colors[color_index%colors.length]
-              //   color_index+=1
-              // }
               var y1 = 1
               var y2 = 17
               var pos = "insideBottom"
-              if(res.data.data[i].type=="uplink" || res.data.data[i].type=="downlink") {
-                y1 = 1+res.data.data[i].channels[0]
-                y2 = 1+res.data.data[i].channels[1]
-              }
-              if(res.data.data[i].type=="uplink") {
-                pos = "insideBottomLeft"
-              } else if(res.data.data[i].type=="downlink"){
-                pos = "insideBottomRight"
-              }
-              this.links[name] = {name:name, used:0, non_optimal:0}
               
               markAreaTmp.push([
                 {
@@ -312,20 +272,7 @@ export default {
             i--
             continue
           }
-          var name = res.data.data[i].type[0].toUpperCase()
-          if(res.data.data[i].type == "beacon") {
-            res.data.data[i].layer = ""
-            name = "Beacon"
-          } else {
-            name+=res.data.data[i].layer+=1
-          }
           
-          // if(res.data.data[i].layer>2) continue
-          if(this.links[name] == null) {
-            this.links[name] = {name:name, used:0, non_optimal:0}
-          }
-          this.links[name].used+=1
-
           var tag = 1
           if(res.data.data[i].type=="uplink") {
             // this.nonOptimalCnt++
