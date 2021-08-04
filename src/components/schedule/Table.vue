@@ -460,8 +460,8 @@ export default {
     window.table = this
     this.$EventBus.$emit("init",1)
     if(this.simOrReal=="Simulation") {
-      
-      this.$EventBus.$on("topo", (topo) => {
+      // change on to once
+      this.$EventBus.$once("topo", (topo) => {
         this.topo = topo.data
         this.seq = topo.seq
         this.res = init1(topo.data, topo.seq)

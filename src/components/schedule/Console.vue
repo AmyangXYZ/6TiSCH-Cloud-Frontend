@@ -352,14 +352,15 @@ export default {
 
       this.option.series[0].data = []
       this.option.series[1].data = []
-      // compute rtt for APaS (1 link 1 cell)
-      for(var n=0;n<this.option.xAxis[0].data.length;n++) {
-        var node = this.option.xAxis[0].data[n]
-        var x = this.findCell(node, "uplink")
+      
+      // // rtt of each node
+      // for(var n=0;n<this.option.xAxis[0].data.length;n++) {
+      //   var node = this.option.xAxis[0].data[n]
+      //   var x = this.findCell(node, "uplink")
         
-        this.option.series[0].data.push(x.rtt/100)
-        this.option.series[1].data.push(this.topo[node].layer+1)
-      }
+      //   this.option.series[0].data.push(x.rtt/100)
+      //   this.option.series[1].data.push(this.topo[node].layer+1)
+      // }
     },
     computeUplinkLatency() {
       var maxLayer = 0
@@ -429,7 +430,7 @@ export default {
       }
     },
     handleClick(item) {
-      window.console.log(item)
+      // window.console.log(item)
       this.$EventBus.$emit("schSelectNode", item.name)
     }
   },
@@ -479,7 +480,7 @@ export default {
 <style lang="stylus" >
 #console
   width 100%
-  height 562px
+  height 465px
 #buttons
   // position absolute
   // width 300px
@@ -488,7 +489,7 @@ export default {
 #logs
   margin-top 10px
   width 100%
-  height 450px
+  height 355px
   font-size 0.7rem
   line-height 1.3
   border-radius: 6px;
@@ -503,7 +504,7 @@ textarea:disabled {
 }
 #chart
   width 100%
-  height 450px
+  height 320px
 .vs-tabs--li
   // span
   // z-index 999

@@ -2,12 +2,12 @@
   <div>
     <vs-row vs-align="flex-start" vs-w="12">
       <br><br><br><br><br>
-      <vs-col style="z-index:99" vs-offset="0.6" vs-w="4.5">  
+      <vs-col style="z-index:99" vs-offset="0.6" vs-w="5">  
         <Grid/>
       </vs-col>
-      <vs-col style="z-index:99" vs-offset="0.4" vs-w="6.2">  
+      <vs-col style="z-index:99" vs-offset="0.2" vs-w="6">  
         <!-- <Latency/> -->
-        <Console/>
+        <sim/>
         <!-- <Graph/> -->
       </vs-col>
        <!-- <vs-col style="z-index:99" vs-offset="0.1" vs-w="2.2  ">  
@@ -21,7 +21,7 @@
       </vs-col> -->
     </vs-row>
     <vs-row>
-      <vs-col style="z-index:99" vs-offset="0.6" vs-w="11.1">  
+      <vs-col style="z-index:99" vs-offset="0.6" vs-w="11.2">  
         <SchTable/>
       </vs-col>
       <!-- <vs-col style="z-index:99" vs-offset="0.6" vs-w="11.1">  
@@ -40,8 +40,9 @@
 </template>
 
 <script>
-import Console from '../components/schedule/Console.vue'
+// import Console from '../components/schedule/Console.vue'
 import Grid from '../components/schedule/Grid'
+import Sim from '../components/schedule/Sim.vue'
 import SchTable from '../components/schedule/Table'
 // import Graph from '../components/schedule/Graph'
 // import SchTable5 from '../components/schedule/Table5'
@@ -59,7 +60,8 @@ export default {
       Grid,
       SchTable,
       // Graph,
-        Console,
+        // Console,
+        Sim,
       // SchTable4,
       // SchTable2,
       // SchTable3,

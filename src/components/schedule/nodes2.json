@@ -1,1400 +1,695 @@
 {
   "0": {
-    "parent": -1,
-    "position": [
-      9,
-      10
-    ],
-    "layer": -1,
-    "path": [
-      0
-    ]
+      "parent": -1,
+      "position": [
+          10,
+          6
+      ],
+      "layer": -1,
+      "path": [
+          0
+      ]
   },
   "1": {
-    "parent": 94,
-    "position": [
-      5,
-      5
-    ],
-    "layer": 1,
-    "path": [
-      1,
-      94,
-      0
-    ]
+      "parent": 11,
+      "position": [
+          7,
+          11
+      ],
+      "layer": 2,
+      "path": [
+          1,
+          11,
+          9,
+          0
+      ]
   },
   "2": {
-    "parent": 47,
-    "position": [
-      12,
-      6
-    ],
-    "layer": 1,
-    "path": [
-      2,
-      47,
-      0
-    ]
+      "parent": 37,
+      "position": [
+          3,
+          7
+      ],
+      "layer": 3,
+      "path": [
+          2,
+          37,
+          35,
+          23,
+          0
+      ]
   },
   "3": {
-    "parent": 0,
-    "position": [
-      10,
-      8
-    ],
-    "layer": 0,
-    "path": [
-      3,
-      0
-    ]
+      "parent": 40,
+      "position": [
+          10,
+          9
+      ],
+      "layer": 1,
+      "path": [
+          3,
+          40,
+          0
+      ]
   },
   "4": {
-    "parent": 0,
-    "position": [
-      6,
-      8
-    ],
-    "layer": 0,
-    "path": [
-      4,
-      0
-    ]
+      "parent": 20,
+      "position": [
+          7,
+          5
+      ],
+      "layer": 1,
+      "path": [
+          4,
+          20,
+          0
+      ]
   },
   "5": {
-    "parent": 93,
-    "position": [
-      9,
-      23
-    ],
-    "layer": 3,
-    "path": [
-      5,
-      93,
-      23,
-      96,
-      0
-    ]
+      "parent": 0,
+      "position": [
+          11,
+          4
+      ],
+      "layer": 0,
+      "path": [
+          5,
+          0
+      ]
   },
   "6": {
-    "parent": 73,
-    "position": [
-      23,
-      3
-    ],
-    "layer": 4,
-    "path": [
-      6,
-      73,
-      30,
-      99,
-      28,
-      0
-    ]
+      "parent": 5,
+      "position": [
+          13,
+          2
+      ],
+      "layer": 1,
+      "path": [
+          6,
+          5,
+          0
+      ]
   },
   "7": {
-    "parent": 83,
-    "position": [
-      10,
-      18
-    ],
-    "layer": 2,
-    "path": [
-      7,
-      83,
-      96,
-      0
-    ]
+      "parent": 8,
+      "position": [
+          2,
+          11
+      ],
+      "layer": 4,
+      "path": [
+          7,
+          8,
+          13,
+          11,
+          9,
+          0
+      ]
   },
   "8": {
-    "parent": 73,
-    "position": [
-      24,
-      4
-    ],
-    "layer": 4,
-    "path": [
-      8,
-      73,
-      30,
-      99,
-      28,
-      0
-    ]
+      "parent": 13,
+      "position": [
+          3,
+          11
+      ],
+      "layer": 3,
+      "path": [
+          8,
+          13,
+          11,
+          9,
+          0
+      ]
   },
   "9": {
-    "parent": 28,
-    "position": [
-      15,
-      9
-    ],
-    "layer": 1,
-    "path": [
-      9,
-      28,
-      0
-    ]
+      "parent": 0,
+      "position": [
+          9,
+          8
+      ],
+      "layer": 0,
+      "path": [
+          9,
+          0
+      ]
   },
   "10": {
-    "parent": 87,
-    "position": [
-      15,
-      3
-    ],
-    "layer": 2,
-    "path": [
-      10,
-      87,
-      47,
-      0
-    ]
+      "parent": 22,
+      "position": [
+          13,
+          4
+      ],
+      "layer": 1,
+      "path": [
+          10,
+          22,
+          0
+      ]
   },
   "11": {
-    "parent": 84,
-    "position": [
-      14,
-      1
-    ],
-    "layer": 2,
-    "path": [
-      11,
-      84,
-      18,
-      0
-    ]
+      "parent": 9,
+      "position": [
+          7,
+          10
+      ],
+      "layer": 1,
+      "path": [
+          11,
+          9,
+          0
+      ]
   },
   "12": {
-    "parent": 61,
-    "position": [
-      2,
-      15
-    ],
-    "layer": 1,
-    "path": [
-      12,
-      61,
-      0
-    ]
+      "parent": 19,
+      "position": [
+          15,
+          3
+      ],
+      "layer": 2,
+      "path": [
+          12,
+          19,
+          22,
+          0
+      ]
   },
   "13": {
-    "parent": 52,
-    "position": [
-      19,
-      24
-    ],
-    "layer": 4,
-    "path": [
-      13,
-      52,
-      36,
-      79,
-      96,
-      0
-    ]
+      "parent": 11,
+      "position": [
+          5,
+          10
+      ],
+      "layer": 2,
+      "path": [
+          13,
+          11,
+          9,
+          0
+      ]
   },
   "14": {
-    "parent": 100,
-    "position": [
-      4,
-      7
-    ],
-    "layer": 1,
-    "path": [
-      14,
-      100,
-      0
-    ]
+      "parent": 0,
+      "position": [
+          12,
+          7
+      ],
+      "layer": 0,
+      "path": [
+          14,
+          0
+      ]
   },
   "15": {
-    "parent": 0,
-    "position": [
-      9,
-      8
-    ],
-    "layer": 0,
-    "path": [
-      15,
-      0
-    ]
+      "parent": 0,
+      "position": [
+          10,
+          4
+      ],
+      "layer": 0,
+      "path": [
+          15,
+          0
+      ]
   },
   "16": {
-    "parent": 0,
-    "position": [
-      7,
-      11
-    ],
-    "layer": 0,
-    "path": [
-      16,
-      0
-    ]
+      "parent": 23,
+      "position": [
+          7,
+          9
+      ],
+      "layer": 1,
+      "path": [
+          16,
+          23,
+          0
+      ]
   },
   "17": {
-    "parent": 73,
-    "position": [
-      22,
-      2
-    ],
-    "layer": 4,
-    "path": [
-      17,
-      73,
-      30,
-      99,
-      28,
-      0
-    ]
+      "parent": 48,
+      "position": [
+          5,
+          2
+      ],
+      "layer": 2,
+      "path": [
+          17,
+          48,
+          20,
+          0
+      ]
   },
   "18": {
-    "parent": 0,
-    "position": [
-      10,
-      6
-    ],
-    "layer": 0,
-    "path": [
-      18,
-      0
-    ]
+      "parent": 22,
+      "position": [
+          13,
+          5
+      ],
+      "layer": 1,
+      "path": [
+          18,
+          22,
+          0
+      ]
   },
   "19": {
-    "parent": 78,
-    "position": [
-      23,
-      7
-    ],
-    "layer": 4,
-    "path": [
-      19,
-      78,
-      20,
-      99,
-      28,
-      0
-    ]
+      "parent": 22,
+      "position": [
+          14,
+          3
+      ],
+      "layer": 1,
+      "path": [
+          19,
+          22,
+          0
+      ]
   },
   "20": {
-    "parent": 99,
-    "position": [
-      19,
-      10
-    ],
-    "layer": 2,
-    "path": [
-      20,
-      99,
-      28,
-      0
-    ]
+      "parent": 0,
+      "position": [
+          8,
+          5
+      ],
+      "layer": 0,
+      "path": [
+          20,
+          0
+      ]
   },
   "21": {
-    "parent": 59,
-    "position": [
-      22,
-      21
-    ],
-    "layer": 4,
-    "path": [
-      21,
-      59,
-      67,
-      58,
-      28,
-      0
-    ]
+      "parent": 40,
+      "position": [
+          10,
+          10
+      ],
+      "layer": 1,
+      "path": [
+          21,
+          40,
+          0
+      ]
   },
   "22": {
-    "parent": 83,
-    "position": [
-      10,
-      19
-    ],
-    "layer": 2,
-    "path": [
-      22,
-      83,
-      96,
-      0
-    ]
+      "parent": 0,
+      "position": [
+          12,
+          5
+      ],
+      "layer": 0,
+      "path": [
+          22,
+          0
+      ]
   },
   "23": {
-    "parent": 96,
-    "position": [
-      9,
-      17
-    ],
-    "layer": 1,
-    "path": [
-      23,
-      96,
-      0
-    ]
+      "parent": 0,
+      "position": [
+          8,
+          7
+      ],
+      "layer": 0,
+      "path": [
+          23,
+          0
+      ]
   },
   "24": {
-    "parent": 32,
-    "position": [
-      1,
-      5
-    ],
-    "layer": 2,
-    "path": [
-      24,
-      32,
-      100,
-      0
-    ]
+      "parent": 12,
+      "position": [
+          17,
+          2
+      ],
+      "layer": 3,
+      "path": [
+          24,
+          12,
+          19,
+          22,
+          0
+      ]
   },
   "25": {
-    "parent": 59,
-    "position": [
-      21,
-      22
-    ],
-    "layer": 4,
-    "path": [
-      25,
-      59,
-      67,
-      58,
-      28,
-      0
-    ]
+      "parent": 37,
+      "position": [
+          3,
+          8
+      ],
+      "layer": 3,
+      "path": [
+          25,
+          37,
+          35,
+          23,
+          0
+      ]
   },
   "26": {
-    "parent": 59,
-    "position": [
-      23,
-      21
-    ],
-    "layer": 4,
-    "path": [
-      26,
-      59,
-      67,
-      58,
-      28,
-      0
-    ]
+      "parent": 50,
+      "position": [
+          1,
+          6
+      ],
+      "layer": 4,
+      "path": [
+          26,
+          50,
+          37,
+          35,
+          23,
+          0
+      ]
   },
   "27": {
-    "parent": 39,
-    "position": [
-      12,
-      22
-    ],
-    "layer": 3,
-    "path": [
-      27,
-      39,
-      76,
-      96,
-      0
-    ]
+      "parent": 21,
+      "position": [
+          12,
+          11
+      ],
+      "layer": 2,
+      "path": [
+          27,
+          21,
+          40,
+          0
+      ]
   },
   "28": {
-    "parent": 0,
-    "position": [
-      13,
-      11
-    ],
-    "layer": 0,
-    "path": [
-      28,
-      0
-    ]
+      "parent": 29,
+      "position": [
+          3,
+          3
+      ],
+      "layer": 3,
+      "path": [
+          28,
+          29,
+          48,
+          20,
+          0
+      ]
   },
   "29": {
-    "parent": 45,
-    "position": [
-      8,
-      1
-    ],
-    "layer": 2,
-    "path": [
-      29,
-      45,
-      18,
-      0
-    ]
+      "parent": 48,
+      "position": [
+          5,
+          4
+      ],
+      "layer": 2,
+      "path": [
+          29,
+          48,
+          20,
+          0
+      ]
   },
   "30": {
-    "parent": 99,
-    "position": [
-      18,
-      6
-    ],
-    "layer": 2,
-    "path": [
-      30,
-      99,
-      28,
-      0
-    ]
+      "parent": 14,
+      "position": [
+          13,
+          8
+      ],
+      "layer": 1,
+      "path": [
+          30,
+          14,
+          0
+      ]
   },
   "31": {
-    "parent": 99,
-    "position": [
-      18,
-      9
-    ],
-    "layer": 2,
-    "path": [
-      31,
-      99,
-      28,
-      0
-    ]
+      "parent": 9,
+      "position": [
+          9,
+          9
+      ],
+      "layer": 1,
+      "path": [
+          31,
+          9,
+          0
+      ]
   },
   "32": {
-    "parent": 100,
-    "position": [
-      1,
-      7
-    ],
-    "layer": 1,
-    "path": [
-      32,
-      100,
-      0
-    ]
+      "parent": 25,
+      "position": [
+          2,
+          8
+      ],
+      "layer": 4,
+      "path": [
+          32,
+          25,
+          37,
+          35,
+          23,
+          0
+      ]
   },
   "33": {
-    "parent": 70,
-    "position": [
-      4,
-      11
-    ],
-    "layer": 1,
-    "path": [
-      33,
-      70,
-      0
-    ]
+      "parent": 14,
+      "position": [
+          16,
+          7
+      ],
+      "layer": 1,
+      "path": [
+          33,
+          14,
+          0
+      ]
   },
   "34": {
-    "parent": 98,
-    "position": [
-      4,
-      3
-    ],
-    "layer": 2,
-    "path": [
-      34,
-      98,
-      94,
-      0
-    ]
+      "parent": 6,
+      "position": [
+          13,
+          1
+      ],
+      "layer": 2,
+      "path": [
+          34,
+          6,
+          5,
+          0
+      ]
   },
   "35": {
-    "parent": 41,
-    "position": [
-      6,
-      19
-    ],
-    "layer": 2,
-    "path": [
-      35,
-      41,
-      61,
-      0
-    ]
+      "parent": 23,
+      "position": [
+          6,
+          7
+      ],
+      "layer": 1,
+      "path": [
+          35,
+          23,
+          0
+      ]
   },
   "36": {
-    "parent": 79,
-    "position": [
-      16,
-      19
-    ],
-    "layer": 2,
-    "path": [
-      36,
-      79,
-      96,
-      0
-    ]
+      "parent": 2,
+      "position": [
+          2,
+          7
+      ],
+      "layer": 4,
+      "path": [
+          36,
+          2,
+          37,
+          35,
+          23,
+          0
+      ]
   },
   "37": {
-    "parent": 41,
-    "position": [
-      6,
-      18
-    ],
-    "layer": 2,
-    "path": [
-      37,
-      41,
-      61,
-      0
-    ]
+      "parent": 35,
+      "position": [
+          5,
+          7
+      ],
+      "layer": 2,
+      "path": [
+          37,
+          35,
+          23,
+          0
+      ]
   },
   "38": {
-    "parent": 41,
-    "position": [
-      5,
-      20
-    ],
-    "layer": 2,
-    "path": [
-      38,
-      41,
-      61,
-      0
-    ]
+      "parent": 2,
+      "position": [
+          1,
+          7
+      ],
+      "layer": 4,
+      "path": [
+          38,
+          2,
+          37,
+          35,
+          23,
+          0
+      ]
   },
   "39": {
-    "parent": 76,
-    "position": [
-      15,
-      20
-    ],
-    "layer": 2,
-    "path": [
-      39,
-      76,
-      96,
-      0
-    ]
+      "parent": 14,
+      "position": [
+          13,
+          7
+      ],
+      "layer": 1,
+      "path": [
+          39,
+          14,
+          0
+      ]
   },
   "40": {
-    "parent": 38,
-    "position": [
-      3,
-      22
-    ],
-    "layer": 3,
-    "path": [
-      40,
-      38,
-      41,
-      61,
-      0
-    ]
+      "parent": 0,
+      "position": [
+          10,
+          8
+      ],
+      "layer": 0,
+      "path": [
+          40,
+          0
+      ]
   },
   "41": {
-    "parent": 61,
-    "position": [
-      6,
-      16
-    ],
-    "layer": 1,
-    "path": [
-      41,
-      61,
-      0
-    ]
+      "parent": 0,
+      "position": [
+          9,
+          4
+      ],
+      "layer": 0,
+      "path": [
+          41,
+          0
+      ]
   },
   "42": {
-    "parent": 39,
-    "position": [
-      17,
-      23
-    ],
-    "layer": 3,
-    "path": [
-      42,
-      39,
-      76,
-      96,
-      0
-    ]
+      "parent": 0,
+      "position": [
+          9,
+          6
+      ],
+      "layer": 0,
+      "path": [
+          42,
+          0
+      ]
   },
   "43": {
-    "parent": 23,
-    "position": [
-      7,
-      20
-    ],
-    "layer": 2,
-    "path": [
-      43,
-      23,
-      96,
-      0
-    ]
+      "parent": 22,
+      "position": [
+          13,
+          6
+      ],
+      "layer": 1,
+      "path": [
+          43,
+          22,
+          0
+      ]
   },
   "44": {
-    "parent": 50,
-    "position": [
-      1,
-      20
-    ],
-    "layer": 3,
-    "path": [
-      44,
-      50,
-      12,
-      61,
-      0
-    ]
+      "parent": 13,
+      "position": [
+          3,
+          10
+      ],
+      "layer": 3,
+      "path": [
+          44,
+          13,
+          11,
+          9,
+          0
+      ]
   },
   "45": {
-    "parent": 18,
-    "position": [
-      11,
-      2
-    ],
-    "layer": 1,
-    "path": [
-      45,
-      18,
-      0
-    ]
+      "parent": 21,
+      "position": [
+          10,
+          11
+      ],
+      "layer": 2,
+      "path": [
+          45,
+          21,
+          40,
+          0
+      ]
   },
   "46": {
-    "parent": 99,
-    "position": [
-      18,
-      10
-    ],
-    "layer": 2,
-    "path": [
-      46,
-      99,
-      28,
-      0
-    ]
+      "parent": 17,
+      "position": [
+          3,
+          2
+      ],
+      "layer": 3,
+      "path": [
+          46,
+          17,
+          48,
+          20,
+          0
+      ]
   },
   "47": {
-    "parent": 0,
-    "position": [
-      12,
-      7
-    ],
-    "layer": 0,
-    "path": [
-      47,
-      0
-    ]
+      "parent": 28,
+      "position": [
+          2,
+          4
+      ],
+      "layer": 4,
+      "path": [
+          47,
+          28,
+          29,
+          48,
+          20,
+          0
+      ]
   },
   "48": {
-    "parent": 47,
-    "position": [
-      14,
-      6
-    ],
-    "layer": 1,
-    "path": [
-      48,
-      47,
-      0
-    ]
+      "parent": 20,
+      "position": [
+          6,
+          4
+      ],
+      "layer": 1,
+      "path": [
+          48,
+          20,
+          0
+      ]
   },
   "49": {
-    "parent": 100,
-    "position": [
-      3,
-      7
-    ],
-    "layer": 1,
-    "path": [
-      49,
-      100,
-      0
-    ]
+      "parent": 0,
+      "position": [
+          11,
+          7
+      ],
+      "layer": 0,
+      "path": [
+          49,
+          0
+      ]
   },
   "50": {
-    "parent": 12,
-    "position": [
-      2,
-      17
-    ],
-    "layer": 2,
-    "path": [
-      50,
-      12,
-      61,
-      0
-    ]
-  },
-  "51": {
-    "parent": 12,
-    "position": [
-      2,
-      16
-    ],
-    "layer": 2,
-    "path": [
-      51,
-      12,
-      61,
-      0
-    ]
-  },
-  "52": {
-    "parent": 36,
-    "position": [
-      19,
-      22
-    ],
-    "layer": 3,
-    "path": [
-      52,
-      36,
-      79,
-      96,
-      0
-    ]
-  },
-  "53": {
-    "parent": 79,
-    "position": [
-      15,
-      17
-    ],
-    "layer": 2,
-    "path": [
-      53,
-      79,
-      96,
-      0
-    ]
-  },
-  "54": {
-    "parent": 39,
-    "position": [
-      15,
-      21
-    ],
-    "layer": 3,
-    "path": [
-      54,
-      39,
-      76,
-      96,
-      0
-    ]
-  },
-  "55": {
-    "parent": 58,
-    "position": [
-      20,
-      13
-    ],
-    "layer": 2,
-    "path": [
-      55,
-      58,
-      28,
-      0
-    ]
-  },
-  "56": {
-    "parent": 95,
-    "position": [
-      3,
-      17
-    ],
-    "layer": 2,
-    "path": [
-      56,
-      95,
-      61,
-      0
-    ]
-  },
-  "57": {
-    "parent": 28,
-    "position": [
-      14,
-      10
-    ],
-    "layer": 1,
-    "path": [
-      57,
-      28,
-      0
-    ]
-  },
-  "58": {
-    "parent": 28,
-    "position": [
-      16,
-      14
-    ],
-    "layer": 1,
-    "path": [
-      58,
-      28,
-      0
-    ]
-  },
-  "59": {
-    "parent": 67,
-    "position": [
-      21,
-      20
-    ],
-    "layer": 3,
-    "path": [
-      59,
-      67,
-      58,
-      28,
-      0
-    ]
-  },
-  "60": {
-    "parent": 23,
-    "position": [
-      7,
-      19
-    ],
-    "layer": 2,
-    "path": [
-      60,
-      23,
-      96,
-      0
-    ]
-  },
-  "61": {
-    "parent": 0,
-    "position": [
-      6,
-      13
-    ],
-    "layer": 0,
-    "path": [
-      61,
-      0
-    ]
-  },
-  "62": {
-    "parent": 100,
-    "position": [
-      3,
-      9
-    ],
-    "layer": 1,
-    "path": [
-      62,
-      100,
-      0
-    ]
-  },
-  "63": {
-    "parent": 67,
-    "position": [
-      22,
-      15
-    ],
-    "layer": 3,
-    "path": [
-      63,
-      67,
-      58,
-      28,
-      0
-    ]
-  },
-  "64": {
-    "parent": 59,
-    "position": [
-      23,
-      23
-    ],
-    "layer": 4,
-    "path": [
-      64,
-      59,
-      67,
-      58,
-      28,
-      0
-    ]
-  },
-  "65": {
-    "parent": 23,
-    "position": [
-      7,
-      21
-    ],
-    "layer": 2,
-    "path": [
-      65,
-      23,
-      96,
-      0
-    ]
-  },
-  "66": {
-    "parent": 67,
-    "position": [
-      23,
-      18
-    ],
-    "layer": 3,
-    "path": [
-      66,
-      67,
-      58,
-      28,
-      0
-    ]
-  },
-  "67": {
-    "parent": 58,
-    "position": [
-      20,
-      16
-    ],
-    "layer": 2,
-    "path": [
-      67,
-      58,
-      28,
-      0
-    ]
-  },
-  "68": {
-    "parent": 98,
-    "position": [
-      7,
-      2
-    ],
-    "layer": 2,
-    "path": [
-      68,
-      98,
-      94,
-      0
-    ]
-  },
-  "69": {
-    "parent": 30,
-    "position": [
-      20,
-      3
-    ],
-    "layer": 3,
-    "path": [
-      69,
-      30,
-      99,
-      28,
-      0
-    ]
-  },
-  "70": {
-    "parent": 0,
-    "position": [
-      6,
-      9
-    ],
-    "layer": 0,
-    "path": [
-      70,
-      0
-    ]
-  },
-  "71": {
-    "parent": 93,
-    "position": [
-      8,
-      22
-    ],
-    "layer": 3,
-    "path": [
-      71,
-      93,
-      23,
-      96,
-      0
-    ]
-  },
-  "72": {
-    "parent": 67,
-    "position": [
-      20,
-      18
-    ],
-    "layer": 3,
-    "path": [
-      72,
-      67,
-      58,
-      28,
-      0
-    ]
-  },
-  "73": {
-    "parent": 30,
-    "position": [
-      21,
-      3
-    ],
-    "layer": 3,
-    "path": [
-      73,
-      30,
-      99,
-      28,
-      0
-    ]
-  },
-  "74": {
-    "parent": 23,
-    "position": [
-      9,
-      18
-    ],
-    "layer": 2,
-    "path": [
-      74,
-      23,
-      96,
-      0
-    ]
-  },
-  "75": {
-    "parent": 98,
-    "position": [
-      5,
-      1
-    ],
-    "layer": 2,
-    "path": [
-      75,
-      98,
-      94,
-      0
-    ]
-  },
-  "76": {
-    "parent": 96,
-    "position": [
-      12,
-      17
-    ],
-    "layer": 1,
-    "path": [
-      76,
-      96,
-      0
-    ]
-  },
-  "77": {
-    "parent": 96,
-    "position": [
-      10,
-      16
-    ],
-    "layer": 1,
-    "path": [
-      77,
-      96,
-      0
-    ]
-  },
-  "78": {
-    "parent": 20,
-    "position": [
-      23,
-      8
-    ],
-    "layer": 3,
-    "path": [
-      78,
-      20,
-      99,
-      28,
-      0
-    ]
-  },
-  "79": {
-    "parent": 96,
-    "position": [
-      13,
-      16
-    ],
-    "layer": 1,
-    "path": [
-      79,
-      96,
-      0
-    ]
-  },
-  "80": {
-    "parent": 55,
-    "position": [
-      21,
-      14
-    ],
-    "layer": 3,
-    "path": [
-      80,
-      55,
-      58,
-      28,
-      0
-    ]
-  },
-  "81": {
-    "parent": 0,
-    "position": [
-      8,
-      13
-    ],
-    "layer": 0,
-    "path": [
-      81,
-      0
-    ]
-  },
-  "82": {
-    "parent": 90,
-    "position": [
-      1,
-      2
-    ],
-    "layer": 2,
-    "path": [
-      82,
-      90,
-      100,
-      0
-    ]
-  },
-  "83": {
-    "parent": 96,
-    "position": [
-      11,
-      17
-    ],
-    "layer": 1,
-    "path": [
-      83,
-      96,
-      0
-    ]
-  },
-  "84": {
-    "parent": 18,
-    "position": [
-      12,
-      2
-    ],
-    "layer": 1,
-    "path": [
-      84,
-      18,
-      0
-    ]
-  },
-  "85": {
-    "parent": 65,
-    "position": [
-      6,
-      21
-    ],
-    "layer": 3,
-    "path": [
-      85,
-      65,
-      23,
-      96,
-      0
-    ]
-  },
-  "86": {
-    "parent": 39,
-    "position": [
-      17,
-      22
-    ],
-    "layer": 3,
-    "path": [
-      86,
-      39,
-      76,
-      96,
-      0
-    ]
-  },
-  "87": {
-    "parent": 47,
-    "position": [
-      14,
-      5
-    ],
-    "layer": 1,
-    "path": [
-      87,
-      47,
-      0
-    ]
-  },
-  "88": {
-    "parent": 67,
-    "position": [
-      21,
-      17
-    ],
-    "layer": 3,
-    "path": [
-      88,
-      67,
-      58,
-      28,
-      0
-    ]
-  },
-  "89": {
-    "parent": 66,
-    "position": [
-      24,
-      19
-    ],
-    "layer": 4,
-    "path": [
-      89,
-      66,
-      67,
-      58,
-      28,
-      0
-    ]
-  },
-  "90": {
-    "parent": 100,
-    "position": [
-      4,
-      5
-    ],
-    "layer": 1,
-    "path": [
-      90,
-      100,
-      0
-    ]
-  },
-  "91": {
-    "parent": 94,
-    "position": [
-      7,
-      5
-    ],
-    "layer": 1,
-    "path": [
-      91,
-      94,
-      0
-    ]
-  },
-  "92": {
-    "parent": 28,
-    "position": [
-      14,
-      12
-    ],
-    "layer": 1,
-    "path": [
-      92,
-      28,
-      0
-    ]
-  },
-  "93": {
-    "parent": 23,
-    "position": [
-      8,
-      21
-    ],
-    "layer": 2,
-    "path": [
-      93,
-      23,
-      96,
-      0
-    ]
-  },
-  "94": {
-    "parent": 0,
-    "position": [
-      7,
-      7
-    ],
-    "layer": 0,
-    "path": [
-      94,
-      0
-    ]
-  },
-  "95": {
-    "parent": 61,
-    "position": [
-      3,
-      15
-    ],
-    "layer": 1,
-    "path": [
-      95,
-      61,
-      0
-    ]
-  },
-  "96": {
-    "parent": 0,
-    "position": [
-      10,
-      13
-    ],
-    "layer": 0,
-    "path": [
-      96,
-      0
-    ]
-  },
-  "97": {
-    "parent": 67,
-    "position": [
-      24,
-      16
-    ],
-    "layer": 3,
-    "path": [
-      97,
-      67,
-      58,
-      28,
-      0
-    ]
-  },
-  "98": {
-    "parent": 94,
-    "position": [
-      5,
-      4
-    ],
-    "layer": 1,
-    "path": [
-      98,
-      94,
-      0
-    ]
-  },
-  "99": {
-    "parent": 28,
-    "position": [
-      16,
-      9
-    ],
-    "layer": 1,
-    "path": [
-      99,
-      28,
-      0
-    ]
-  },
-  "100": {
-    "parent": 0,
-    "position": [
-      5,
-      8
-    ],
-    "layer": 0,
-    "path": [
-      100,
-      0
-    ]
+      "parent": 37,
+      "position": [
+          3,
+          6
+      ],
+      "layer": 3,
+      "path": [
+          50,
+          37,
+          35,
+          23,
+          0
+      ]
   }
 }
