@@ -128,7 +128,6 @@ export default {
       txRange: 9, // in square
       childrenCnt: { 0: 0 },
       parent_capacity: 4, // except gateway
-      interference_strength: 0.9, // 0-1
       interference_range: 16, // in square
       kicked: [],
       history_cp: [],
@@ -339,7 +338,7 @@ export default {
         this.nodes = nodes;
       // window.console.log(this.nodes)
       for (var nn = 0; nn < Object.keys(this.nodes).length; nn++) {
-        this.nodes[nn].loss_rate = 0
+        this.nodes[nn].distance2interference = -1
         this.option.series[0].data.push(this.nodes[nn].position);
       }
       this.option.xAxis.max = sizeX;
@@ -540,6 +539,9 @@ export default {
       this.$EventBus.$emit("selectedNode", selectedNode);
     },
     addNoiseByClick(param) {
+      this.option.series[2].rippleEffect.scale = 25
+      this.interference_range = 16
+      this.$EventBus.$emit("new_itf", 1);
       if (
         this.noisePos[0] == param.value[0] &&
         this.noisePos[1] == param.value[1]
@@ -554,10 +556,13 @@ export default {
       }
     },
     addNoiseCircleRand() {
-      var x = Math.round(20 * Math.random());
-      var y = Math.round(20 * Math.random());
-      x = 9
-      y = 3
+      this.option.series[2].rippleEffect.scale = 25
+      this.interference_range = 16
+      this.$EventBus.$emit("new_itf", 1);
+      var x = Math.round(this.sizeX * Math.random());
+      var y = Math.round(this.sizeY * Math.random());
+      // x = 9
+      // y = 3
       
       // if (this.noiseID < 100) {
       //   x = noiseList[this.noiseID][0];
@@ -575,14 +580,12 @@ export default {
       // this.noisePosList.push([x,y])
       // window.console.log(this.noiseID,this.noiseList)
       this.option.series[2].data = [[x, y]];
-      this.interference_strength = Math.random()
-      this.$EventBus.$emit("interference_strength", this.interference_strength)
       this.respondToNoise();
       
     },
     clearNoise() {
       for(var i in this.nodes) {
-        this.nodes[i].loss_rate = 0
+        this.nodes[i].distance2interference = -1
       }
       this.noisePos = [];
       this.option.series[2].data = [];
@@ -594,6 +597,9 @@ export default {
     },
     respondToNoise() {
       this.option.series[4].data = [];
+      for(var ii in this.nodes) {
+        this.nodes[ii].distance2interference = -1
+      }
       // var affected = [];
       this.kicked = [];
       this.blacklist = [];
@@ -606,7 +612,7 @@ export default {
 
           // affected.push({ id: i, lv: distance, loss_rate: this.interference_strength/distance});
 
-          this.nodes[i].loss_rate = this.interference_strength/distance
+          this.nodes[i].distance2interference = distance
           this.option.series[4].data.push({
             value: this.nodes[i].position,
             itemStyle: {
@@ -618,9 +624,8 @@ export default {
           // this.kickChildren(i);
         }
       }
-
       // change link quality
-      this.$EventBus.$emit("topo", { data: this.nodes, seq: this.join_seq });
+      this.$EventBus.$emit("affected", { data: this.nodes, seq: this.join_seq });
 
       // no topo change 
       // this.option.series[4].data = Array.from(
@@ -757,8 +762,12 @@ export default {
       }
     });
 
-    this.$EventBus.$on("nonOptimal", (nodeId) => {
-      this.nonOptimal.push(nodeId);
+    this.$EventBus.$on("interference_strength", (val) => {
+      this.option.series[2].rippleEffect.scale -= 5
+      this.interference_range -= 4
+      this.respondToNoise()
+      if(val==0)
+        this.option.series[2].data = []
     });
   },
 };

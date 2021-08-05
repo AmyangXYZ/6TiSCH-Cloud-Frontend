@@ -58,7 +58,7 @@ export default {
       selectedCell: {slot:[]},
       auto: {},
       res: {},
-      SlotFrameLength: 127,
+      SlotFrameLength: 100,
       Channels: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],
       slots: [],
       links: {},
@@ -109,8 +109,8 @@ export default {
         },
         xAxis: {
           min:0,
-          max:127,
-          splitNumber: 127,
+          max:100,
+          splitNumber: 100,
           minInterval: 1,
           axisLabel: {
             formatter: (item)=>{

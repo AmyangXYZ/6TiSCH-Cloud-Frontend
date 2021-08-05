@@ -249,7 +249,7 @@ function kick4(nodes) {
 }
 
 function init1(topology,seq) {
-  sch1 = scheduler.create_scheduler(127,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],"partition")
+  sch1 = scheduler.create_scheduler(100,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],"partition")
 
   topo = topology
   // topo for scheduler, {parent: [children]}
@@ -263,11 +263,7 @@ function init1(topology,seq) {
   // sort_join_seq()
   static_schedule1()
   
-  var n1 = sch1.count_used_slotss()
-  var n2 = sch1.count_multi_ch_slots()
-  // console.log("2D PART uses", n1, "slots, and", n2,"slots","("+(n2/n1*100.0).toFixed(2)+"%)", "use multiple channels")
-  // sch.dynamic_partition_adjustment()
-  return {cells:sch1.used_subslot, partitions: get_partition(), n1:n1, n2:n2}
+  return {cells:sch1.used_subslot, partitions: get_partition()}
 }
 
 function init2(topology,seq) {

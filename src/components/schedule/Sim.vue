@@ -22,15 +22,18 @@
           <vs-button size="small" color="primary" :disabled="!started" icon-pack="fas" type="relief" icon="fa-stop" @click="finishV2"></vs-button>
         </vs-col>
 
-        <vs-col vs-offset=5.5 vs-w=1>
-          <vs-button style="font-size:0.7rem" size="small" :color="(activeTabIdx==0)?'blue':'white'" :text-color="(activeTabIdx==0)?'blue':'skyblue'" type="line"  @click="activeTabIdx=0">Log</vs-button>
+
+        <vs-col vs-offset=5.5 vs-w=2>
+          <vs-button style="font-size:0.7rem" type="line" @click="popup_active=true">view data</vs-button>
         </vs-col>
-        <vs-col vs-w=1>
-          <vs-button style="font-size:0.7rem"  :color="(activeTabIdx==1)?'blue':'white'" :text-color="(activeTabIdx==1)?'blue':'skyblue'" type="line" @click="activeTabIdx=1">Results</vs-button>
-        </vs-col>
+        
       </vs-row>
     </div>
-
+    
+    <vs-popup class="a"  title="data.csv" :active.sync="popup_active">
+      <vs-button style="font-size:0.7rem" type="line" @click="copy_res">copy</vs-button>
+      <textarea id="logs" ref="res" v-model="res"  />
+    </vs-popup>
     <div>
       <!-- <vs-row vs-w=12>
         <vs-col vs-offset=0.1 vs-w="4">
@@ -40,7 +43,6 @@
           <ECharts id="chart" :options="option" autoresize v-show="activeTabIdx==1" />
         </vs-col>
       </vs-row> -->
-      <textarea id="logs" ref="logs" v-model="simulation_log" v-show="activeTabIdx==0" disabled />
       <div v-show="activeTabIdx==1">
         <ECharts @click="handleClick" id="chart" :options="option" autoresize/>
       </div>
@@ -53,7 +55,7 @@
 import ECharts from "vue-echarts/components/ECharts";
 import "echarts/lib/chart/line";
 import "echarts/lib/chart/bar";
-import "echarts/lib/component/tooltip";
+import "echarts/lib/component/toolbox";
 
 
 export default {
@@ -62,9 +64,13 @@ export default {
   },
   data() {
     return {
-      interference_strength:0,
+      popup_active:false,
+      res:"TIME, SUCCESS_RATIO, NOISE_STRENGTH\n",
+      interference_strength: 0,
+      itf_start_sf:0,
       sf_id:0,
-      topo :{},
+      topo:{},
+      shift_flag: false,
       sortedNodes:[],
       cells:[],
       sim_timer: {},
@@ -88,57 +94,50 @@ export default {
         grid: [
           {
             top: "10%",
-            height: "32%",
-            left: '8%',
-            right: '5%'
+            height: "40%",
+            left: '7%',
+            right: '8%'
           },
           {
-            top: "55%",
+            top: "62%",
             // height: "32%",
-            bottom: "8%",
-            left: '8%',
-            right: '5%'
+            bottom: "15%",
+            left: '7%',
+            right: '8%'
           }
         ],
-          // top: '10%',
-          // // bottom: '8%',
-          
-        tooltip: {
-            trigger: 'axis',
-            // formatter: (item)=> {
-            //   return "Node "
-            // }
-        },
         xAxis: [
         {
-          // name: 'time',
+          name: 'time (s)',
           type: 'category',
           data: [],
-          nameLocation: "center",
+          // nameLocation: "center",
           nameTextStyle: {
             fontSize:13
           },
-          nameGap: 25,
+          nameGap: 10,
           axisLabel: {
             fontSize:10,
           },
           splitNumber: 1,
           boundaryGap: true,
+          animation: false
         },
         {
-          name: 'time',
+          name: 'time (s)',
           type: 'category',
           data: [],
-          nameLocation: "center",
+          // nameLocation: "center",
           nameTextStyle: {
             fontSize:13
           },
-          // nameGap: 25,
+          nameGap: 10,
           axisLabel: {
-            fontSize:12,
+            fontSize:10,
           },
           boundaryGap: true,
           gridIndex: 1,
+          animation: false
         }
         ],
         yAxis: [
@@ -152,33 +151,58 @@ export default {
               fontSize:12,
             },
             gridIndex: 0,
-            boundaryGap: [0, 0.2]
+            boundaryGap: [0, 0]
           },
           {
             name: 'Noise Strength',
             gridIndex: 1,
-            boundaryGap: [0, 0.2]
+            boundaryGap: [0, 0]
+          }
+        ],
+        dataZoom: [
+          {
+            type: "inside",
+            start: 0,
+            end: 100,
+            xAxisIndex: [0, 1]
+          },
+          {
+            start: 0,
+            end: 100,
+            xAxisIndex: [0, 1],
+            handleIcon:
+              "M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z",
+            handleSize: "80%",
+            handleStyle: {
+              color: "#fff",
+              shadowBlur: 3,
+              shadowColor: "rgba(0, 0, 0, 0.6)",
+              shadowOffsetX: 2,
+              shadowOffsetY: 2
+            }
           }
         ],
         series: [
         {
           name: "sr",
           type: "line",
-          // symbol: "rect",
+          symbol: "none",
           // symbolSize: 8,
           xAxisIndex:0,
           // itemStyle: {
           //   borderColor: "blue",
           //   color: "white",
           // },
-          // animation: false,
+          animation: false,
           data: [],
         },
         {
           name: "noise lv",
           type: "line",
+          symbol: "none",
           xAxisIndex:1,
           yAxisIndex:1,
+          animation: false,
           data: [],
         },
 
@@ -187,6 +211,12 @@ export default {
     }
   },
   methods: {  
+    copy_res() {
+      this.$refs.res.select()
+      document.execCommand("copy")
+
+    },
+    
     // simulation within 1 sf
     run() {
       this.activeTabIdx = 0
@@ -213,7 +243,7 @@ export default {
       this.sim_timer = setInterval(()=>{
         this.computeRTTSR()
         // this.draw()
-      },500)
+      },40)
       this.started = true
       this.running = true
     },
@@ -255,17 +285,38 @@ export default {
         
         for(var j in p) {
           var nn = p[j]
-          if(Math.random()<=this.topo[nn].loss_rate) {
+          var loss_rate = 0
+          if(this.topo[nn].distance2interference!=-1) 
+            loss_rate = this.interference_strength/this.topo[nn].distance2interference
+  
+          if(Math.random()<=loss_rate) {
             miss_ddl++
             break
           }
         }
       }
-      window.console.log(miss_ddl)
+      var sr = 100*(1-miss_ddl/(Object.keys(this.topo).length-1))
+      this.option.xAxis[0].data.push(this.sf_id)
       this.option.xAxis[1].data.push(this.sf_id)
-      this.option.series[0].data.push(1-miss_ddl/(Object.keys(this.topo).length-1))
+      this.option.series[0].data.push(sr)
       this.option.series[1].data.push(this.interference_strength)
+      this.res+=this.sf_id + ", " + sr + ", " + this.interference_strength + "\n"
+      // if(!this.shift_flag)
+      //   if(this.option.series[0].data.length>300)
+      //     this.shift_flag = true
+      // if(this.shift_flag) {
+      //   this.option.xAxis[1].data.shift()
+      //   this.option.series[0].data.shift()
+      //   this.option.series[1].data.shift()
+      // }
       this.sf_id++
+      if((this.sf_id-this.itf_start_sf)%120==0) {
+        this.interference_strength-=0.2
+        if(this.interference_strength<0)
+          this.interference_strength = 0
+        this.$EventBus.$emit("interference_strength", this.interference_strength)
+
+      }
     },
 
     handleClick(item) {
@@ -274,6 +325,7 @@ export default {
     }
   },
   mounted() {
+    window.sim = this
     this.$EventBus.$on("topo", (t) => {
       this.topo = t.data
       window.console.log(this.topo)
@@ -282,14 +334,18 @@ export default {
       this.topo = t
     });
 
+    this.$EventBus.$on("new_itf", ()=>{
+      this.interference_strength = 0.9
+      this.itf_start_sf = this.sf_id;
+    });
+
+    this.$EventBus.$on("affected", (t) => {
+      this.topo = t.data
+    });
+
     this.$EventBus.$on("cells1", (cells)=>{
       this.cells = cells
       this.computeRTTSR()
-      // this.draw()
-    })
-
-    this.$EventBus.$on("interference_strength", (strength)=>{
-      this.interference_strength = strength
     })
 
 
@@ -346,7 +402,7 @@ textarea:disabled {
 }
 #chart
   width 100%
-  height 350px
+  height 380px
 .vs-tabs--li
   // span
   // z-index 999

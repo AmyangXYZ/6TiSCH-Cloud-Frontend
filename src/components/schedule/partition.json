@@ -1,5 +1,5 @@
 {
-    "beacon": 17,
+    "beacon": 10,
     
     "uplink": [ 9, 6, 5, 4, 3],
     "downlink": [9, 6, 5, 4, 3]
