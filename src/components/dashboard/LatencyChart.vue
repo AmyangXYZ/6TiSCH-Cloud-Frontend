@@ -47,7 +47,7 @@ export default {
             right: "5%",
             top: "18%",
             bottom: "5%",
-            left: "56%",
+            left: "45%",
             containLabel: true 
           }
         ],
@@ -71,7 +71,7 @@ export default {
             nameLocation:"center",
             nameGap:30,
             nameTextStyle: {
-              fontSize: 16,
+              fontSize: 18,
               align: "center"
             },
             axisLabel:{
@@ -96,7 +96,7 @@ export default {
           {
             name: "E2E Latency (s)",
             nameTextStyle: {
-              fontSize: 20,
+              fontSize: 18,
               // fontWeight: "bold",
               align: "center"
             },
@@ -112,7 +112,7 @@ export default {
           { 
             name: "Layer",
             nameTextStyle: {
-              fontSize: 20,
+              fontSize: 18,
               // fontWeight: "bold",
               align: "center"
             },
@@ -162,6 +162,7 @@ export default {
               symbolSize: 12,
 
               itemStyle: {
+                borderWidth:1.5,
                 borderColor: "blue",
                 color: "white",
               },
