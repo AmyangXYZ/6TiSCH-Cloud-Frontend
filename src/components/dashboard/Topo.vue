@@ -2,12 +2,13 @@
   <vs-card class="topo">
     <div id="title">Topology</div>
     <vs-tabs alignment="center">
-      <vs-tab label="Map">
-        <TopoMap/>
-      </vs-tab>
       <vs-tab label="Graph">
         <TopoGraph/>
       </vs-tab>
+      <vs-tab label="Map">
+        <TopoMap/>
+      </vs-tab>
+      
       
     </vs-tabs>
   </vs-card>

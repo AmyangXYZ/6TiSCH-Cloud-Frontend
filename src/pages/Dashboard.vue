@@ -21,12 +21,13 @@
         <Topo/>
       </vs-col>
     </vs-row> 
-    <!-- <vs-row >
-      <vs-col vs-offset="0.8" vs-w="10.8"> -->
-        <!-- <LatencyChart/> -->
+    <vs-row >
+      <vs-col vs-offset="0.8" vs-w="10.8">
+        <LatencyChart/>
+        <latency-chart-2/>
         <!-- <RTTChart/> -->
-      <!-- </vs-col>
-    </vs-row> -->
+      </vs-col>
+    </vs-row>
     <vs-row vs-align="flex-start" vs-w="12">
       <vs-col vs-offset="0.8" vs-w="10.8">
         <SchTable/>
@@ -43,12 +44,13 @@ import DeviceCnt from '../components/dashboard/DeviceCnt'
 import Uptime from '../components/dashboard/Uptime'
 import NWTable from '../components/dashboard/NWTable'
 import TxTotal from "../components/dashboard/TxTotal"
-// import LatencyChart from '../components/dashboard/LatencyChart'
+import LatencyChart from '../components/dashboard/LatencyChart'
 // import RTTChart from '../components/dashboard/RTTChart'
 import RSSiChart from '../components/dashboard/RSSiChart'
 import Topo from '../components/dashboard/Topo'
 
 import SchTable from '../components/dashboard/SchTable'
+import LatencyChart2 from '../components/dashboard/LatencyChart2.vue'
 // import SchPi from '../components/dashboard/SchPi'
 export default {
     components: {
@@ -56,12 +58,13 @@ export default {
       Uptime,
       TxTotal,
       NWTable,
-      // LatencyChart,
+      LatencyChart,
       // RTTChart,
       RSSiChart,
       Topo,
     
       SchTable,
+        LatencyChart2,
       // SchPi
     },
     data() {
@@ -75,7 +78,7 @@ export default {
       })
       setInterval(()=>{
         if(this.autorefresh)
-          this.$EventBus.$emit("selectedRange","1hr")
+          this.$EventBus.$emit("selectedRange","week")
         // window.console.log("biu")
       },3000)
 

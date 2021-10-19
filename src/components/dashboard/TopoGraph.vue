@@ -18,11 +18,11 @@ export default {
   data() {
     return {
       selectedGW: "any",
-      selectedRange: "day",
+      selectedRange: "week",
       selectedSensor: {},
       trees: {1:
         {
-          name:"GW", 
+          name:"g", 
           children:[], 
           symbolSize: 12,
           label: {
@@ -35,30 +35,37 @@ export default {
           {
             type: 'tree',
             data:[
-              {name:"GW",children:[]}
+              {name:"0",children:[]}
             ],
-            top: '1%',
-            left: '7%',
-            bottom: '1%',
-            right: '20%',
+            top: '3%',
+            left: '0%',
+            bottom: '2%',
+            right: '00%',
             roam: true,
-            symbolSize: 8,
-
+            symbol:"circle",
+            symbolSize: 12,
+            orient: 'BT',
+            itemStyle:{
+              color: "orange"
+            },
             label: {
               position: 'left',
               verticalAlign: 'middle',
               align: 'right',
-              fontSize: 13
+              fontSize: 13,
+              formatter: (item)=>{
+                return "V"+(item.data.name)
+              },
             },
 
             leaves: {
                 label: {
-                    position: 'right',
+                    position: 'top',
                     verticalAlign: 'middle',
                     align: 'left'
                 }
             },
-            initialTreeDepth: 5,
+            initialTreeDepth: 10,
             expandAndCollapse: true,
             animationDuration: 550,
             animationDurationUpdate: 750

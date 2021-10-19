@@ -147,7 +147,7 @@ export default {
       selectedSensor: {},
       maxItems: 8,
       currentPage: 1,
-      selectedRange: '1hr',
+      selectedRange: 'week',
       ranges: ['15min','30min','1hr',"4hr",'day','week','month']
     }
   },

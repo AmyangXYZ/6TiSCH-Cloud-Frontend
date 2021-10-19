@@ -20,6 +20,8 @@ import "echarts/lib/component/markLine";
 import "echarts/lib/component/dataZoom";
 import "echarts/lib/chart/graph"
 
+const SlotFrameLength = 199
+
 export default {
   components: {
     ECharts,
@@ -29,9 +31,10 @@ export default {
       autorefresh:false,
       i:0,
       selectedCell: {slot:[]},
-      SlotFrameLength: 150,
       Channels: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],
       slots: [],
+      subPartitions:[],
+      partition_center: 0,
       bcnSubslots: {},
       option: {
         toolbox:{
@@ -44,17 +47,18 @@ export default {
             for(var i=0;i<this.slots.length;i++) {
               // if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]*2+1)) {
               if(this.slots[i].slot[0]==(item.data[0]-0.5) && this.slots[i].slot[1]==(item.data[1]-0.5)) {
-                if(this.slots[i].type == "beacon") {
-                  var res = `[${item.data[0]-0.5}, ${item.data[1]-0.5}]<br/>
-                            Beacon<br/>
-                            Subslots<br/>`
-                  for(var sub in this.bcnSubslots[this.slots[i].slot[0]]) {
-                    var sub_text = sub.toString()
-                    sub_text = (sub_text.length<2) ? ("\xa0\xa0"+sub_text):sub_text
-                    res+=`${sub_text}\xa0\xa0-\xa0\xa0${this.bcnSubslots[this.slots[i].slot[0]][sub]}<br/>`
-                  }
-                  return res
-                }
+                // if(this.slots[i].type == "beacon") {
+                //   var res = `[${item.data[0]-0.5}, ${item.data[1]-0.5}]<br/>
+                //             Beacon<br/>
+                //             Subslots<br/>`
+                //   for(var sub in this.bcnSubslots[this.slots[i].slot[0]]) {
+                //     var sub_text = sub.toString()
+                //     sub_text = (sub_text.length<2) ? ("\xa0\xa0"+sub_text):sub_text
+                //     res+=`${sub_text}\xa0\xa0-\xa0\xa0${this.bcnSubslots[this.slots[i].slot[0]][sub]}<br/>`
+                //   }
+                //   return res
+                // }
+                
                 // return `[${item.data[0]-0.5}, ${item.data[1]*2+1}]<br/>
                 return `[${item.data[0]-0.5}, ${item.data[1]-0.5}]<br/>
                         ${this.slots[i].type.replace(/^\S/, s => s.toUpperCase())}<br/>
@@ -70,12 +74,12 @@ export default {
           // height: '78%',
           left: '3%',
           right: '1%',
-          bottom: "3%",
+          bottom: "6%",
         },
         xAxis: {
           min:0,
-          max:150,
-          splitNumber: 150,
+          max:SlotFrameLength,
+          splitNumber: SlotFrameLength,
           minInterval: 1,
           axisLabel: {
             formatter: (item)=>{
@@ -140,7 +144,8 @@ export default {
           top: 0,
           right:"1%",
         },
-        series: [{
+        series: [
+          {
           type: 'heatmap',
           data: [],
           label: {
@@ -183,7 +188,21 @@ export default {
             },
             data: []
           },
-        }]
+          
+          },
+          {
+            type: "line",
+            z: 999,
+            zIndex: 999,
+            markArea: {
+              silent:true,
+              label: {
+                position:"bottom"
+              },
+              data: []
+            }
+          }
+        ]
       },
     }
   },
@@ -193,29 +212,17 @@ export default {
         this.option.yAxis.data = this.Channels
         this.$api.gateway.getPartitionHARP()
         .then(res=> {
+          if(res.data.flag==0) return
           this.partitions = res.data.data
-          var markAreaTmp = [
-            [
-              {
-                name:"SH",
-                xAxis:0,
-                yAxis: 1,
-              },
-              {
-                xAxis:4, 
-                yAxis: 17,
-                itemStyle:{color:"gray", opacity:0.4,borderColor:"black",borderWidth:0.1},
-                label:{color:"black",fontWeight:"bold",fontSize:14, position:"insideBottom"}
-              },
-            ]
-          ]
+          var markAreaTmp = []
           // var colors = ['#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
           // var colors = {}
           var colorMap = {
-            "BEACON":{'rgb':"orange", opacity:0.5},
-            "MANAGEMENT":{'rgb':"lightseagreen", opacity:0.5},
-            "UPLINK": {'rgb':"#1d71f2", opacity:0.6},
-            "DOWNLINK": {'rgb':"green", opacity:0.6},
+            "SHARED": {'rgb':'grey', opacity: 0.7},
+            "BEACON":{'rgb':"orange", opacity:0.7},
+            "MANAGEMENT":{'rgb':"lightseagreen", opacity:0.7},
+            "UPLINK": {'rgb':"#1d71f2", opacity:0.7},
+            "DOWNLINK": {'rgb':"green", opacity:0.7},
           }
           // var color_index = 0
           for(var i=0;i<res.data.data.length;i++) {
@@ -225,13 +232,16 @@ export default {
                 this.bcnSubslots[b] = {}
               }            
             }
+            if(res.data.data[i].type == "management")
+              this.partition_center = (res.data.data[i].range[0]+res.data.data[i].range[1])/2
+
             if(res.data.data[i].range[0]<res.data.data[i].range[1]) {
               
               var name = res.data.data[i].type.toUpperCase()
               
               var y1 = 1
               var y2 = 17
-              var pos = "insideBottom"
+              var pos = "bottom"
               
               markAreaTmp.push([
                 {
@@ -243,7 +253,7 @@ export default {
                   xAxis:res.data.data[i].range[1], 
                   yAxis: y2,
                   itemStyle:{color:colorMap[name].rgb, opacity:colorMap[name].opacity,borderColor:"black",borderWidth:0.1},
-                  label:{color:"black",fontWeight:"bold",fontSize:14, position:pos}
+                  label:{color:"black",fontWeight:"bold",fontSize:12, position:pos}
                 },
               ])
             }
@@ -259,7 +269,7 @@ export default {
       this.$api.gateway.getSchedule()
       .then(res => {
       
-        
+        if(res.data.flag==0) return
         // this.nonOptimalCnt = Object.keys(this.unAligned).length
         this.nonOptimalCnt = 0
         var cellsTmp = []
@@ -283,11 +293,11 @@ export default {
           if(res.data.data[i].type=="beacon") {
             tag = -1
           }
-          if(this.bcnSubslots[res.data.data[i].slot[0]]!=null) {
-            if(res.data.data[i].type=="beacon") {
-              this.bcnSubslots[res.data.data[i].slot[0]][res.data.data[i].subslot[0]]=res.data.data[i].sender
-            }
-          }
+          // if(this.bcnSubslots[res.data.data[i].slot[0]]!=null) {
+          //   if(res.data.data[i].type=="beacon") {
+          //     this.bcnSubslots[res.data.data[i].slot[0]][res.data.data[i].subslot[0]]=res.data.data[i].sender
+          //   }
+          // }
 
           cellsTmp.push([res.data.data[i].slot[0]+0.5,res.data.data[i].slot[1]+0.5,tag])
           // cellsTmp.push([res.data.data[i].slot[0]+0.5,Math.floor(res.data.data[i].slot[1]/2),tag])
@@ -302,7 +312,51 @@ export default {
         this.$EventBus.$emit("links", this.links)
       })
     },
-    
+    drawSubPartition() {
+      this.$api.gateway.getSubPartitionHARP()
+      .then(res => {
+        if(res.data.flag==0) return
+        this.subPartitions = []
+        this.option.series[1].markArea.data = []
+        var up_colors = ["royalblue", "cornflowerblue", "deepskyblue", "lightskyblue"]
+        var down_colors = ["darkgreen","forestgreen", "limegreen", "lime"]
+        for(var i=0;i<res.data.data.length;i++) {
+          this.subPartitions.push(res.data.data[i])
+          var sp = res.data.data[i]
+          // uplink
+          this.option.series[1].markArea.data.push([
+            {
+              name:"U"+sp.id+"-"+sp.layer,
+              xAxis:sp.ts_start,
+              yAxis: sp.ch_start,
+            },
+            {
+              xAxis:sp.ts_end, 
+              yAxis: sp.ch_end,
+              itemStyle:{color:up_colors[sp.layer], opacity:0.7,borderColor:"white",borderWidth:1},
+              label:{color:"black",fontWeight:"bold",fontSize:12, position:"inside"}
+            },
+          ])
+          // downlink
+          this.option.series[1].markArea.data.push([
+            {
+              name:"D"+sp.id+"-"+sp.layer,
+              xAxis:2*this.partition_center-sp.ts_end, 
+              yAxis: sp.ch_start,
+            },
+            {
+              xAxis:2*this.partition_center-sp.ts_start,
+
+              yAxis: sp.ch_end,
+              itemStyle:{color:down_colors[sp.layer], opacity:0.7,borderColor:"white",borderWidth:1},
+              label:{color:"black",fontWeight:"bold",fontSize:12, position:"inside"}
+            },
+          ])
+        }
+      })
+      
+    },
+
     findPath(cell) {
       this.option.series[0].markLine.data = []
       // update cell
@@ -354,6 +408,7 @@ export default {
 
   mounted() {
     this.drawPartition()
+    setTimeout(this.drawSubPartition, 100)
     // setInterval(this.drawPartition, 10000)
     this.$EventBus.$on("autorefresh", (flag)=>{
       this.autorefresh = flag
@@ -383,5 +438,5 @@ export default {
     font-size 1.2rem
 #sch-table
   width 100%
-  height 225px
+  height 255px
 </style>

@@ -19,6 +19,9 @@ const gateway = {
     getPartitionHARP() {
         return axios.get(`/api/any/schedule/partition_harp`)
     },
+    getSubPartitionHARP() {
+        return axios.get(`/api/any/schedule/sp_harp`)
+    },
     getNWStat(gw, range) {
         return axios.get(`/api/${gw}/nwstat?range=${range}`)
     },

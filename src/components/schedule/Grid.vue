@@ -119,7 +119,7 @@ export default {
   },
   data() {
     return {
-      load_topo: true,
+      load_topo: false,
       gwPos: [],
       sizeX: 19,
       sizeY: 9,

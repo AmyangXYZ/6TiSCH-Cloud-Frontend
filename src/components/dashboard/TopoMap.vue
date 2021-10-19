@@ -44,7 +44,7 @@ export default {
   data() {
     return {
       selectedGW: "any",
-      selectedRange: "day",
+      selectedRange: "week",
       selectedSensor: {},
       latencyRange: [],
       noiseLvRange: [],

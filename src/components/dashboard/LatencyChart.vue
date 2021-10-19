@@ -1,7 +1,7 @@
 <template>
   <vs-card style="margin-top:22px">
     <div slot="header"><h4>Uplink Latency </h4></div>
-    <ECharts autoresize :options="option" @click="handleClick"/>
+    <ECharts autoresize :options="option"/>
     <h3>Total Success Ratio: {{(successCnt/totalCnt).toFixed(3)}}</h3> 
   </vs-card>
 </template>
@@ -13,6 +13,8 @@ import "echarts/lib/component/visualMap";
 import "echarts/lib/component/title";
 import "echarts/lib/component/dataZoom";
 import "echarts/lib/component/markLine";
+
+import latency from './lat.json'
 
 export default {
   components: {
@@ -35,8 +37,9 @@ export default {
         grid: [
           {
             top: "18%",
-            width: "35%",
-            left: '3%',
+            // width: "15%",
+            left: '10%',
+            right:"80%",
             bottom: "5%",
             containLabel: true 
           },
@@ -44,68 +47,84 @@ export default {
             right: "5%",
             top: "18%",
             bottom: "5%",
-            left: "45%",
+            left: "56%",
             containLabel: true 
           }
         ],
         xAxis: [
           {
             type: 'value',
-            boundaryGap: [0, 0.15],
+            boundaryGap: [0, 0.5],
             gridIndex: 0,
             name: "(s)",
+            nameTextStyle: {
+              fontSize: 18,
+              align: "center"
+            },
+
+          },
+          {
+            name:"Node ID",
+            type: 'category',
+            data: [],
+            gridIndex: 1,
+            nameLocation:"center",
+            nameGap:30,
             nameTextStyle: {
               fontSize: 16,
               align: "center"
             },
-
-          },
-          {
-            type: 'category',
-            data: [],
-            gridIndex: 1,
-
+            axisLabel:{
+              fontSize:16,
+              // fontWeight:"bold"
+            },
           }
         ],
         yAxis: [
           {
-            name: "Uplink latency per layer",
+            name: "E2E Latency per Layer",
             nameTextStyle: {
-              fontSize: 18,
+              fontSize: 14,
               fontWeight: "bold",
               align: "center"
             },
+            data:["Average", "Layer 1","Layer 2","Layer 3","Layer 4","Layer 5"].reverse(),
             type: 'category',
-            data: [],
             gridIndex: 0,
-            axisLabel: {
-               fontSize: 15
-            }
+            boundaryGap: [0,0.1],
           },
           {
-            name: "Uplink latency per node (s)",
+            name: "E2E Latency (s)",
             nameTextStyle: {
-              fontSize: 18,
-              fontWeight: "bold",
+              fontSize: 20,
+              // fontWeight: "bold",
               align: "center"
             },
+            min:1.2,
             type: 'value',
             gridIndex: 1,
-            boundaryGap: [0, 0.05],
+            boundaryGap: [0.1,0.4],
+            axisLabel:{
+              fontSize:16,
+              // fontWeight:"bold"
+            },
           },
-          {
-            // name: "Success Ratio",
-            name: "",
-            max:1,
+          { 
+            name: "Layer",
             nameTextStyle: {
-              fontSize: 18,
-              fontWeight: "bold",
+              fontSize: 20,
+              // fontWeight: "bold",
               align: "center"
             },
-            type: 'value',
+            data:[0,1,2,3,4,5],
+            type: 'category',
             gridIndex: 1,
-            boundaryGap: [0.5, 0.2],
-          }
+            boundaryGap: [0,0],
+            axisLabel:{
+              fontSize:16,
+              // fontWeight:"bold"
+            },
+          },
         ],
         series: [
             {
@@ -117,7 +136,7 @@ export default {
               label: {
                 show: true,
                 position: 'inside',
-                fontSize: 14
+                fontSize: 12
               },
               markLine: {
                 symbol: "none",
@@ -128,7 +147,7 @@ export default {
                   fontSize: 15
                 },
                 data: [
-                  {xAxis:2.54},
+                  {xAxis:1.99},
                 ]
               }
             },
@@ -136,32 +155,39 @@ export default {
               name: "average latency",
               silent:true,
               data: [],
-              type: 'bar',
-              barMaxWidth: 90,
+              type: 'scatter',
               xAxisIndex: 1,
               yAxisIndex: 1,
+              symbol: "circle",
+              symbolSize: 12,
+
+              itemStyle: {
+                borderColor: "blue",
+                color: "white",
+              },
               markLine: {
                 symbol: "none",
+              
                 lineStyle: {
+                  color:"red",
                   width: 2.5
                 },
                 label: {
-                  show:false,
+                  show:true,
                   fontSize: 15
                 },
                 data: [
-                  {yAxis:1.28},
+                  {yAxis:1.99},
                 ]
               }
             },
             {
-              name: "success ratio",
-              smooth:true,
-              silent:true,
-              data: [],
+              name:"layer",
+              data:[],
               type: 'line',
               xAxisIndex: 1,
               yAxisIndex: 2,
+              symbol: "none",
             }
         ]
       },
@@ -169,85 +195,28 @@ export default {
   },
   methods: {
     draw() {
-      var latencyPerLayer = {}
-      this.option.yAxis[0].data = ['Average Latency']
-      this.option.xAxis[1].data = []
-      this.option.series[1].data = []
-      this.option.series[2].data = []
-      for(var l=0;l<this.layersNo;l++) {
-        this.option.yAxis[0].data.unshift("Layer "+l)
-        latencyPerLayer[l] = {latency:0, nodes:0}
+      var avg = 0
+      var perLayer = [{val:0,cnt:0},{val:0,cnt:0},{val:0,cnt:0},{val:0,cnt:0},{val:0,cnt:0}]
+      for(var i=0;i<latency.length;i++) {
+        this.option.xAxis[1].data.push(latency[i].id)
+        this.option.series[1].data.push(latency[i].latency)
+        this.option.series[2].data.push(latency[i].layer)
+        perLayer[latency[i].layer-1].val += latency[i].latency
+        perLayer[latency[i].layer-1].cnt++
+        avg += latency[i].latency
       }
-
-      var xData = []
-      var values1 = []
-      var values2 = []
-      var total = 0
-      for(var i=0;i<this.sensors.length;i++) {
-        xData.push(this.sensors[i].sensor_id)
-        this.successCnt+=this.sensors[i].uplink_latency_success
-        this.totalCnt+=this.sensors[i].uplink_latency_cnt
-        values1.push(this.sensors[i].uplink_latency_avg.toFixed(3))
-        // values2.push(this.sensors[i].uplink_latency_sr.toFixed(3))
-        total += this.sensors[i].uplink_latency_avg
-        if(this.sensors[i].hop!=null) {
-          if(latencyPerLayer[this.sensors[i].hop-1]==null) latencyPerLayer[this.sensors[i].hop-1] = {latency:0, nodes:0}
-          latencyPerLayer[this.sensors[i].hop-1].latency += this.sensors[i].uplink_latency_avg
-          latencyPerLayer[this.sensors[i].hop-1].nodes++
-        }
+      
+      for(var j=4;j>=0;j--) {
+        this.option.series[0].data.push((perLayer[j].val/perLayer[j].cnt).toFixed(2))
       }
-      this.option.xAxis[1].data = xData
-      this.option.series[1].data = values1
-      this.option.series[2].data = values2
-      var values0 = []
-      for(var j=this.layersNo-1;j>=0;j--) {
-        values0.push((latencyPerLayer[j].latency/latencyPerLayer[j].nodes).toFixed(3))
-      }
-      values0.push((total/this.sensors.length).toFixed(3))
-      this.option.series[0].data = values0
+      this.option.series[0].data.push((avg/49).toFixed(2))
+      window.console.log(perLayer)
     },
-    handleClick(item) {
-      if(item.name=="Average Latency") {
-        this.selectedLayer == -1
-        this.option.yAxis[1].name = "Latency per node"
-      }
-      else {
-        this.selectedLayer = item.name
-        this.option.yAxis[1].name = "Latency per node | "+this.selectedLayer
-      }
-      this.drawNodesLatency()
-    },
-    drawNodesLatency() {
-      var xData = []
-      var values1 = []
-      var cnt = 0
-      for(var i=0;i<this.sensors.length;i++) {
-        if(this.selectedLayer!=-1) 
-          if((this.sensors[i].hop-1) != this.selectedLayer[6])
-            continue
-        xData.push(this.sensors[i].sensor_id)
-        values1.push(this.sensors[i].uplink_latency_avg.toFixed(3))
-        cnt++
-      }
-      this.option.xAxis[1].data = xData
-      this.option.series[1].data = values1
-      this.option.yAxis[1].name+=" ("+cnt+" nodes)"
-      window.console.log(values1)
-    }
   },
   mounted() {
-    window.latencyChart = this
-    // data from NWTable is ready
-    this.$EventBus.$on("sensors", (sensors)=>{
-      this.selectedSensor = sensors[0].sensor_id
-      this.sensors = sensors.sort((a, b) => {
-        if(a.hop == b.hop) return -b.sensor_id + a.sensor_id
-        return a.hop > b.hop ? 1 : -1
-      })
-      // this.layersNo = this.sensors[this.sensors.length-1].hop
-      this.layersNo = 5
-      this.draw()
-    })
+    
+    this.draw()
+  
 
   }
 };
@@ -256,5 +225,5 @@ export default {
 <style lang="stylus" scoped>
 .echarts 
   width 100%
-  height 320px
+  height 420px
 </style>
