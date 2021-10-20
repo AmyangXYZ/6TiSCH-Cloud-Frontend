@@ -55,15 +55,15 @@
     },
     {
     "timestamp": 1634624709447,
-    "e2e_latency": 3.75
+    "e2e_latency": 3.77
     },
     {
     "timestamp": 1634624709837,
-    "e2e_latency": 3.75
+    "e2e_latency": 1.78
     },
     {
     "timestamp": 1634624711439,
-    "e2e_latency": 3.77
+    "e2e_latency": 1.76
     },
     {
     "timestamp": 1634624711837,
@@ -171,7 +171,7 @@
     },
     {
     "timestamp": 1634624741678,
-    "e2e_latency": 3.77
+    "e2e_latency": 5.78
     },
     {
     "timestamp": 1634624743260,
@@ -183,7 +183,7 @@
     },
     {
     "timestamp": 1634624744350,
-    "e2e_latency": 3.81
+    "e2e_latency": 5.78
     },
     {
     "timestamp": 1634624744471,
