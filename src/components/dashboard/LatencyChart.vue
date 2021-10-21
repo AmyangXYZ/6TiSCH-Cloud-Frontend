@@ -46,7 +46,7 @@ export default {
           {
             right: "5%",
             top: "18%",
-            bottom: "5%",
+            bottom: "7%",
             left: "45%",
             containLabel: true 
           }
@@ -74,8 +74,13 @@ export default {
               fontSize: 18,
               align: "center"
             },
+          splitLine: {
+            show: true,
+          },
             axisLabel:{
-              fontSize:16,
+              fontSize:11,
+              // rotate:0,
+              interval:0,
               // fontWeight:"bold"
             },
           }
