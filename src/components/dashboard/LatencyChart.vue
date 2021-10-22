@@ -80,7 +80,7 @@ export default {
             axisLabel:{
               fontSize:11,
               // rotate:0,
-              interval:0,
+              // interval:0,
               // fontWeight:"bold"
             },
           }

@@ -9,7 +9,7 @@ import "echarts/lib/component/legend";
 import "echarts/lib/component/toolbox";
 import "echarts/lib/component/tooltip";
 
-// import t from "./topology_121_part.json"
+import t from "./topo.json"
 
 export default {
   components: {
@@ -22,9 +22,9 @@ export default {
       selectedSensor: {},
       trees: {1:
         {
-          name:"g", 
+          name:"0", 
           children:[], 
-          symbolSize: 12,
+          symbolSize: 18,
           label: {
             fontSize: 14
           }
@@ -39,30 +39,33 @@ export default {
             ],
             top: '3%',
             left: '0%',
-            bottom: '2%',
+            bottom: '3%',
             right: '00%',
             roam: true,
             symbol:"circle",
-            symbolSize: 12,
+            symbolSize: 16,
             orient: 'BT',
             itemStyle:{
-              color: "orange"
+              color: "lime"
             },
             label: {
-              position: 'left',
+              position: 'inside',
               verticalAlign: 'middle',
-              align: 'right',
-              fontSize: 13,
+              // align: 'right',
+              fontSize: 10,
+              fontWeight: "bold",
               formatter: (item)=>{
-                return "V"+(item.data.name)
+                return ""+(item.data.name)
               },
             },
-
+            lineStyle:{
+              width:2,
+            },
             leaves: {
                 label: {
-                    position: 'top',
+                    position: 'inside',
                     verticalAlign: 'middle',
-                    align: 'left'
+                    // align: 'left'
                 }
             },
             initialTreeDepth: 10,
@@ -78,10 +81,12 @@ export default {
     draw(gw, range) {
       this.$api.gateway.getTopology(gw, range)
       .then(res=> {
-        // res.data = t
-        if (res.data.flag==0||res.data.data.length==0) return
+        
+        // res.data.data = t
+        window.console.log(t)
+        // if (res.data.flag==0||res.data.data.length==0) return
         this.$EventBus.$emit('sensorCnt', res.data.data.length-1)
-   
+        
         for(var i=0;i<res.data.data.length;i++) {
           var node = res.data.data[i]
           if(node.sensor_id==1) {
@@ -110,8 +115,8 @@ export default {
 
 <style lang="stylus" scoped>
 #graph
-  width 100%
-  height 656px
+  width 75%
+  height 526px
 </style>
 
 <!-- 

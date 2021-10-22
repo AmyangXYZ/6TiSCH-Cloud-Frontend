@@ -716,9 +716,9 @@ export default {
   },
   mounted() {
     window.grid = this;
-    this.$EventBus.$on("init", () => {
+    // this.$EventBus.$on("init", () => {
       this.draw();
-    });
+    // });
 
     this.$EventBus.$on("cells1", (cells) => {
       this.schedule = new Array(127);
