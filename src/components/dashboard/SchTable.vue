@@ -1,8 +1,8 @@
 <template>
     <vs-card>
-      <div slot="header" >
+      <!-- <div slot="header" >
         <h4>Communication Schedule</h4>
-      </div>
+      </div> -->
       <ECharts id="sch-table" autoresize :options="option" @click="handleClickSch" />        
     </vs-card>
 </template>
@@ -20,6 +20,9 @@ import "echarts/lib/component/markLine";
 import "echarts/lib/component/dataZoom";
 import "echarts/lib/chart/graph"
 
+import sub_partitions from "./sub-partitions.json"
+import schedule from "./schedule.json"
+import partitions_harp from "./partitions_harp.json"
 const SlotFrameLength = 199
 
 export default {
@@ -70,11 +73,11 @@ export default {
           }
         },
         grid: {
-          top: '18%',
+          top: '18.5%',
           // height: '78%',
-          left: '3%',
-          right: '1%',
-          bottom: "6%",
+          left: '2.5%',
+          right: '0.3%',
+          bottom: "9%",
         },
         xAxis: {
           min:0,
@@ -86,7 +89,7 @@ export default {
               if(item%5==0) 
                 return item
             },
-            fontSize: 10
+            fontSize: 11
           },
           name: "Slot Offset",
           type: 'value',
@@ -106,8 +109,15 @@ export default {
           name: "Channel Offset",
           type: 'value',
           min: 1,
-          max: 16,
-          interval: 1,
+          max: 17,
+          interval: 2,
+          axisLabel: {
+            // formatter: (item)=>{
+            //   if(item%5==0) 
+            //     return item
+            // },
+            fontSize: 11
+          },
           inverse: true,
           nameLocation: "middle",
           nameTextStyle: {
@@ -137,11 +147,11 @@ export default {
           },
           pieces:[{min:-1,max:-1,label:"Beacon"},{min:0,max:0,label:"Uplink"},{min:1,max:1,label:"Downlink"},],
           textStyle: {
-            fontSize:12,
+            fontSize:13,
           },
           position: 'top',
           orient: "horizontal",
-          top: 0,
+          top: -5,
           right:"1%",
         },
         series: [
@@ -167,9 +177,9 @@ export default {
             }
           },
           itemStyle: {
-            borderWidth: 1.1,
+            borderWidth: 0.1,
             borderType: "solid",
-            borderColor: "white"
+            borderColor: "black"
           },
           markLine: {
             data: [],
@@ -213,16 +223,17 @@ export default {
         this.$api.gateway.getPartitionHARP()
         .then(res=> {
           if(res.data.flag==0) return
+          res.data = partitions_harp
           this.partitions = res.data.data
           var markAreaTmp = []
           // var colors = ['#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
           // var colors = {}
           var colorMap = {
-            "SHARED": {'rgb':'grey', opacity: 0.7},
+            "SHARED": {'rgb':'grey', opacity: 0.5},
             "BEACON":{'rgb':"orange", opacity:0.7},
-            "MANAGEMENT":{'rgb':"lightseagreen", opacity:0.7},
-            "UPLINK": {'rgb':"#1d71f2", opacity:0.7},
-            "DOWNLINK": {'rgb':"green", opacity:0.7},
+            "MANAGEMENT":{'rgb':"lightseagreen", opacity:0.5},
+            "APP-UPLINK": {'rgb':"lightskyblue", opacity:0.5},
+            "APP-DOWNLINK": {'rgb':"#A1CD73", opacity:0.5},
           }
           // var color_index = 0
           for(var i=0;i<res.data.data.length;i++) {
@@ -238,7 +249,7 @@ export default {
             if(res.data.data[i].range[0]<res.data.data[i].range[1]) {
               
               var name = res.data.data[i].type.toUpperCase()
-              
+              if(name=="UPLINK"||name=="DOWNLINK") name="APP-"+name
               var y1 = 1
               var y2 = 17
               var pos = "bottom"
@@ -252,8 +263,8 @@ export default {
                 {
                   xAxis:res.data.data[i].range[1], 
                   yAxis: y2,
-                  itemStyle:{color:colorMap[name].rgb, opacity:colorMap[name].opacity,borderColor:"black",borderWidth:0.1},
-                  label:{color:"black",fontWeight:"bold",fontSize:12, position:pos}
+                  itemStyle:{color:colorMap[name].rgb, opacity:colorMap[name].opacity,borderColor:"black",borderWidth:2},
+                  label:{color:"black",fontWeight:"bold",fontSize:14.5, position:pos}
                 },
               ])
             }
@@ -268,8 +279,9 @@ export default {
     drawSchedule() {
       this.$api.gateway.getSchedule()
       .then(res => {
-      
-        if(res.data.flag==0) return
+        res.data = schedule
+        // if(res.data.flag==0) return
+        
         // this.nonOptimalCnt = Object.keys(this.unAligned).length
         this.nonOptimalCnt = 0
         var cellsTmp = []
@@ -315,43 +327,49 @@ export default {
     drawSubPartition() {
       this.$api.gateway.getSubPartitionHARP()
       .then(res => {
+        res.data = sub_partitions
         if(res.data.flag==0) return
+        
+        window.console.log(sub_partitions)
         this.subPartitions = []
         this.option.series[1].markArea.data = []
-        var up_colors = ["royalblue", "cornflowerblue", "deepskyblue", "lightskyblue"]
-        var down_colors = ["darkgreen","forestgreen", "limegreen", "lime"]
-        for(var i=0;i<res.data.data.length;i++) {
+        var up_colors = [ "#7DD5F7", "deepskyblue","cornflowerblue","royalblue","#0d3379"]
+        var down_colors = ["#D9FF5B","#B9D40B", "#70AF1A", "#097609","#075807"]
+        for(var i in res.data.data) {
           this.subPartitions.push(res.data.data[i])
-          var sp = res.data.data[i]
-          // uplink
-          this.option.series[1].markArea.data.push([
-            {
-              name:"U"+sp.id+"-"+sp.layer,
-              xAxis:sp.ts_start,
-              yAxis: sp.ch_start,
-            },
-            {
-              xAxis:sp.ts_end, 
-              yAxis: sp.ch_end,
-              itemStyle:{color:up_colors[sp.layer], opacity:0.7,borderColor:"white",borderWidth:1},
-              label:{color:"black",fontWeight:"bold",fontSize:12, position:"inside"}
-            },
-          ])
-          // downlink
-          this.option.series[1].markArea.data.push([
-            {
-              name:"D"+sp.id+"-"+sp.layer,
-              xAxis:2*this.partition_center-sp.ts_end, 
-              yAxis: sp.ch_start,
-            },
-            {
-              xAxis:2*this.partition_center-sp.ts_start,
+          var sp = res.data.data[i].subpartition
+          // var n = res.data.data[i]
+          for(var l in sp) {
+            // uplink
+            this.option.series[1].markArea.data.push([
+              {
+                // name:"U"+n.id+"-"+n.layer,
+                xAxis:sp[l][0]+6,
+                yAxis: sp[l][2],
+              },
+              {
+                xAxis:sp[l][1]+6, 
+                yAxis: sp[l][3],
+                itemStyle:{color:up_colors[l-1], opacity:1,borderColor:"black",borderWidth:1.5},
+                label:{color:"black",fontWeight:"bold",fontSize:12, position:"inside"}
+              },
+            ])
+            // downlink
+            this.option.series[1].markArea.data.push([
+              {
+                // name:"D"+n.id+"-"+n.layer,
+                xAxis:2*this.partition_center-sp[l][1]-6, 
+                yAxis:sp[l][2],
+              },
+              {
+                xAxis:2*this.partition_center-sp[l][0]-6,
 
-              yAxis: sp.ch_end,
-              itemStyle:{color:down_colors[sp.layer], opacity:0.7,borderColor:"white",borderWidth:1},
-              label:{color:"black",fontWeight:"bold",fontSize:12, position:"inside"}
-            },
-          ])
+                yAxis: sp[l][3],
+                itemStyle:{color:down_colors[l-1], opacity:1,borderColor:"black",borderWidth:1.5},
+                label:{color:"black",fontWeight:"bold",fontSize:12, position:"inside"}
+              },
+            ])
+          }
         }
       })
       
@@ -438,5 +456,5 @@ export default {
     font-size 1.2rem
 #sch-table
   width 100%
-  height 255px
+  height 205px
 </style>

@@ -1,4 +1,5 @@
 <template>
+<div>
   <vs-card class="topo">
     <div id="title">Topology</div>
     <vs-tabs alignment="center">
@@ -12,6 +13,10 @@
       
     </vs-tabs>
   </vs-card>
+  <vs-card>
+    <topo-graph/>
+  </vs-card>
+</div>
 </template>
 
 <script>

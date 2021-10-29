@@ -25,6 +25,7 @@
       <vs-col vs-offset="0.8" vs-w="10.8">
         <LatencyChart/>
         <latency-chart-2/>
+        <adj-overhead/>
         <!-- <RTTChart/> -->
       </vs-col>
     </vs-row>
@@ -51,6 +52,7 @@ import Topo from '../components/dashboard/Topo'
 
 import SchTable from '../components/dashboard/SchTable'
 import LatencyChart2 from '../components/dashboard/LatencyChart2.vue'
+import AdjOverhead from '../components/dashboard/AdjOverhead.vue'
 // import SchPi from '../components/dashboard/SchPi'
 export default {
     components: {
@@ -65,6 +67,7 @@ export default {
     
       SchTable,
         LatencyChart2,
+        AdjOverhead,
       // SchPi
     },
     data() {
