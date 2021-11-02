@@ -35,7 +35,7 @@ export default {
           {
             type: 'tree',
             data:[
-              {name:"0",children:[]}
+              {name:"1",children:[]}
             ],
             top: '3%',
             left: '0%',
@@ -43,7 +43,7 @@ export default {
             right: '00%',
             roam: true,
             symbol:"circle",
-            symbolSize: 22,
+            symbolSize: 18,
             orient: 'TB',
             itemStyle:{
               color: "lime"
@@ -52,7 +52,7 @@ export default {
               position: 'inside',
               verticalAlign: 'middle',
               // align: 'right',
-              fontSize: 16,
+              fontSize: 14,
               fontWeight: "bold",
               formatter: (item)=>{
                 return ""+(item.data.name)
@@ -84,7 +84,7 @@ export default {
         
         // res.data.data = t
         window.console.log(t)
-        // if (res.data.flag==0||res.data.data.length==0) return
+        if (res.data.flag==0||res.data.data.length==0) return
         this.$EventBus.$emit('sensorCnt', res.data.data.length-1)
         
         for(var i=0;i<res.data.data.length;i++) {
@@ -116,7 +116,7 @@ export default {
 <style lang="stylus" scoped>
 #graph
   width 100%
-  height 526px
+  height 655px
 </style>
 
 <!-- 

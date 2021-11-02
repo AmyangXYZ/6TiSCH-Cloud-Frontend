@@ -31,7 +31,7 @@ export default {
           {
             right: "5%",
             top: "18%",
-            bottom: "2%",
+            bottom: "6%",
             left: "45%",
             containLabel: true,
           },
@@ -44,13 +44,13 @@ export default {
           maxInterval: 6000,
           name: "time",
           nameTextStyle: {
-            fontSize: 18,
+            fontSize: 20,
             align: "center",
           },
           nameLocation: "center",
           nameGap: 45,
           axisLabel: {
-            fontSize: 16,
+            fontSize: 14,
             rotate: 30,
             // fontWeight:"bold"
           },
@@ -74,7 +74,7 @@ export default {
             },
           },
           {
-            name: "Task Rate",
+            name: "Data Rate",
             nameTextStyle: {
               fontSize: 18,
               // fontWeight: "bold",
@@ -151,6 +151,6 @@ export default {
 <style lang="stylus" scoped>
 .echarts {
   width: 100%;
-  height: 420px;
+  height: 360px;
 }
 </style>

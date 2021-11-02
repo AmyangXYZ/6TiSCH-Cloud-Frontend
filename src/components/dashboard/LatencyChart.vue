@@ -40,13 +40,13 @@ export default {
             // width: "15%",
             left: '10%',
             right:"80%",
-            bottom: "5%",
+            bottom: "15%",
             containLabel: true 
           },
           {
             right: "5%",
             top: "18%",
-            bottom: "7%",
+            bottom: "9%",
             left: "45%",
             containLabel: true 
           }
@@ -58,7 +58,7 @@ export default {
             gridIndex: 0,
             name: "(s)",
             nameTextStyle: {
-              fontSize: 18,
+              fontSize: 20,
               align: "center"
             },
 
@@ -78,7 +78,7 @@ export default {
             show: true,
           },
             axisLabel:{
-              fontSize:11,
+              fontSize:14,
               // rotate:0,
               // interval:0,
               // fontWeight:"bold"
@@ -180,7 +180,7 @@ export default {
                 },
                 label: {
                   show:true,
-                  fontSize: 15
+                  fontSize: 16
                 },
                 data: [
                   {yAxis:1.99},
@@ -231,5 +231,5 @@ export default {
 <style lang="stylus" scoped>
 .echarts 
   width 100%
-  height 420px
+  height 360px
 </style>

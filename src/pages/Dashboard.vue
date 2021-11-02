@@ -17,15 +17,14 @@
         <RSSiChart/>
       </vs-col>
       <vs-col vs-offset="0.3" vs-w="5.5">
-   
         <Topo/>
       </vs-col>
     </vs-row> 
     <vs-row >
       <vs-col vs-offset="0.8" vs-w="10.8">
-        <LatencyChart/>
-        <latency-chart-2/>
-        <adj-overhead/>
+        <!-- <LatencyChart/> -->
+        <!-- <latency-chart-2/> -->
+        <!-- <adj-overhead/> -->
         <!-- <RTTChart/> -->
       </vs-col>
     </vs-row>
@@ -45,14 +44,14 @@ import DeviceCnt from '../components/dashboard/DeviceCnt'
 import Uptime from '../components/dashboard/Uptime'
 import NWTable from '../components/dashboard/NWTable'
 import TxTotal from "../components/dashboard/TxTotal"
-import LatencyChart from '../components/dashboard/LatencyChart'
+// import LatencyChart from '../components/dashboard/LatencyChart'
 // import RTTChart from '../components/dashboard/RTTChart'
 import RSSiChart from '../components/dashboard/RSSiChart'
 import Topo from '../components/dashboard/Topo'
 
 import SchTable from '../components/dashboard/SchTable'
-import LatencyChart2 from '../components/dashboard/LatencyChart2.vue'
-import AdjOverhead from '../components/dashboard/AdjOverhead.vue'
+// import LatencyChart2 from '../components/dashboard/LatencyChart2.vue'
+// import AdjOverhead from '../components/dashboard/AdjOverhead.vue'
 // import SchPi from '../components/dashboard/SchPi'
 export default {
     components: {
@@ -60,14 +59,14 @@ export default {
       Uptime,
       TxTotal,
       NWTable,
-      LatencyChart,
+      // LatencyChart,
       // RTTChart,
       RSSiChart,
       Topo,
     
       SchTable,
-        LatencyChart2,
-        AdjOverhead,
+        // LatencyChart2,
+        // AdjOverhead,
       // SchPi
     },
     data() {

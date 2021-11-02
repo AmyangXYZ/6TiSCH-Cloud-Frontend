@@ -20,9 +20,9 @@ import "echarts/lib/component/markLine";
 import "echarts/lib/component/dataZoom";
 import "echarts/lib/chart/graph"
 
-import sub_partitions from "./sub-partitions.json"
-import schedule from "./schedule.json"
-import partitions_harp from "./partitions_harp.json"
+// import sub_partitions from "./sub-partitions.json"
+// import schedule from "./schedule.json"
+// import partitions_harp from "./partitions_harp.json"
 const SlotFrameLength = 199
 
 export default {
@@ -223,8 +223,8 @@ export default {
         this.$api.gateway.getPartitionHARP()
         .then(res=> {
           if(res.data.flag==0) return
-          res.data = partitions_harp
-          this.partitions = res.data.data
+          // res.data = partitions_harp
+          // this.partitions = res.data.data
           var markAreaTmp = []
           // var colors = ['#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
           // var colors = {}
@@ -232,8 +232,8 @@ export default {
             "SHARED": {'rgb':'grey', opacity: 0.5},
             "BEACON":{'rgb':"orange", opacity:0.7},
             "MANAGEMENT":{'rgb':"lightseagreen", opacity:0.5},
-            "APP-UPLINK": {'rgb':"lightskyblue", opacity:0.5},
-            "APP-DOWNLINK": {'rgb':"#A1CD73", opacity:0.5},
+            "DATA-UPLINK": {'rgb':"lightskyblue", opacity:0.5},
+            "DATA-DOWNLINK": {'rgb':"#A1CD73", opacity:0.5},
           }
           // var color_index = 0
           for(var i=0;i<res.data.data.length;i++) {
@@ -249,7 +249,7 @@ export default {
             if(res.data.data[i].range[0]<res.data.data[i].range[1]) {
               
               var name = res.data.data[i].type.toUpperCase()
-              if(name=="UPLINK"||name=="DOWNLINK") name="APP-"+name
+              if(name=="UPLINK"||name=="DOWNLINK") name="DATA-"+name
               var y1 = 1
               var y2 = 17
               var pos = "bottom"
@@ -279,8 +279,8 @@ export default {
     drawSchedule() {
       this.$api.gateway.getSchedule()
       .then(res => {
-        res.data = schedule
-        // if(res.data.flag==0) return
+        // res.data = schedule
+        if(res.data.flag==0) return
         
         // this.nonOptimalCnt = Object.keys(this.unAligned).length
         this.nonOptimalCnt = 0
@@ -327,10 +327,10 @@ export default {
     drawSubPartition() {
       this.$api.gateway.getSubPartitionHARP()
       .then(res => {
-        res.data = sub_partitions
+        // res.data = sub_partitions
         if(res.data.flag==0) return
         
-        window.console.log(sub_partitions)
+        // window.console.log(sub_partitions)
         this.subPartitions = []
         this.option.series[1].markArea.data = []
         var up_colors = [ "#7DD5F7", "deepskyblue","cornflowerblue","royalblue","#0d3379"]
@@ -341,15 +341,25 @@ export default {
           // var n = res.data.data[i]
           for(var l in sp) {
             // uplink
+            var ts = sp[l][0]+6
+            var te = sp[l][1]+6
+            var cs = sp[l][2]
+            var ce = sp[l][3]
+              // if(l==1) {
+              //   ts+=25
+              // } else {
+              //   ce+=6-l
+              //   // te+=
+              // }
             this.option.series[1].markArea.data.push([
               {
                 // name:"U"+n.id+"-"+n.layer,
-                xAxis:sp[l][0]+6,
-                yAxis: sp[l][2],
+                xAxis:ts,
+                yAxis: cs,
               },
               {
-                xAxis:sp[l][1]+6, 
-                yAxis: sp[l][3],
+                xAxis:te, 
+                yAxis: ce,
                 itemStyle:{color:up_colors[l-1], opacity:1,borderColor:"black",borderWidth:1.5},
                 label:{color:"black",fontWeight:"bold",fontSize:12, position:"inside"}
               },
