@@ -1,0 +1,210 @@
+<template>
+  <vs-card style="margin-top:22px">
+    <div slot="header">
+      <h5>
+        Sensors Reading of Sensor {{ this.selectedSensor }},
+        {{ this.selectedGW }}
+      </h5>
+    </div>
+
+    <ECharts id="chart" autoresize :options="option" />
+  </vs-card>
+</template>
+
+<script>
+import ECharts from "vue-echarts/components/ECharts";
+import "echarts/lib/chart/line";
+import "echarts/lib/component/tooltip";
+
+export default {
+  components: {
+    ECharts,
+  },
+  data() {
+    return {
+      selectedSensor: 3,
+      selectedGW: "UCONN_GW",
+      selectedRange: "15min",
+      option: {
+        tooltip:{
+          trigger: 'axis'
+        },
+        grid: [
+          {
+            top:"12%",
+            height:"28%",
+            left:"8%",
+            right:"58%",
+            bottom:"50%",
+          },
+          {
+            top:"12%",
+            height:"28%",
+            left:"58%",
+            right:"6%",
+            bottom:"50%",
+          },
+          {
+            top:"63%",
+            height:"28%",
+            left:"8%",
+            right:"58%",
+            // bottom:"30%",
+          },
+          {
+            top:"63%",
+            height:"28%",
+            left:"58%",
+            right:"6%",
+            bottom:"5%",
+          },
+        ],
+        xAxis:[
+          {
+            name: "time",
+            type: "category",
+            data:[],
+            gridIndex:0,
+          },
+          {
+            name: "time",
+            type: "category",
+            data:[],
+            gridIndex:1,
+          },
+          {
+            name: "time",
+            type: "category",
+            data:[],
+            gridIndex:2,
+          },
+          {
+            name: "time",
+            type: "category",
+            data:[],
+            gridIndex:3,
+          }
+        ],
+        yAxis:[
+          {
+            name:"Temperature (C)",
+            type:"value",
+            gridIndex:0,
+            boundaryGap: ['40%', '40%'],
+          },
+          {
+            name:"Luminosity (lux)",
+            type:"value",
+            gridIndex:1,
+            boundaryGap: [0, '40%'],
+          },
+          {
+            name:"Pressure (hPa)",
+            type:"value",
+            gridIndex:2,
+            boundaryGap: ['40%', '40%'],
+          },
+          {
+            name:"Accelerometer (g)",
+            type:"value",
+            gridIndex:3,
+            boundaryGap: ['40%', '40%'],
+          },
+        ],
+        series: [
+          {
+            name:"temperature",
+            type:"line",
+            xAxisIndex:0,
+            yAxisIndex:0,
+            smooth: true,
+            symbol: "none",
+            data:[]
+          },
+          {
+            name:"Luminosity",
+            type:"line",
+            xAxisIndex:1,
+            yAxisIndex:1,
+             smooth: true,
+            symbol: "none",
+            data:[]
+          },
+          {
+            name:"Pressure",
+            type:"line",
+            xAxisIndex:2,
+            yAxisIndex:2,
+             smooth: true,
+            symbol: "none",
+            data:[]
+          },
+
+          {
+            name:"AcceleX",
+            type:"line",
+            xAxisIndex:3,
+            yAxisIndex:3,
+             smooth: true,
+            symbol: "none",
+            data:[]
+          },
+          {
+            name:"AcceleY",
+            type:"line",
+            xAxisIndex:3,
+            yAxisIndex:3,
+             smooth: true,
+            symbol: "none",
+            data:[]
+          },
+          {
+            name:"AcceleZ",
+            type:"line",
+            xAxisIndex:3,
+            yAxisIndex:3,
+             smooth: true,
+            symbol: "none",
+            data:[]
+          },
+        ]
+      }
+    };
+  },
+  methods: {
+    draw(id, range) {
+      this.option.series[0].data = []
+      this.$api.gateway.getSensorsByID(id, range)
+      .then((res) => {
+        if (res.data.flag == 0) return;
+        for(var i=0;i<res.data.data.length;i++) {
+          var sr = res.data.data[i]
+          // this.option.xAxis.data.push(sr.timestamp)
+          var d = new Date(res.data.data[i].timestamp)
+          // time zone diff
+          var curD = new Date(d.getTime() - (d.getTimezoneOffset() * 60000))
+          for (var x=0;x<4;x++)
+            this.option.xAxis[x].data.push(curD.toJSON().substr(5, 14).replace('T', ' '))
+          
+          this.option.series[0].data.push(sr.temp)
+          this.option.series[1].data.push(sr.lux)
+          this.option.series[2].data.push(sr.press)
+          this.option.series[3].data.push(sr.acc_x)
+          this.option.series[4].data.push(sr.acc_y)
+          this.option.series[5].data.push(sr.acc_z)
+        }
+      });
+    },
+  },
+  mounted() {
+    this.draw(this.selectedSensor,this.selectedRange);
+  },
+};
+</script>
+
+<style scoped>
+#chart {
+  width: 100%;
+  height:250px;
+}
+</style>

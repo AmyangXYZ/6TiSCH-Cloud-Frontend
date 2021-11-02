@@ -42,6 +42,9 @@ const gateway = {
     },
     getTxTotal() {
         return axios.get(`/api/any/txtotal?range=year`)
+    },
+    getSensorsByID(id, range) {
+        return axios.get(`/api/any/${id}/sensors?range=${range}`)
     }
 }
 

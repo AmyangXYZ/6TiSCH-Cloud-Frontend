@@ -23,7 +23,7 @@ import "echarts/lib/chart/graph"
 // import sub_partitions from "./sub-partitions.json"
 // import schedule from "./schedule.json"
 // import partitions_harp from "./partitions_harp.json"
-const SlotFrameLength = 199
+const SlotFrameLength = 127
 
 export default {
   components: {

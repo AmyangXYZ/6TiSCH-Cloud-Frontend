@@ -24,7 +24,7 @@ export default {
         {
           name:"0", 
           children:[], 
-          symbolSize: 22,
+          // symbolSize: 22,
           label: {
             fontSize: 15
           }
@@ -37,13 +37,13 @@ export default {
             data:[
               {name:"1",children:[]}
             ],
-            top: '3%',
-            left: '0%',
-            bottom: '3%',
-            right: '00%',
+            top: '5%',
+            left: '5%',
+            bottom: '5%',
+            right: '5%',
             roam: true,
             symbol:"circle",
-            symbolSize: 18,
+            symbolSize: 15,
             orient: 'TB',
             itemStyle:{
               color: "lime"
@@ -116,7 +116,7 @@ export default {
 <style lang="stylus" scoped>
 #graph
   width 100%
-  height 655px
+  height 678px
 </style>
 
 <!-- 
