@@ -18,7 +18,7 @@ export default {
   data() {
     return {
       selectedGW: "any",
-      selectedRange: "week",
+      selectedRange: "day",
       selectedSensor: {},
       trees: {1:
         {

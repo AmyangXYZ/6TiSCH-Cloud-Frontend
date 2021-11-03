@@ -22,7 +22,7 @@ export default {
     return {
       selectedSensor: 3,
       selectedGW: "UCONN_GW",
-      selectedRange: "week",
+      selectedRange: "day",
       dataAvg: [],
       date: [],
       xData: [],

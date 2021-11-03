@@ -24,7 +24,7 @@ export default {
     return {
       selectedSensor: 3,
       selectedGW: "UCONN_GW",
-      selectedRange: "15min",
+      selectedRange: "day",
       option: {
         tooltip:{
           trigger: 'axis'
@@ -173,7 +173,12 @@ export default {
   },
   methods: {
     draw(id, range) {
-      this.option.series[0].data = []
+      for(var i=0;i<this.option.series.length;i++) 
+        this.option.series[0].data = []
+      for(var a=0;a<this.option.xAxis.length;a++) {
+        this.option.xAxis[a].data = []
+        this.option.yAxis[a].data = []
+      }
       this.$api.gateway.getSensorsByID(id, range)
       .then((res) => {
         if (res.data.flag == 0) return;
@@ -197,7 +202,23 @@ export default {
     },
   },
   mounted() {
-    this.draw(this.selectedSensor,this.selectedRange);
+    // this.draw(this.selectedSensor,this.selectedRange);
+    this.$EventBus.$on("sensors", (sensors)=>{
+      this.selectedSensor = sensors[0].sensor_id
+      this.draw(this.selectedSensor, this.selectedRange);
+    })
+    
+    this.$EventBus.$on("selectedSensor", (sensor) => {
+      if(sensor.sensor_id!=1) {
+        this.selectedSensor = sensor.sensor_id
+        this.selectedGW = sensor.gateway
+        this.draw(this.selectedSensor, this.selectedRange);
+      }
+    });
+    this.$EventBus.$on("selectedRange", (range) => {
+        this.selectedRange = range
+        this.draw(this.selectedSensor, this.selectedRange);
+    });
   },
 };
 </script>
