@@ -1,13 +1,13 @@
 {
-  "name": "front-end",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
+    "name": "front-end",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
-  },
-  "dependencies": {
+    },
+    "dependencies": {
     "@fortawesome/fontawesome-free": "^5.14.0",
     "async": "^3.2.0",
     "axios": "^0.21.1",
@@ -27,8 +27,8 @@
     "vue2-google-maps": "^0.10.7",
     "vuesax": "^3.11.17",
     "vuex": "^3.5.1"
-  },
-  "devDependencies": {
+    },
+    "devDependencies": {
     "@vue/cli-plugin-babel": "^4.4.6",
     "@vue/cli-plugin-eslint": "^4.4.6",
     "@vue/cli-service": "^4.4.6",
@@ -36,28 +36,28 @@
     "eslint": "^5.16.0",
     "eslint-plugin-vue": "^5.0.0",
     "vue-template-compiler": "^2.6.11"
-  },
-  "eslintConfig": {
+    },
+    "eslintConfig": {
     "root": true,
     "env": {
-      "node": true
+    "node": true
     },
     "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
+    "plugin:vue/essential",
+    "eslint:recommended"
     ],
     "rules": {},
     "parserOptions": {
-      "parser": "babel-eslint"
+    "parser": "babel-eslint"
     }
-  },
-  "postcss": {
+    },
+    "postcss": {
     "plugins": {
-      "autoprefixer": {}
+    "autoprefixer": {}
     }
-  },
-  "browserslist": [
+    },
+    "browserslist": [
     "> 1%",
     "last 2 versions"
-  ]
-}
+    ]
+    }
