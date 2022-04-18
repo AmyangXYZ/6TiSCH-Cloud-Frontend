@@ -31,31 +31,37 @@ export default {
         },
         grid: [
           {
-            top:"12%",
-            height:"28%",
+            top:"8%",
+            height:"24%",
             left:"8%",
             right:"58%",
-            bottom:"50%",
+            // bottom:"20%",
           },
           {
-            top:"12%",
-            height:"28%",
+            top:"8%",
+            height:"24%",
             left:"58%",
             right:"6%",
-            bottom:"50%",
           },
           {
-            top:"63%",
-            height:"28%",
+            top:"43%",
+            height:"24%",
             left:"8%",
             right:"58%",
-            // bottom:"30%",
+            // bottom:"20%",
           },
           {
-            top:"63%",
-            height:"28%",
+            top:"43%",
+            height:"24%",
             left:"58%",
             right:"6%",
+            bottom:"5%",
+          },
+          {
+            top:"77%",
+            height:"20%",
+            left:"8 %",
+            right:"58%",
             bottom:"5%",
           },
         ],
@@ -83,6 +89,12 @@ export default {
             type: "category",
             data:[],
             gridIndex:3,
+          },
+          {
+            name: "time",
+            type: "category",
+            data:[],
+            gridIndex:4,
           }
         ],
         yAxis:[
@@ -93,27 +105,33 @@ export default {
             boundaryGap: ['40%', '40%'],
           },
           {
-            name:"Luminosity (lux)",
+            name:"Humidity ",
             type:"value",
             gridIndex:1,
             boundaryGap: [0, '40%'],
           },
           {
-            name:"Pressure (hPa)",
+            name:"Distance - Ultrasonic",
             type:"value",
             gridIndex:2,
             boundaryGap: ['40%', '40%'],
           },
           {
-            name:"Accelerometer (g)",
+            name:"LVDT Voltage",
             type:"value",
             gridIndex:3,
+            boundaryGap: ['40%', '40%'],
+          },
+          {
+            name:"Distance - LVDT",
+            type:"value",
+            gridIndex:4,
             boundaryGap: ['40%', '40%'],
           },
         ],
         series: [
           {
-            name:"temperature",
+            name:"Temperature",
             type:"line",
             xAxisIndex:0,
             yAxisIndex:0,
@@ -122,7 +140,7 @@ export default {
             data:[]
           },
           {
-            name:"Luminosity",
+            name:"Humidity",
             type:"line",
             xAxisIndex:1,
             yAxisIndex:1,
@@ -131,7 +149,7 @@ export default {
             data:[]
           },
           {
-            name:"Pressure",
+            name:"Distance - Ultrasonic",
             type:"line",
             xAxisIndex:2,
             yAxisIndex:2,
@@ -141,7 +159,7 @@ export default {
           },
 
           {
-            name:"AcceleX",
+            name:"Distance - LVDT",
             type:"line",
             xAxisIndex:3,
             yAxisIndex:3,
@@ -150,23 +168,14 @@ export default {
             data:[]
           },
           {
-            name:"AcceleY",
+            name:"LVDT Voltage",
             type:"line",
-            xAxisIndex:3,
-            yAxisIndex:3,
+            xAxisIndex:4,
+            yAxisIndex:4 ,
              smooth: true,
             symbol: "none",
             data:[]
-          },
-          {
-            name:"AcceleZ",
-            type:"line",
-            xAxisIndex:3,
-            yAxisIndex:3,
-             smooth: true,
-            symbol: "none",
-            data:[]
-          },
+          }
         ]
       }
     };
@@ -226,6 +235,6 @@ export default {
 <style scoped>
 #chart {
   width: 100%;
-  height:250px;
+  height:350px;
 }
 </style>
