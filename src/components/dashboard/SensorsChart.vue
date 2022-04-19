@@ -1,10 +1,21 @@
 <template>
   <vs-card style="margin-top:22px">
     <div slot="header">
-      <h5>
-        Sensors Reading of Sensor {{ this.selectedSensor }},
-        {{ this.selectedGW }}
-      </h5>
+      <vs-row  vs-align="center">
+        <vs-col vs-w="8">
+          <h4>
+            Sensor Readings of Sensor {{ this.selectedSensor }}
+          </h4>
+        </vs-col>
+        <vs-col vs-w=2.5>
+          <p style="font-size:11pt">Sampling Rate (Hz)</p>
+        </vs-col>
+        <vs-col vs-w="1.2" vs-offset="-0.1">
+          <vs-select v-model="selectedRate" width="100%" autocomplete @change="selectRate">
+            <vs-select-item :text="item" :value="item" v-for="(item,index) in rates" :key="index"/>
+          </vs-select>
+        </vs-col>
+      </vs-row>
     </div>
 
     <ECharts id="chart" autoresize :options="option" />
@@ -25,6 +36,8 @@ export default {
       selectedSensor: 3,
       selectedGW: "UCONN_GW",
       selectedRange: "day",
+      selectedRate: "0.1",
+      rates: [0.02, 0.1, 0.2, 0.5, 1, 5],
       option: {
         tooltip:{
           trigger: 'axis'
@@ -163,7 +176,7 @@ export default {
             type:"line",
             xAxisIndex:3,
             yAxisIndex:3,
-             smooth: true,
+            smooth: true,
             symbol: "none",
             data:[]
           },
@@ -201,14 +214,16 @@ export default {
             this.option.xAxis[x].data.push(curD.toJSON().substr(5, 14).replace('T', ' '))
           
           this.option.series[0].data.push(sr.temp)
-          this.option.series[1].data.push(sr.lux)
-          this.option.series[2].data.push(sr.press)
-          this.option.series[3].data.push(sr.acc_x)
-          this.option.series[4].data.push(sr.acc_y)
-          this.option.series[5].data.push(sr.acc_z)
+          this.option.series[1].data.push(sr.humidity)
+          this.option.series[2].data.push(sr.ultrasonic)
+          this.option.series[3].data.push(sr.lvdt1)
+          this.option.series[4].data.push(sr.lvdt2)
         }
       });
     },
+    selectRate() {
+      this.$api.gateway.putSamplingRate(this.selectedSensor,"all",this.selectedRate)
+    }
   },
   mounted() {
     // this.draw(this.selectedSensor,this.selectedRange);
@@ -235,6 +250,6 @@ export default {
 <style scoped>
 #chart {
   width: 100%;
-  height:350px;
+  height:400px;
 }
 </style>

@@ -45,6 +45,9 @@ const gateway = {
     },
     getSensorsByID(id, range) {
         return axios.get(`/api/any/${id}/sensors?range=${range}`)
+    },
+    putSamplingRate(id,type,rate) {
+        return axios.put(`/api/any/${id}/sensors/${type}?rate=${rate}`)
     }
 }
 
