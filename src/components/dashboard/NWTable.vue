@@ -297,7 +297,7 @@ export default {
 
 <style lang="stylus" scoped>
 #table
-  min-height 305px
+  min-height 242px
 th
   font-size 0.8rem
 td

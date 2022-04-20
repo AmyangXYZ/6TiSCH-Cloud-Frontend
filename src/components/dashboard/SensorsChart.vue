@@ -18,7 +18,7 @@
       </vs-row>
     </div>
 
-    <ECharts id="chart" autoresize :options="option" />
+    <ECharts id="chart" autoresize :options="option"/>
   </vs-card>
 </template>
 
@@ -26,7 +26,7 @@
 import ECharts from "vue-echarts/components/ECharts";
 import "echarts/lib/chart/line";
 import "echarts/lib/component/tooltip";
-
+import "echarts/lib/component/dataZoom";
 export default {
   components: {
     ECharts,
@@ -38,6 +38,7 @@ export default {
       selectedRange: "day",
       selectedRate: "0.1",
       rates: [0.02, 0.1, 0.2, 0.5, 1, 5],
+      
       option: {
         tooltip:{
           trigger: 'axis'
@@ -45,37 +46,45 @@ export default {
         grid: [
           {
             top:"8%",
-            height:"24%",
+             height:"20%",
             left:"8%",
             right:"58%",
             // bottom:"20%",
           },
           {
             top:"8%",
-            height:"24%",
+             height:"20%",
             left:"58%",
             right:"6%",
           },
           {
-            top:"43%",
-            height:"24%",
+            top:"41%",
+             height:"20%",
             left:"8%",
             right:"58%",
             // bottom:"20%",
           },
           {
-            top:"43%",
-            height:"24%",
+            top:"41%",
+             height:"20%",
             left:"58%",
             right:"6%",
             bottom:"5%",
           },
           {
-            top:"77%",
-            height:"20%",
-            left:"8 %",
+            top:"75%",
+             height:"20%",
+            left:"8%",
             right:"58%",
             bottom:"5%",
+          },
+        ],
+        dataZoom: [
+          {
+            type: "inside",
+            start: 0,
+            end: 100,
+            xAxisIndex: [0, 1,2,3,4]
           },
         ],
         xAxis:[
@@ -115,30 +124,35 @@ export default {
             name:"Temperature (C)",
             type:"value",
             gridIndex:0,
+            min:0,
             boundaryGap: ['40%', '40%'],
           },
           {
             name:"Humidity ",
             type:"value",
             gridIndex:1,
+            min:0,
             boundaryGap: [0, '40%'],
           },
           {
             name:"Distance - Ultrasonic",
             type:"value",
             gridIndex:2,
+            min:0,
             boundaryGap: ['40%', '40%'],
           },
           {
             name:"LVDT Voltage",
             type:"value",
             gridIndex:3,
+            min:0,
             boundaryGap: ['40%', '40%'],
           },
           {
             name:"Distance - LVDT",
             type:"value",
             gridIndex:4,
+            min:0,
             boundaryGap: ['40%', '40%'],
           },
         ],
@@ -149,6 +163,7 @@ export default {
             xAxisIndex:0,
             yAxisIndex:0,
             smooth: true,
+            animation:false,
             symbol: "none",
             data:[]
           },
@@ -157,7 +172,8 @@ export default {
             type:"line",
             xAxisIndex:1,
             yAxisIndex:1,
-             smooth: true,
+            smooth: true,
+            animation:false,
             symbol: "none",
             data:[]
           },
@@ -166,7 +182,8 @@ export default {
             type:"line",
             xAxisIndex:2,
             yAxisIndex:2,
-             smooth: true,
+            smooth: true,
+            animation:false,
             symbol: "none",
             data:[]
           },
@@ -177,6 +194,7 @@ export default {
             xAxisIndex:3,
             yAxisIndex:3,
             smooth: true,
+            animation:false,
             symbol: "none",
             data:[]
           },
@@ -185,7 +203,8 @@ export default {
             type:"line",
             xAxisIndex:4,
             yAxisIndex:4 ,
-             smooth: true,
+            smooth: true,
+            animation:false,
             symbol: "none",
             data:[]
           }
@@ -195,22 +214,22 @@ export default {
   },
   methods: {
     draw(id, range) {
-      for(var i=0;i<this.option.series.length;i++) 
-        this.option.series[0].data = []
-      for(var a=0;a<this.option.xAxis.length;a++) {
-        this.option.xAxis[a].data = []
-        this.option.yAxis[a].data = []
-      }
+      // for(var i=0;i<this.option.series.length;i++) 
+      //   this.option.series[i].data = []
+      // for(var a=0;a<this.option.xAxis.length;a++) {
+      //   this.option.xAxis[a].data = []
+      //   this.option.yAxis[a].data = []
+      // }
       this.$api.gateway.getSensorsByID(id, range)
       .then((res) => {
         if (res.data.flag == 0) return;
-        for(var i=0;i<res.data.data.length;i++) {
+        for(var i=this.option.series[0].data.length;i<res.data.data.length;i++) {
           var sr = res.data.data[i]
           // this.option.xAxis.data.push(sr.timestamp)
           var d = new Date(res.data.data[i].timestamp)
           // time zone diff
           var curD = new Date(d.getTime() - (d.getTimezoneOffset() * 60000))
-          for (var x=0;x<4;x++)
+          for (var x=0;x<this.option.xAxis.length;x++)
             this.option.xAxis[x].data.push(curD.toJSON().substr(5, 14).replace('T', ' '))
           
           this.option.series[0].data.push(sr.temp)

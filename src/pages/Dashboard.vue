@@ -85,7 +85,7 @@ export default {
     setInterval(() => {
       if (this.autorefresh) this.$EventBus.$emit("selectedRange", "week");
       // window.console.log("biu")
-    }, 3000);
+    }, 1000);
   },
 };
 </script>
