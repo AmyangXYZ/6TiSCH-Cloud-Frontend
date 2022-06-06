@@ -43,6 +43,14 @@ export default {
         tooltip:{
           trigger: 'axis'
         },
+        toolbox: {
+          feature: {
+            dataView:{
+              title: "Data View",
+              lang: ["Data View", "Close", "Refresh"]
+            }
+          }
+        },
         grid: [
           {
             top:"8%",
@@ -165,7 +173,7 @@ export default {
             smooth: true,
             animation:false,
             symbol: "none",
-            data:[]
+            data:[1,1,2]
           },
           {
             name:"Humidity",
@@ -245,7 +253,6 @@ export default {
     }
   },
   mounted() {
-    // this.draw(this.selectedSensor,this.selectedRange);
     this.$EventBus.$on("sensors", (sensors)=>{
       this.selectedSensor = sensors[0].sensor_id
       this.draw(this.selectedSensor, this.selectedRange);
