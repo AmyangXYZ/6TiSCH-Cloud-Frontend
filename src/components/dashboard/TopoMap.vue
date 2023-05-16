@@ -166,7 +166,7 @@ export default {
           for (var k = 0; k < this.markers.length; k++) {
             var icon = {
               path: window.google.maps.SymbolPath.CIRCLE,
-              scale: 5.5,
+              scale: 6.5,
               // fillColor: "none",
               fillOpacity: 1,
               strokeColor: "#000E2F",
@@ -187,7 +187,7 @@ export default {
               text: text,
               fontWeight:"bold",
               color: "white",
-              fontSize: "8pt",
+              fontSize: "8.5pt",
             });
           }
         });
