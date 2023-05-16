@@ -9,7 +9,7 @@ import "echarts/lib/component/legend";
 import "echarts/lib/component/toolbox";
 import "echarts/lib/component/tooltip";
 
-import t from "./topo.json"
+import t from "./topology_49.json"
 
 export default {
   components: {
@@ -82,8 +82,8 @@ export default {
       this.$api.gateway.getTopology(gw, range)
       .then(res=> {
         
-        // res.data.data = t
-        window.console.log(t)
+        res.data.data = t.data
+        // window.console.log(t)
         if (res.data.flag==0||res.data.data.length==0) return
         this.$EventBus.$emit('sensorCnt', res.data.data.length-1)
         

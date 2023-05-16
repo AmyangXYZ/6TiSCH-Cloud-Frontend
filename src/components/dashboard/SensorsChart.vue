@@ -78,23 +78,16 @@ export default {
             left:"58%",
             right:"6%",
             bottom:"5%",
-          },
-          {
-            top:"75%",
-             height:"20%",
-            left:"8%",
-            right:"58%",
-            bottom:"5%",
-          },
+          }
         ],
-        dataZoom: [
-          {
-            type: "inside",
-            start: 0,
-            end: 100,
-            xAxisIndex: [0, 1,2,3,4]
-          },
-        ],
+        // dataZoom: [
+        //   {
+        //     type: "inside",
+        //     start: 0,
+        //     end: 100,
+        //     xAxisIndex: [0, 1,2,3,4]
+        //   },
+        // ],
         xAxis:[
           {
             name: "time",
@@ -119,50 +112,37 @@ export default {
             type: "category",
             data:[],
             gridIndex:3,
-          },
-          {
-            name: "time",
-            type: "category",
-            data:[],
-            gridIndex:4,
           }
         ],
         yAxis:[
           {
-            name:"Temperature (C)",
+            name:"Temperature",
             type:"value",
             gridIndex:0,
             min:0,
             boundaryGap: ['40%', '40%'],
           },
           {
-            name:"Humidity ",
+            name:"Humidity",
             type:"value",
             gridIndex:1,
             min:0,
             boundaryGap: [0, '40%'],
           },
           {
-            name:"Distance - Ultrasonic",
+            name:"Pressure",
             type:"value",
             gridIndex:2,
             min:0,
             boundaryGap: ['40%', '40%'],
           },
           {
-            name:"LVDT Voltage",
+            name:"Accelerator",
             type:"value",
             gridIndex:3,
             min:0,
             boundaryGap: ['40%', '40%'],
-          },
-          {
-            name:"Distance - LVDT",
-            type:"value",
-            gridIndex:4,
-            min:0,
-            boundaryGap: ['40%', '40%'],
-          },
+          }
         ],
         series: [
           {
@@ -173,7 +153,7 @@ export default {
             smooth: true,
             animation:false,
             symbol: "none",
-            data:[1,1,2]
+            data:[]
           },
           {
             name:"Humidity",
@@ -186,7 +166,7 @@ export default {
             data:[]
           },
           {
-            name:"Distance - Ultrasonic",
+            name:"Pressure",
             type:"line",
             xAxisIndex:2,
             yAxisIndex:2,
@@ -195,9 +175,8 @@ export default {
             symbol: "none",
             data:[]
           },
-
           {
-            name:"Distance - LVDT",
+            name:"AccX",
             type:"line",
             xAxisIndex:3,
             yAxisIndex:3,
@@ -207,10 +186,20 @@ export default {
             data:[]
           },
           {
-            name:"LVDT Voltage",
+            name:"AccY",
             type:"line",
-            xAxisIndex:4,
-            yAxisIndex:4 ,
+            xAxisIndex:3,
+            yAxisIndex:3 ,
+            smooth: true,
+            animation:false,
+            symbol: "none",
+            data:[]
+          },
+          {
+            name:"AccZ",
+            type:"line",
+            xAxisIndex:3,
+            yAxisIndex:3 ,
             smooth: true,
             animation:false,
             symbol: "none",
@@ -222,12 +211,6 @@ export default {
   },
   methods: {
     draw(id, range) {
-      // for(var i=0;i<this.option.series.length;i++) 
-      //   this.option.series[i].data = []
-      // for(var a=0;a<this.option.xAxis.length;a++) {
-      //   this.option.xAxis[a].data = []
-      //   this.option.yAxis[a].data = []
-      // }
       this.$api.gateway.getSensorsByID(id, range)
       .then((res) => {
         if (res.data.flag == 0) return;
@@ -241,10 +224,11 @@ export default {
             this.option.xAxis[x].data.push(curD.toJSON().substr(5, 14).replace('T', ' '))
           
           this.option.series[0].data.push(sr.temp)
-          this.option.series[1].data.push(sr.humidity)
-          this.option.series[2].data.push(sr.ultrasonic)
-          this.option.series[3].data.push(sr.lvdt1)
-          this.option.series[4].data.push(sr.lvdt2)
+          this.option.series[1].data.push(sr.rhum)
+          this.option.series[2].data.push(sr.press)
+          this.option.series[3].data.push(sr.acc_x)
+          this.option.series[4].data.push(sr.acc_y)
+          this.option.series[5].data.push(sr.acc_z)
         }
       });
     },

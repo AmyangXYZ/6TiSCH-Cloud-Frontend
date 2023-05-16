@@ -12,12 +12,12 @@
       </vs-col>
     </vs-row>
     <vs-row vs-align="flex-start" vs-w="12">
-      <vs-col vs-offset="0.8" vs-w="7">
+      <vs-col vs-offset="0.8" vs-w="4">
         <NWTable />
         
         <SensorsChart />
       </vs-col>
-      <vs-col vs-offset="0.3" vs-w="3.5">
+      <vs-col vs-offset="0.3" vs-w="8.5">
         <Topo />
         <!-- <RSSiChart /> -->
       </vs-col>
